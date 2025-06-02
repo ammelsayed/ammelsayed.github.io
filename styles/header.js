@@ -31,7 +31,7 @@ class MyHeader extends HTMLElement {
                             <a href="./projects.html" id="cv">
                                 Projects
                             </a>
-                        </li>
+                        </li>      
                         <li>
                             <a href="./blog.html" id="blog">
                                 Blog
@@ -41,7 +41,7 @@ class MyHeader extends HTMLElement {
                             <a href="./events.html" id="events">
                                 Events
                             </a>
-                        </li>
+                        </li>                        
                         <li>       
                            <a href="./contact_me.html" id="contact_me">        
                                 Contact  
@@ -85,7 +85,7 @@ class MyHeader extends HTMLElement {
                                     <a href="./projects.html" id="cv">
                                         Projects
                                     </a>
-                                </li>
+                                </li>      
                                 <li>
                                     <a href="./blog.html" id="blog">
                                         Blog
@@ -95,7 +95,7 @@ class MyHeader extends HTMLElement {
                                     <a href="./events.html" id="events">
                                         Events
                                     </a>
-                                </li>
+                                </li> 
                                 <li>      
                                     <a href="./contact_me.html" id="contact_me">      
                                          Contact  

@@ -10,23 +10,33 @@
     text-decoration: none;
 }
 
-html, body {
+html {
     width: 100%;
     height: 100%;
     display: flex;
     flex-direction: column; /* Items are placed left to right. */
-    background-color: white;
+    /* background-color: #101010; */
+}
+
+body {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column; 
+    justify-content: space-between; /* Items are placed top to bottom. */
+    /* align-items: stretch;  */
 }
 
 body main {
-    margin: 10px;   /* Space outside the border */
-    padding: 10px;  /* Space inside the border, between content and border */
+    margin: 0px;   /* Space outside the border */
+    padding: 20px;  /* Space inside the border, between content and border */
     flex: 1; /* Fills available space */
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     display: flex;
     flex-direction: column; 
     justify-content: flex-start;   
     align-items: center; 
+    background-color: white;
 }
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */

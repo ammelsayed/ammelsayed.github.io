@@ -18,11 +18,11 @@
     <link rel="icon" href="images/tap-icon.png">
     
     <!--Body and Body-Main styles-->
-    <link rel="stylesheet" href="publications/style.css">
+    <link rel="stylesheet" href="./publications/style.css">
 
     <!--Header and footer stylings-->
-    <link rel="stylesheet" href="styles/header.css">
-    <link rel="stylesheet" href="styles/footer.css">
+    <link rel="stylesheet" href="./styles/header.css">
+    <link rel="stylesheet" href="./styles/footer.css">
 
 
 </head>
@@ -49,6 +49,13 @@
 
         </div>
 
+        <div class="page-content">
+            <!-- old static line:
+            <p><i>Showing <b>65</b> out of <b>67</b> published works.</i></p>
+            -->
+            <p id="publication-count"><i></i></p>
+        </div>
+
         <div id="publications-list">
 
         </div>
@@ -58,7 +65,7 @@
         </div>
     </main>
 
-    <script src="publications/script.js"></script>
+    <script src="./publications/script.js"></script>
     
     <my-footer></my-footer>
     <script type="module" src="styles/footer.js"></script>

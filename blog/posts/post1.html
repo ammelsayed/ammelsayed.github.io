@@ -1,34 +1,57 @@
+
+<!-- /* ------------------------------- *\ -->
+<!-- /*     AUTHOR: A.M.M. Elsayed      *\ -->
+<!-- /*    * ALL RIGHTS RESERVED *      *\ -->
+<!-- /* ------------------------------- *\ -->
+ 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My First Blog Post</title>
-    <link rel="stylesheet" href="../styles.css">
+
+    <title>Blog</title>
+
+    <!--Browser Tap icon-->
+    <link rel="icon" href="images/tap-icon.png">
+    
+    <!--Body and Body-Main styles-->
+    <link rel="stylesheet" href="blog/style.css">
+
+    <!--Header and footer stylings-->
+    <link rel="stylesheet" href="styles/header.css">
+    <link rel="stylesheet" href="styles/footer.css">
+    <link rel="stylesheet" href="styles/bodies.css">
+
 </head>
+
 <body>
-    <header>
-        <nav>
-            <ul>
-                <li><a href="../index.html">Home</a></li>
-                <li><a href="../about.html">About</a></li>
-                <li><a href="../publications.html">Publications</a></li>
-                <li><a href="../blog.html">Blog</a></li>
-                <li><a href="../contact.html">Contact</a></li>
-            </ul>
-        </nav>
-    </header>
+
+    <my-header></my-header>
+    <script type="module" src="styles/header.js"></script>
+    <script src="menu.js"></script>
+
     <main>
-        <article>
-            <h1>My First Blog Post</h1>
-            <p><em>Published on January 1, 2023</em></p>
-            <p>This is my first blog post. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-            <!-- Add more content here -->
-        </article>
+        <div class="page-top">
+            <h1>Blog</h1>
+        </div>
+
+        <section>
+            <h2>
+                Some header
+            </h2>
+            <p>
+                Some text
+            </p>
+        </section>
     </main>
-    <footer>
-        <p>&copy; 2025 A.M.M. Elsayed. All rights reserved.</p>
-    </footer>
-    <script src="../script.js"></script>
+    <script src="blog/script.js"></script>
+    
+    <my-footer></my-footer>
+    <script type="module" src="styles/footer.js"></script>
+    <script src="user/upload_social_links.js"></script>
+     
 </body>
 </html>

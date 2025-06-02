@@ -4,7 +4,7 @@ class MyFooter extends HTMLElement {
             <footer>
                 <div class="inner-footer">
                     <p>
-                        &copy 2025 <a href="https://ammelsayed.github.io/"><b>A.M.M. Elsayed</b></a>. All rights reserved.
+                        &copy 2025 <b>A.M.M. Elsayed</b>. All rights reserved.
                         <br>
                         Powered by <a href="https://jekyllrb.com/"><b>Jekyll</b></a>.
                     </p>

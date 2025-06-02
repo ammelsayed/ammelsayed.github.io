@@ -53,6 +53,20 @@ body main {
     font-size: 45px;
 }
 
+.page-content {
+    width: 100%;
+    max-width: 1000px;
+    min-width: 0;
+    /* max-height: 40px;
+    min-height: 0; */
+    margin-top: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column; 
+    justify-content: space-between;
+    align-items: flex-start;   
+}
+
 #publications-list {
     max-width: 1000px;
     min-width: 0;
