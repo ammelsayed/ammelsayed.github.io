@@ -38,8 +38,8 @@ class MyHeader extends HTMLElement {
                             </a>
                         </li>
                         <li>
-                            <a href="./cv.html" id="cv">
-                                Resume
+                            <a href="./projects.html" id="cv">
+                                Projects
                             </a>
                         </li>
                         <li>       
@@ -92,8 +92,8 @@ class MyHeader extends HTMLElement {
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="./cv.html" id="cv">
-                                        Resume
+                                    <a href="./projects.html" id="cv">
+                                        Projects
                                     </a>
                                 </li>
 
