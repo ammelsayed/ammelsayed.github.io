@@ -28,8 +28,8 @@ class MyHeader extends HTMLElement {
                             </a>
                         </li>
                         <li>
-                            <a href="./events.html" id="events">
-                                Events
+                            <a href="./projects.html" id="cv">
+                                Projects
                             </a>
                         </li>
                         <li>
@@ -38,8 +38,8 @@ class MyHeader extends HTMLElement {
                             </a>
                         </li>
                         <li>
-                            <a href="./projects.html" id="cv">
-                                Projects
+                            <a href="./events.html" id="events">
+                                Events
                             </a>
                         </li>
                         <li>       
@@ -82,8 +82,8 @@ class MyHeader extends HTMLElement {
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="./events.html" id="events">
-                                        Events
+                                    <a href="./projects.html" id="cv">
+                                        Projects
                                     </a>
                                 </li>
                                 <li>
@@ -92,11 +92,10 @@ class MyHeader extends HTMLElement {
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="./projects.html" id="cv">
-                                        Projects
+                                    <a href="./events.html" id="events">
+                                        Events
                                     </a>
                                 </li>
-
                                 <li>      
                                     <a href="./contact_me.html" id="contact_me">      
                                          Contact  
