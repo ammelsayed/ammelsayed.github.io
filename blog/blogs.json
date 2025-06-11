@@ -1,0 +1,10 @@
+[
+    {
+        "author": "<a href='https://ammelsayed.github.io/'> A.M.M. Elsayed </a>",
+        "title": "Lets talk about Git",
+        "date": "May 2025",
+        "description": "If you think of Git just as a tool to upload your files from your local or working                  device to a Respority on Github or Gitee, then you badly under estimated this powerful tool oreated by the Father of Linux. Under this post, I will try to explain the basics of Git and how it works. This post is not a tutorial, but rather an introduction to the world of Git.",
+        "image_soruce":"https://git-scm.com/images/logos/downloads/Git-Logo-2Color.png",
+        "link": "./posts/post1.html"
+    }
+]

@@ -27,11 +27,11 @@ class MyHeader extends HTMLElement {
                                 Publications
                             </a>
                         </li>
-                        <li>
+                        <!-- <li>
                             <a href="./projects.html" id="cv">
                                 Projects
                             </a>
-                        </li>      
+                        </li>     -->    
                         <li>
                             <a href="./blog.html" id="blog">
                                 Blog
@@ -81,11 +81,11 @@ class MyHeader extends HTMLElement {
                                         Publications
                                     </a>
                                 </li>
-                                <li>
+                                <!-- <li>
                                     <a href="./projects.html" id="cv">
                                         Projects
                                     </a>
-                                </li>      
+                                </li>     -->
                                 <li>
                                     <a href="./blog.html" id="blog">
                                         Blog
