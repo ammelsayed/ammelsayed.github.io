@@ -13,37 +13,37 @@ class MyHeader extends HTMLElement {
                 <nav>
                     <ul>
                         <li>
-                            <a href= "./index.html" id="home">
+                            <a href= "/index.html" id="home">
                                 Home
                             </a>
                         </li>
                         <li>
-                            <a href="./about.html" id="about">
+                            <a href="/about.html" id="about">
                                 About
                             </a>
                         </li>
                         <li>
-                            <a href="./publications.html" id="publications">
+                            <a href="/publications.html" id="publications">
                                 Publications
                             </a>
                         </li>
                         <!-- <li>
-                            <a href="./projects.html" id="cv">
+                            <a href="/projects.html" id="cv">
                                 Projects
                             </a>
                         </li>     -->    
                         <li>
-                            <a href="./blog.html" id="blog">
+                            <a href="/blog.html" id="blog">
                                 Blog
                             </a>
                         </li>
                         <li>
-                            <a href="./events.html" id="events">
+                            <a href="/events.html" id="events">
                                 Events
                             </a>
                         </li>                        
                         <li>       
-                           <a href="./contact_me.html" id="contact_me">        
+                           <a href="/contact_me.html" id="contact_me">        
                                 Contact  
                            </a>       
                         </li>      
@@ -67,37 +67,37 @@ class MyHeader extends HTMLElement {
                         <nav>
                             <ul>
                                 <li>
-                                    <a href= "./index.html" id="home">
+                                    <a href= "/index.html" id="home">
                                         Home
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="./about.html" id="about">
+                                    <a href="/about.html" id="about">
                                         About
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="./publications.html" id="publications">
+                                    <a href="/publications.html" id="publications">
                                         Publications
                                     </a>
                                 </li>
                                 <!-- <li>
-                                    <a href="./projects.html" id="cv">
+                                    <a href="/projects.html" id="cv">
                                         Projects
                                     </a>
                                 </li>     -->
                                 <li>
-                                    <a href="./blog.html" id="blog">
+                                    <a href="/blog.html" id="blog">
                                         Blog
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="./events.html" id="events">
+                                    <a href="/events.html" id="events">
                                         Events
                                     </a>
                                 </li> 
                                 <li>      
-                                    <a href="./contact_me.html" id="contact_me">      
+                                    <a href="/contact_me.html" id="contact_me">      
                                          Contact  
                                     </a>      
                                 </li>     
