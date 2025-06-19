@@ -1,6 +1,14 @@
 [
     {
         "event_type": "Held by International College of USTC",
+        "title": "Youth International Innovation Exchange Program in Yumin County, Xinjiang",
+        "date": "June 2025",
+        "location": "Yumin County, Xinjiang, China",
+        "description": "This event was held in Yumin County, Xinjiang, China. It was a great opportunity for international students to exchange ideas and experiences with local youth. The event included workshops, cultural exchanges, and discussions on innovation and entrepreneurship. We had the chance to see the beautiful landscapes of Xinjiang and learn about the local culture. This trip is unforgetabble and we made many new friends. I'm looking forward to visit Xinjiang again.",
+        "image_soruce":"./events/images/xinjiang_event.jpg"
+    },
+    {
+        "event_type": "Held by International College of USTC",
         "title": "The 15<sup>th</sup> Shanghai Region and 3<sup>rd</sup> Yangzi River Delta HEls International Students Dragon Boat Race (第十五届上海高校暨第三届长三角高校外国留学生龙舟赛)",
         "date": "May 2025",
         "location": "ECUST, Shanghai, China",

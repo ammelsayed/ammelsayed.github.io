@@ -111,6 +111,7 @@ body main {
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
+    align-items: center;
 }
 
 #events-list .publication .content .author_information img {
@@ -121,6 +122,13 @@ body main {
     margin: 0;
     margin-right: 10px;
     display: block;       /* remove any inline gaps */
+}
+
+#events-list .publication .content .author_information .AuthorName_and_Date {
+    height: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 

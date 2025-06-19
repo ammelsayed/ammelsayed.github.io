@@ -41,17 +41,15 @@ function displayPublications(data) {
     card.innerHTML = `
       <div class="content">
         <h2>${pub.title}</h2>
-        <p class="author_information">
+        <div class="author_information">
           <img src="${pub.author_image}" class="author_image">
-          <em>
-            By 
-            <a href="${pub.author_link}" target="_blank" rel="noopener">
+          <div class="AuthorName_and_Date">
+            <em> By  <a href="${pub.author_link}" target="_blank" rel="noopener">
               ${pub.author},
-            </a>
-            <br> 
-            ${pub.date}
-          </em>
-        </p>
+            </a> </em>
+            <em>${pub.date}</em>
+          </div>
+        </div>
         <hr>
         <p class="abstract">${pub.description}</p>
       </div>
@@ -123,14 +121,14 @@ function displayPublicationsWithHighlights(data, term) {
         <h2>${hTitle}</h2>
         <p class="author_information">
           <img src="${pub.author_image}" class="author_image">
-          <em>
+          <div class="AuthorName_and_Date">
             By 
             <a href="${pub.author_link}" target="_blank" rel="noopener">
               ${highlightTextInHTML(pub.author, term)}
             </a>
             <br>  
             ${highlightTextInHTML(pub.date, term)}
-          </em>
+          </div>
         </p>
         <hr>
         <p class="abstract">${hDesc}</p>

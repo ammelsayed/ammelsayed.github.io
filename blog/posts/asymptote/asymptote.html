@@ -43,16 +43,98 @@
 
 
 <div class="page-top">
-<h1>About Me</h1>
+<h1>Instructions for Drawing Feynman Diagrams Using Asymptote (Vector Graphics Language)</h1>
+</div>
+
+<div class="author_information">
+<img src="/../../blog/ammelsayed.jpg" class="author_image">
+<div class="AuthorName_and_Date">
+<em style="font-size: 18px;"> By  <a href="https://ammelsayed.github.io/" target="_blank" rel="noopener">
+A.M.M. Elsayed,
+</a> </em>
+<em style="font-size: 18px;">May 2024</em>
+</div>
 </div>
 
 <section>
-<h2>
-Bio
-</h2>
+
+
 <p>
-I'm Ahmed M.M. Elsayed, a Particle Physicist. I am passionate about particle physics.
+Feynman diagrams are a powerful way to visualize particle interactions in physics, and the Asymptote language, with its feynman package, provides an elegant tool to create them. This guide will walk you through the process of drawing a Feynman diagram for the process <math><mrow><mi>q</mi><mover><mi>q</mi><mo stretchy='false' class='tml-xshift' style='math-style:normal;math-depth:0;'>‾</mo></mover><mo>→</mo><mi>Z</mi><mo>→</mo><msup><mi>μ</mi><mo form='prefix' stretchy='false'>+</mo></msup><msup><mi>μ</mi><mo>−</mo></msup></mrow></math> using Asymptote. One can adapt these steps for other diagrams by adjusting points, propagators, labels, and vertices as needed. More code examples will be provided at the end of this document for references.
 </p>
+
+<p>
+The source code for  feynman package can be found here :
+<a href="https://github.com/vectorgraphics/asymptote/blob/master/base/feynman.asy">https://github.com/vectorgraphics/asymptote/blob/master/base/feynman.asy</a>
+</p>
+
+<hr style="max-width: 900px;">
+
+<p>
+<b>Prerequisites</b><br>
+
+•	Ensure you have Asymptote installed on your system: Linux OS or WSL users can easily install a recent version of Asymptote with the command sudo apt install asymptote. In the directory of the .asy file, compile with asy -V -f pdf <filename>.asy. Installing Asymptote on Microsoft Windows is possible, but relatively complicated. Windows users can run Asymptote in the browser without installing it at http://asymptote.ualberta.ca/ .
+
+•	If you are using an offline complier, create a new .asy file (e.g., feynman_diagram.asy) to write your code.
+
+</p>
+
+<hr style="max-width: 900px;">
+
+<p>
+
+To draw Feynman diagrams using the Asymptote language, we being by loading the feynman module through the following line of code:
+<div class="code">
+import feynman;
+</div>
+Next, we set default line width to 0.5 bp (or any other value you prefer), and scale all other defaults of the feynman module appropriately using the following lines of code:
+currentpen = linewidth(0.5); // set line width
+fmdefaults(); // scale all other defaults.
+Step 1: Marking Spatial Points
+We begin by defining an arbitrary length L by
+real L = 50;
+With such setting, we can easily uniformly change the overall size of the Feynman diagram by increasing or decreasing the value of L. Next, we define two spatial points on the space separated by some multiple of L. The two points can be placed on the x-axis:
+pair pl = (-0.75*L,0); // point on the left (pl = point left)
+pair pr = (+0.75*L,0);  // point on the right (pr = point right)
+or along the y axis (if needed):
+pair pu = (0,+0.75*L); // point up
+ pair pd = (0,-0.75*L); // point down
+where pl (short for point left) and pr (short for point right) are separated by 1.5L bp. Now we can easily mark additional spatial points required to construct our code for Feynman diagram drawing, relative to those two points. For example, to draw Feynman diagram of muon pair production via s-channel exchange of Z boson (qq ̅→Z→μ^+ μ^- ), we need to draw 4 additional points. Two points will be on the left-hand side of pl (one above the x-axis, and one below) and two other points will be on the right-hand side of pr. We mark those points by the following four lines of code:
+pair pl_l_u = pl + L*dir(+120);  // upper-left-hand side of pl, by an angle +120 measured counterclockwise from the positive x-axis. 
+pair pl_l_d = pl + L*dir(-120);  // down-left-hand side of pl, by an angle -120 measured counterclockwise from the positive x-axis. 
+pair pr_r_u = pr + L*dir(+60);  // upper-right-hand side of pr, by an angle +60 measured counterclockwise from the positive x-axis. 
+pair pr_r_d = pr + L*dir(-60);  // upper-right side relative to pr, by an angle -60 measured counterclockwise from the positive x-axis. 
+Notice that here L can be multiplied by a number to adjust the displacement between to spatial points. For example, if we wished pl_l_u to be further away from pl, we can multiply L by, for instance, 1.5 as follows:
+pair pl_l_u = pl + 1.5*L*dir(+120);  
+Step 2: Drawing Propagators (Particle Lines)
+If we will to run the Asymptote code:
+import feynman;
+currentpen = linewidth(0.5); // set line width
+fmdefaults(); // scale all other defaults.
+real L = 50;
+pair pl = (-0.75*L,0); pair pr = (+0.75*L,0);  
+pair pl_l_u = pl + L*dir(+120);  
+pair pl_l_d = pl + L*dir(-120);  
+pair pr_r_u = pr + L*dir(+60);  
+pair pr_r_d = pr + L*dir(-60);  
+we won’t see anything. This is because we only defined some points in the space, and no lines are actually drawn yet. In Asymptote, we use the draw() function to draw lines linking two predefined spatial points. For example, if we want to draw a line linking points pl and pl_l_u, we write:
+draw(pl -- pl_l_u);
+If we wish the lined to be dashed, we write:
+draw(pl -- pl_l_u,dashed);
+The feynman package provides functions to draw fermions by drawFermion(), vector bosons by drawPhoton(), gluons by drawGluon(), scalar lines by drawScalar(), ghost lines by drawGhost(), and double lines by drawDoubleLine().
+To draw Feynman diagram of muon pair production via s-channel exchange of Z boson (qq ̅→Z→μ^+ μ^- ), the predefined spatial points are linked as follows: 
+drawFermion(pl -- pl_l_u);  // antiquark leaving point pl heading to point pl_l_u
+drawFermion(pl_l_d --pl); // quark leaving point pl_l_d heading to point pl
+drawPhoton(pl -- pr);   // Z boson leaving point pl heading to point pr.
+drawFermion(pr -- pr_r_u); // muon leaving point pr heading to point pr_r_u
+drawFermion(pr_r_d -- pr); // antimuon leaving point pr_r_d heading to point pr
+Now if we run the code we get the following diagram (without labels):
+
+</p>
+
+
+
+
 </section>
 
 
