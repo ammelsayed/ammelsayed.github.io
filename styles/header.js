@@ -1,3 +1,15 @@
+
+// Removes "index.html" from the current URL path without reloading.
+
+(function stripIndex() {
+  const { pathname, search, hash } = window.location;
+  if (pathname.endsWith('index.html')) {
+    const cleanPath = pathname.slice(0, -'index.html'.length);
+    window.history.replaceState(null, '', cleanPath + search + hash);
+  }
+})();
+
+// Upload the headers 
 class MyHeader extends HTMLElement {
     connectedCallback() {
         this.innerHTML = `    
@@ -57,5 +69,4 @@ class MyHeader extends HTMLElement {
     `
     }
 }
-
 customElements.define('my-header',MyHeader)

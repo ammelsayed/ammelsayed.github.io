@@ -1,14 +1,9 @@
-/*---------------------------------------*\ 
+/*---------------------------------------*\
     AUTHOR: A.M.M. Elsayed   
     * ALL RIGHTS RESERVED *
 \*---------------------------------------*/
 
-/*  this is for all the elements in the html file 
-    Here we chose to set zero distance between the
-    browser borders and the elements borders
-*/
-
-*{
+* {
     margin: 0;
     padding: 0;
     list-style: none;
@@ -19,34 +14,28 @@ html, body {
     width: 100%;
     height: 100%;
     display: flex;
-    flex-direction: column; /* Items are placed left to right. */
+    flex-direction: column;
     background-color: white;
 }
 
 body main {
-    margin: 10px;   /* Space outside the border */
-    padding: 10px;  /* Space inside the border, between content and border */
-    flex: 1; /* Fills available space */
+    margin: 10px;
+    padding: 10px;
+    flex: 1;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     display: flex;
-    flex-direction: column; 
-    justify-content: flex-start;   
-    align-items: center; 
-}
-
-.navigations nav ul li #publications {
-    font-weight:350;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
 }
 
 .page-top {
     width: 100%;
     height: 150px;
     max-width: 1000px;
-    min-width: 0;
     display: flex;
-    flex-direction: row; 
     justify-content: space-between;
-    align-items: center;   
+    align-items: center;
 }
 
 .page-top h1 {
@@ -56,34 +45,25 @@ body main {
 .page-content {
     width: 100%;
     max-width: 1000px;
-    min-width: 0;
-    /* max-height: 40px;
-    min-height: 0; */
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin: 10px 0;
     display: flex;
-    flex-direction: column; 
-    justify-content: space-between;
-    align-items: flex-start;   
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 #events-list {
     max-width: 1000px;
-    min-width: 0;
     display: flex;
-    flex-direction: column; 
-    justify-content: flex-start;
-    align-items: center;  
+    flex-direction: column;
+    align-items: center;
 }
 
 #events-list .publication {
     width: 100%;
-    min-width: 0;
     display: flex;
-    flex-direction: row;
     justify-content: space-between;
-    align-items: center;   
-    margin: 20px 0px;
+    align-items: center;
+    margin: 20px 0;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
@@ -92,61 +72,56 @@ body main {
     transform: scale(1.001);
 }
 
-
 #events-list .publication .content {
     margin: 20px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
 }
 
 #events-list .publication img {
-    margin: 20px;   
+    margin: 20px;
     width: 95%;
     max-width: 350px;
     height: auto;
+    cursor: pointer;
 }
 
 #events-list .publication .content p {
-    margin-bottom: 5px;   
+    margin-bottom: 5px;
 }
 
 #events-list .publication .content h2 {
-    margin-bottom: 20px;   
+    margin-bottom: 20px;
 }
 
-
-#events-list .publication .content #abstract{
+#events-list .publication .content #abstract {
     font-size: 15px;
     text-align: justify;
-    margin-bottom: 10px;  
+    margin-bottom: 10px;
 }
 
-
-/* Styles for screens below 1000px */
 @media screen and (max-width: 1000px) {
     #events-list .publication {
         flex-direction: column;
     }
+
+    .search-bar {
+        display: none;
+    }
 }
 
-/* Ensure text wraps */
 #events-list .publication .content p,
 #events-list .publication .content h2 {
     word-wrap: break-word;
     overflow-wrap: break-word;
 }
 
-
-/* %-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-% */
-/*   Special Styling Search Bars   */
-/* %-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-% */
-
+/* Search Bar */
 .search-bar {
     display: flex;
     align-items: center;
     position: relative;
-    width: 400px; /* Add this line to set the desired width */
+    width: 400px;
 }
 
 .search-input {
@@ -187,14 +162,70 @@ body main {
     fill: #007bff;
 }
 
-@media screen and (max-width: 1000px) {
-    .search-bar {
-        display: none;
-    }
-}
-
 .highlight {
     background-color: yellow;
     font-weight: bold;
 }
 
+/* Lightbox Styles */
+#lightbox-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+#lightbox-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    color: white;
+    padding: 20px;
+    background-color: #1a1a1a;
+    border: 3px solid rgb(28, 28, 28); /* Add border */
+    border-radius: 0px; /* Optional: rounded corners */
+}
+
+#lightbox-caption h3 {
+    margin: 0 0 10px 0;
+    font-size: 20px;
+    color: #f0f0f0;
+    border-bottom: 1px solid #555;
+    padding-bottom: 5px;
+}
+
+
+#lightbox-image {
+    max-width: 60vw;
+    max-height: 80vh;
+    object-fit: contain;
+}
+
+#lightbox-caption {
+    max-width: 30vw;
+    overflow-y: auto;
+    font-size: 16px;
+    line-height: 1.4;
+}
+
+#lightbox-close {
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    font-size: 2rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+
+/* Prevent scrolling when lightbox is active */
+body.lightbox-active {
+    overflow: hidden;
+}

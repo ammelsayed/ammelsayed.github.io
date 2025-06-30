@@ -1,12 +1,5 @@
-/*---------------------------------------*\
-    AUTHOR: A.M.M. Elsayed   
-    * ALL RIGHTS RESERVED *
-\*---------------------------------------*/
-
-// Store publications data globally
 let publicationsData = [];
 
-// Fetch and store JSON data
 function fetchJSONData() {
     fetch('events.json')
         .then(response => {
@@ -17,24 +10,18 @@ function fetchJSONData() {
         })
         .then(data => {
             publicationsData = data;
-            // On initial load, show all
             displayPublications(publicationsData);
         })
         .catch(error => console.error('Error loading events:', error));
 }
 
-// Helper: create or update the count line
 function updatePublicationCounts(currentCount, totalCount) {
     const countsEl = document.getElementById('event-count');
     countsEl.innerHTML = `<i>Showing <b>${currentCount}</b> out of <b>${totalCount}</b> events.</i>`;
 }
 
-// Display publications without filtering or highlighting
 function displayPublications(data) {
-    // 1) update the counts (all displayed = total)
     updatePublicationCounts(data.length, publicationsData.length);
-
-    // 2) render
     const publicationsList = document.getElementById('events-list');
     publicationsList.innerHTML = '';
     data.forEach(pub => {
@@ -55,10 +42,7 @@ function displayPublications(data) {
     });
 }
 
-// Capture search input
 const searchInput = document.querySelector('.search-input');
-
-// Add real-time search with debouncing
 let debounceTimeout;
 searchInput.addEventListener('input', () => {
     clearTimeout(debounceTimeout);
@@ -67,19 +51,14 @@ searchInput.addEventListener('input', () => {
 
 function performSearch() {
     const searchTerm = searchInput.value.trim().toLowerCase();
-    if (!searchTerm) {
-        // no term → show all
-        return displayPublications(publicationsData);
-    }
+    if (!searchTerm) return displayPublications(publicationsData);
 
-    // Build filtered & sorted list
     const filteredData = publicationsData
         .map(pub => {
             let matchCount = 0;
-            ['title','date','location','description']
-                .forEach(fld => {
-                    if (pub[fld].toLowerCase().includes(searchTerm)) matchCount++;
-                });
+            ['title','date','location','description'].forEach(fld => {
+                if (pub[fld].toLowerCase().includes(searchTerm)) matchCount++;
+            });
             return { pub, matchCount };
         })
         .filter(item => item.matchCount > 0)
@@ -89,10 +68,8 @@ function performSearch() {
     displayPublicationsWithHighlights(filteredData, searchTerm);
 }
 
-// Display with highlights + update count
 function displayPublicationsWithHighlights(data, searchTerm) {
     updatePublicationCounts(data.length, publicationsData.length);
-
     const publicationsList = document.getElementById('events-list');
     publicationsList.innerHTML = '';
     data.forEach(pub => {
@@ -106,7 +83,7 @@ function displayPublicationsWithHighlights(data, searchTerm) {
                     📍 <em>${highlightText(pub.location, searchTerm)}</em>
                 </p>
                 <p id="abstract">
-                  ${highlightText(pub.description, searchTerm)}
+                    ${highlightText(pub.description, searchTerm)}
                 </p>
             </div>
             <img src="${pub.image_soruce}" class="publication-image">
@@ -115,14 +92,44 @@ function displayPublicationsWithHighlights(data, searchTerm) {
     });
 }
 
-// Utility to wrap matches in a <span>
 function highlightText(text, searchTerm) {
     if (!searchTerm) return text;
     const regex = new RegExp(`(${searchTerm})`, 'gi');
     return text.replace(regex, '<span class="highlight">$1</span>');
 }
 
-// Kick things off
+// Lightbox setup
+const overlay = document.getElementById('lightbox-overlay');
+const lightboxImage = document.getElementById('lightbox-image');
+const lightboxCaption = document.getElementById('lightbox-caption');
+const lightboxClose = document.getElementById('lightbox-close');
+
+function openLightbox(imgEl) {
+    lightboxImage.src = imgEl.src;
+    const desc = imgEl.previousElementSibling?.querySelector('#abstract') || 
+                 imgEl.closest('.publication')?.querySelector('#abstract');
+    document.getElementById('lightbox-description-text').textContent = desc ? desc.textContent : '';
+    overlay.style.display = 'flex';
+    document.body.classList.add('lightbox-active');
+}
+
+
+function closeLightbox() {
+    overlay.style.display = 'none';
+    document.body.classList.remove('lightbox-active');
+}
+
+document.getElementById('events-list').addEventListener('dblclick', e => {
+    if (e.target.classList.contains('publication-image')) {
+        openLightbox(e.target);
+    }
+});
+
+lightboxClose.addEventListener('click', closeLightbox);
+overlay.addEventListener('click', e => {
+    if (e.target === overlay) closeLightbox();
+});
+
 document.addEventListener('DOMContentLoaded', () => {
-    fetchJSONData(); // ← move your init call here
+    fetchJSONData();
 });

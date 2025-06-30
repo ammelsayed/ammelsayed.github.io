@@ -25,17 +25,6 @@
     <link rel="stylesheet" href="styles/footer.css">
     <link rel="stylesheet" href="styles/bodies.css">
 
-<!-- Hide “index.html” from the URL bar -->
-<script>
-  (function() {
-    const p = window.location.pathname;
-    if (p.endsWith('index.html')) {
-      // strip off “index.html” (10 chars) and replace the URL without reloading
-      const clean = p.slice(0, -'index.html'.length);
-      window.history.replaceState(null, '', clean);
-    }
-  })();
-</script>
 
 </head>
 

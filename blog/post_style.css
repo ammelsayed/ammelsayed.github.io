@@ -177,13 +177,12 @@ section code {
 
 
 section img {
-  display: block;                     /* prevent inline gaps, centers nicely */
-  width: auto;                        /* image will try to fill the container */
-  max-width: 400px;                   /* but never grow beyond 350px */
-  height: auto;                       /* preserve aspect ratio */
-  margin: 0 auto;                     /* center within the container */
-  padding: 20px;                      /* if you still want that inner spacing */
-  box-sizing: border-box;             /* include padding in the width calculation */
+    display: block;
+    align-self: center;
+    margin: 20px auto;   
+    width: auto;
+    max-width: min(450px, 80%);
+    height: auto;
 }
 
 
@@ -205,6 +204,10 @@ section h1, section h2, section h3, section h4 {
 
     section code {
         font-size: 15px;
+    }
+
+    .page-top h1 {
+        font-size: 35px;
     }
 }
 
