@@ -1,0 +1,93 @@
+
+<!-- /* ------------------------------- *\ -->
+<!-- /*     AUTHOR: A.M.M. Elsayed      *\ -->
+<!-- /*    * ALL RIGHTS RESERVED *      *\ -->
+<!-- /* ------------------------------- *\ -->
+ 
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Contact</title>
+
+    <!--Browser Tap icon-->
+    <link rel="icon" href="../images/tap-icon.png">
+    
+    <!--Body and Body-Main styles-->
+    <link rel="stylesheet" href="contact_me.css">
+
+    <!--Header and footer stylings-->
+    <link rel="stylesheet" href="../styles/header.css">
+    <link rel="stylesheet" href="../styles/footer.css">
+
+<!-- Hide “index.html” from the URL bar -->
+<script>
+  (function() {
+    const p = window.location.pathname;
+    if (p.endsWith('index.html')) {
+      // strip off “index.html” (10 chars) and replace the URL without reloading
+      const clean = p.slice(0, -'index.html'.length);
+      window.history.replaceState(null, '', clean);
+    }
+  })();
+</script>
+
+</head>
+
+<body>
+
+    <my-header></my-header>
+    <script type="module" src="../styles/header.js"></script>
+    <script src="../menu.js"></script>
+
+    <main> 
+        <div class=page-top>
+            <h1>Reach Out to me!</h1>
+        </div>
+        <!-- New Contact Details Section -->
+        <section>
+            <div class="info-item">
+                <img id="email-icon" src="" alt="Email Icon">
+                <p id="email"></p>
+            </div>
+            <div class="info-item">
+                <img id="phone-icon" src="" alt="Phone Icon">
+                <p id="phone"></p>
+            </div>
+            <div class="info-item">
+                <img id="address-icon" src="" alt="Address Icon">
+                <p id="address"></p>
+            </div>
+        </section>
+
+        <section class="section-contact">
+            <form id="contact-form" action="https://formspree.io/f/mvgkkbvg?" method="POST">
+                    
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" required>
+    
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
+    
+                    <label for="message">Message:</label>
+                    <textarea id="message" name="message" required></textarea>
+    
+                    <button type="submit" id="form-button">Send</button>
+                    <p id="contact-form-status"></p>
+                  </form>
+        </section>
+    </main>
+        
+    <script src="../user/upload_contact_info.js"></script>
+    <script src="contact_me.js"></script>
+    
+    <my-footer></my-footer>
+    <script type="module" src="../styles/footer.js"></script>
+    <script src="../user/upload_social_links.js"></script>
+
+</body>
+</html>

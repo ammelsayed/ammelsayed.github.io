@@ -1,0 +1,38 @@
+[
+    {
+        "paper_type":"Article",
+        "title": "Geant 4 Monte Carlo simulation for I-125 brachytherapy",
+        "date": "July 2024",
+        "journal": "Nuclear Engineering and Technology",
+        "description": "This study aims to validate the dosimetric characteristics of Low Dose Rate (LDR) I-125 source Geant4-based Monte Carlo code. According to the recommendation of the American Association of Physicists in Medicine (AAPM) task group report (TG-43), the dosimetric parameters of a new brachytherapy source should be verified either experimentally or theoretically before clinical procedures. The simulation studies are very important since this procedure delivers a high dose of radiation to the tumor with only a minimal dose affecting the surrounding tissues. GEANT4 Monte Carlo simulation toolkit associated brachytherapy example was modified, adapted and several updated techniques have been developed to facilitate and smooth radiotherapy techniques. The great concordance of the current study results with the consensus data and with the results of other MC based studies is promising. It implies that Geant4-based Monte Carlo simulation has the potential to be used as a reliable and standard simulation code in the field of brachytherapy for verification and treatment planning purposes.",
+        "link": "https://doi.org/10.1016/j.net.2024.02.010",
+        "image_soruce":"https://ars.els-cdn.com/content/image/1-s2.0-S1738573324000706-gr5.jpg"
+    },
+    {
+        "paper_type": "Article",
+        "title": "Wavelet transform theory: The mathematical principles of wavelet transform in gamma spectroscopy",
+        "date": "February 2023",
+        "journal": "Radiation Physics and Chemistry",
+        "description": "The objective of the proposed work was focused in presenting a novel algorithm for processing gamma-ray spectra based on theory of wavelet. We discuss the mathematical principles of applying wavelet transform (WT) method in processing γ-ray spectra and removing fluctuations and background from spectrum. The wavelet algorithm can apply accurately to detect most of peaks and determine net area under peaks. The proposed approach is able to detect most weak peaks in the searching processes. Wavelet method with some kind of discretization known as discrete wavelet transform (DWT) has been applied to filter noise and background detected with the spectrum. The effectiveness of the proposed algorithm is demonstrated via simulated spectra with different peaks containing backgrounds and with some measured gamma ray spectra. These analyzed results prove that the proposed DWT routine gives precise results for filtering and removing noise and background.",
+        "link": "http://dx.doi.org/10.1016/j.radphyschem.2022.110592",
+        "image_soruce":"https://ars.els-cdn.com/content/image/1-s2.0-S0969806X22006545-gr4_lrg.jpg"
+    },
+    {
+        "paper_type": "Article",
+        "title": " Development of distributed and automated system for 14MeV neutron generator laboratory",
+        "date": "April 2022",
+        "journal": "Radiation Physics and Chemistry",
+        "description": "Neutron generators are becoming an attractive alternative to reactors and radioactive neutron sources in a variety of applications in science and technology. Fast neutron activation analysis was firstly supposed to be a complementary method for the purpose of determining the absolute value of the neutron yield then become an elemental analytical technique. The arrangements necessary for using neutron generator for elemental analysis have been discussed including design, construction and characterization of the neutron generator. Source of errors has to be discussed that are assessed in the validation process and its expression in a standardized form. The contribution of these errors to the expanded uncertainty in the concentrations of Na, Mg, Al, Si, Cl, K, Ca and Fe in some domestic cement samples using 14 MeV neutron beam was assessed. and sample and assuming that all these errors were independent. the total estimated error was 5–7%.",
+        "link": "http://dx.doi.org/10.1016/j.radphyschem.2021.109936",
+        "image_soruce":"https://ars.els-cdn.com/content/image/1-s2.0-S0969806X21005867-gr2_lrg.jpg"
+    },
+    {
+        "paper_type": "Article",
+        "title": "A Semi-classical Study on the Sauter-Schwinger Effect of Lepton Antilepton Pairs in Vacuum",
+        "date": "March 2020",
+        "journal": "Results in Physics",
+        "description": "In this paper we purpose a fluctuation mechanism of the continuously appearing and disappearing lepton-antilepton pairs in vacuum. Within this approach, a semi-classical study on the Sauter-Schwinger effect is accomplished. We examined the suggested mechanism by comparing calculation of the Schwinger threshold our mechanism provides with the original one (m2c3/eℏ). While derivation we observed that the fluctuation mechanism suggests that muons and tauons should maintain the idea of classical lepton radius just as electrons maintain the idea of classical electron radius. The mechanism provides that lepton-antilepton pairs have initial total energies proportional to their rest mass energies with common constant of proportionality equal to1.47858037433852.",
+        "link": "https://doi.org/10.1016/j.rinp.2020.103108",
+        "image_soruce":"https://ars.els-cdn.com/content/image/1-s2.0-S221137971933116X-gr1_lrg.jpg"
+    }
+]

@@ -1,0 +1,14 @@
+/*---------------------------------------*\ 
+    AUTHOR: A.M.M. Elsayed   
+    * ALL RIGHTS RESERVED *
+\*---------------------------------------*/
+
+/*  this is for all the elements in the html file 
+    Here we chose to set zero distance between the
+    browser borders and the elements borders
+*/
+
+
+.navigations nav ul li #cv {
+    font-weight:350;
+}

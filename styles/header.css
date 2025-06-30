@@ -1,0 +1,244 @@
+/*---------------------------------------*\ 
+    AUTHOR: A.M.M. Elsayed   
+    * ALL RIGHTS RESERVED *
+\*---------------------------------------*/
+
+/*%%%%% REST ALL DEFAULTS  %%%%%%%*/
+
+*{
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-decoration: none;
+}
+
+/*%%%%% HEADRERS  %%%%%%%*/
+
+header {
+  width: 100%; /* To take all width of the page */
+  height: 66px;
+
+  display: flex;
+  flex-direction: row; /* Items are placed left to right. */
+  justify-content: space-evenly;   /*  Aligns flex items along the main axis (defined by flex-direction). */
+  align-items: center; /*  Aligns flex items along the cross axis: */
+  background-color: #101010;  /* */
+  box-shadow: 0 0 30px rgba(0,0,0,0.5); /* border shadows */
+}
+
+.inner-header {
+  width: 100%;
+  max-width: 1000px;
+  height: 100%;
+  padding: 0px 20px;
+  display: flex;
+  flex-direction: row; /* Items are placed left to right. */
+  justify-content: space-between;   /*  Aligns flex items along the main axis (defined by flex-direction). */
+  align-items: center; /*  Aligns flex items along the cross axis: */
+}
+
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+/*%%%%%%%%%% LOGO %%%%%%%%%%%%%%%%%%*/
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+
+.logo-container {
+  display: flex;
+  flex-direction: row; /* Items are placed left to right. */
+  justify-content: space-evenly;   /*  Aligns flex items along the main axis (defined by flex-direction). */
+  align-items: center; /*  Aligns flex items along the cross axis: */
+  height: 100%;
+}
+
+/* %%%%%%%%%%%%%%%% IMAGE LOGO SET TO UNVISIBLE */
+
+/* to edit the logo img */
+.logo-container img {
+  display: none;
+  width: 100px;
+  height: 100%; /* Maintains aspect ratio */
+  margin-left: 40px;
+  filter: brightness(0) saturate(100%) invert(1); /* to make logo white*/
+}
+
+/*%%%%%%%%%%%%%%%% TEXT LOGO  */
+
+.logo-container h1 {
+  color:white;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-size: 30px;
+  font-weight: 10;
+}
+
+.logo-container h1 span {
+  font-weight: 700;
+}
+
+/*%%%%%%%%%%%%%%%% NAVIGATION LINKS  */
+
+.navigations  {
+  height: 100%;
+  display: flex;
+  flex-direction: row; /* Items are placed left to right. */
+  justify-content: space-evenly;   /*  Aligns flex items along the main axis (defined by flex-direction). */
+  align-items: center; /*  Aligns flex items along the cross axis: */
+}
+  
+.navigations nav {
+  height: 100%;
+  display: flex;
+  flex-direction: row; /* Items are placed left to right. */
+  justify-content: space-evenly;   /*  Aligns flex items along the main axis (defined by flex-direction). */
+  align-items: center; /*  Aligns flex items along the cross axis: */
+}
+
+.navigations nav ul {
+  height: 100%;
+  display: flex;
+  flex-direction: row; /* Items are placed left to right. */
+  justify-content: space-evenly;   /*  Aligns flex items along the main axis (defined by flex-direction). */
+  align-items: center; /*  Aligns flex items along the cross axis: */
+  gap: 15px;
+}
+
+.navigations nav ul li {
+  height: 100%;
+  display: flex;
+  flex-direction: column; /* Items are placed left to right. */
+  justify-content: space-evenly;   /*  Aligns flex items along the main axis (defined by flex-direction). */
+  align-items: center; /*  Aligns flex items along the cross axis: */
+}
+
+.navigations nav ul li a {
+  height: 100%;
+  display: flex;
+  padding: 10px;
+  flex-direction: column; /* Items are placed left to right. */
+  justify-content: space-evenly;   /*  Aligns flex items along the main axis (defined by flex-direction). */
+  align-items: center; /*  Aligns flex items along the cross axis: */
+  color: white;
+  font-size: 16px;
+  font-weight: 300;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  border-top: 3px solid rgba(0, 0, 0, 0);
+  transition: border-top 0.8s ease, font-weight 0.2s ease, font-size 0.3s ease;
+}
+
+
+.navigations nav ul li a:hover {
+    border-top: 2px solid white;
+    font-weight: 320;
+    font-size: 16px;
+  }
+
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+
+.header-menu {
+  height: 100%;
+  display: flex;
+  align-items: center;     /* Center children vertically */
+  justify-content: center; /* Center horizontally if needed */
+  position: relative;      /* Position context for the absolute menu */
+}
+
+.header-menu .menu-button {
+  position: relative;
+  /* Ensure the button stays centered; no need for flex-direction: column here */
+  display: inline-block;
+}
+
+/*%%%%%%%%%%%%%%%% MENU BUTTON LINKS  */
+
+.header-menu .menu-button button {
+  width: 100px;
+  background-color: #202020;    /* Dark background */
+  color: white;              /* White icon */
+  padding: 10px 50px;        /* Space around the icon */
+  border: none;              /* Remove default border */
+  border-radius: 20px;        /* Rounded corners */
+  cursor: pointer;           /* Pointer cursor on hover */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.header-menu .menu-button button .line {
+  width: 60px;
+  height: 2px;
+  background-color: white;
+  margin: 3px;
+  transition: width 0.5s ease, margin 0.8s ease, height 1s ease;
+}
+
+.header-menu .menu-button:hover .line,
+.header-menu .menu-button.active .line  {
+  width: 80px;
+  margin: 0;
+  height: 0.5px;
+}
+
+/*%%%%%%%%%%%%%%%% MENU  LINKS  */
+
+/* MENU NAVIGATIONS: now positioned absolutely relative to .menu-button */
+.header-menu .menu-button .menu-navigations {
+    /* Instead of display, start hidden via opacity and translateY */
+  opacity: 0;
+  pointer-events: none; /* Prevent interaction when hidden */
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  position: absolute;
+  top: 100%; /* Flush directly below the button */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px; /* Adjust as needed */
+  background-color: #202020; /* Match the button */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+  z-index: 1000;
+  margin: 0; /* No gap */
+}
+
+/* When the menu is visible, add the "visible" class to change opacity and transform */
+.header-menu .menu-button .menu-navigations.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Style the inner navigation list within the menu */
+.header-menu .menu-button .menu-navigations nav ul {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.header-menu .menu-button .menu-navigations nav ul li {
+  width: 100%;
+  padding: 10px 0;
+  text-align: center;
+}
+
+.header-menu .menu-button .menu-navigations nav ul li a {
+  color: white;
+  font-size: 16px;
+  font-weight: 400;
+  text-decoration: none;
+  display: block;
+  padding: 8px 10px;
+  transition: background-color 0.3s ease;
+}
+
+.header-menu .menu-button .menu-navigations nav ul li a:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+}
+
+@media screen and (max-width: 1100px) {
+  .navigations {
+    display: none;
+  }
+}
+@media screen and (min-width: 1100px) {
+  .header-menu {
+    display: none;
+  }
+}

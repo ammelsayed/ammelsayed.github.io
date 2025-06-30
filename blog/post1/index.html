@@ -1,0 +1,456 @@
+
+<!-- /* ------------------------------- *\ -->
+<!-- /*     AUTHOR: A.M.M. Elsayed      *\ -->
+<!-- /*    * ALL RIGHTS RESERVED *      *\ -->
+<!-- /* ------------------------------- *\ -->
+ 
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+<!-- #########################################  -->
+<title>Feynmann</title>
+<!-- #########################################  -->
+
+
+<!--Browser Tap icon-->
+<link rel="icon" href="../../../images/tap-icon.png">
+<!--Body and Body-Main styles-->
+<link rel="stylesheet" href="../post_style.css">
+<!--Header and footer stylings-->
+<link rel="stylesheet" href="../../../styles/header.css">
+<link rel="stylesheet" href="../../../styles/footer.css">
+
+<!-- Hide “index.html” from the URL bar -->
+<script>
+  (function() {
+    const p = window.location.pathname;
+    if (p.endsWith('index.html')) {
+      // strip off “index.html” (10 chars) and replace the URL without reloading
+      const clean = p.slice(0, -'index.html'.length);
+      window.history.replaceState(null, '', clean);
+    }
+  })();
+</script>
+</head>
+
+
+<body>
+<my-header></my-header>
+<script type="module" src="../../../styles/header.js"></script>
+<script src="../../../menu.js"></script>
+<main>
+
+
+<!-- #########################################  -->
+<!-- #########################################  -->
+<!-- ###    Your Content Starts Here     #####  -->
+<!-- #########################################  -->
+<!-- #########################################  -->
+
+
+
+
+<div class="page-top">
+<h1>Instructions for Drawing Feynman Diagrams Using Asymptote (Vector Graphics Language)</h1>
+</div>
+
+<div class="author_information">
+<img src="/../../blog/ammelsayed.jpg" class="author_image">
+<div class="AuthorName_and_Date">
+<em style="font-size: 18px;"> By  <a href="https://ammelsayed.github.io/" target="_blank" rel="noopener">
+A.M.M. Elsayed,
+</a> </em>
+<em style="font-size: 18px;">May 2024</em>
+</div>
+</div>
+
+<section>
+
+<p></p>
+
+<p>
+Feynman diagrams are a powerful way to visualize particle interactions in physics, and the Asymptote language, with its feynman package, provides an elegant tool to create them. This guide will walk you through the process of drawing a Feynman diagram for the process <math><mrow><mi>q</mi><mover><mi>q</mi><mo stretchy='false' class='tml-xshift' style='math-style:normal;math-depth:0;'>‾</mo></mover><mo>→</mo><mi>Z</mi><mo>→</mo><msup><mi>μ</mi><mo form='prefix' stretchy='false'>+</mo></msup><msup><mi>μ</mi><mo>−</mo></msup></mrow></math> using Asymptote. One can adapt these steps for other diagrams by adjusting points, propagators, labels, and vertices as needed. More code examples will be provided at the end of this document for references.
+</p>
+
+<p>
+The source code for  feynman package can be found here :
+<a href="https://github.com/vectorgraphics/asymptote/blob/master/base/feynman.asy">https://github.com/vectorgraphics/asymptote/blob/master/base/feynman.asy</a>
+</p>
+
+
+<h2>Prerequisites</h2>
+
+<ul>
+<li>	
+Ensure you have Asymptote installed on your system: Linux OS or WSL users can easily install a recent version of Asymptote with the command <span class="inline-code">sudo apt install asymptote </span>. In the directory of the <span class="inline-code">.asy</span> file, compile with <span class="inline-code">asy -V -f pdf filename.as </span>. Installing Asymptote on Microsoft Windows is possible, but relatively complicated. Windows users can run Asymptote in the browser without installing it at <a href="http://asymptote.ualberta.ca/">http://asymptote.ualberta.ca/</a>.
+</li>
+<li>
+If you are using an offline complier, create a new .asy file (e.g., feynman_diagram.asy) to write your code.
+</li>
+</ul>
+
+
+
+<p>
+  To draw Feynman diagrams using the Asymptote language, we being by loading the feynman module through the following line of code:
+</p>
+
+<code>
+  import feynman;<br>
+</code>
+
+<p>
+  Next, we set default line width to 0.5 bp (or any other value you prefer), and scale all other defaults of the feynman module appropriately using the following lines of code:
+</p>
+
+<code>
+  currentpen = linewidth(0.5); // set line width<br>
+  fmdefaults(); // scale all other defaults.<br>
+</code>
+
+<h2>Step 1: Marking Spatial Points</h2>
+<p>
+  We begin by defining an arbitrary length L by
+</p>
+<code>
+  real L = 50;<br>
+</code>
+
+<p>
+  With such setting, we can easily uniformly change the overall size of the Feynman diagram by increasing or decreasing the value of L. Next, we define two spatial points on the space separated by some multiple of L. The two points can be placed on the x-axis:
+</p>
+<code>
+  pair pl = (-0.75*L,0); // point on the left (pl = point left)<br>
+  pair pr = (+0.75*L,0);  // point on the right (pr = point right)<br>
+</code>
+
+<p>
+  or along the y axis (if needed):
+</p>
+<code>
+  pair pu = (0,+0.75*L); // point up<br>
+  pair pd = (0,-0.75*L); // point down<br>
+</code>
+
+<p>
+  where pl (short for point left) and pr (short for point right) are separated by 1.5L bp. Now we can easily mark additional spatial points required to construct our code for Feynman diagram drawing, relative to those two points. For example, to draw Feynman diagram of muon pair production via s-channel exchange of Z boson (<math><mrow><mi>q</mi><mover><mi>q</mi><mo stretchy='false' class='tml-xshift' style='math-style:normal;math-depth:0;'>‾</mo></mover><mo>→</mo><mi>Z</mi><mo>→</mo><msup><mi>μ</mi><mo form='prefix' stretchy='false'>+</mo></msup><msup><mi>μ</mi><mo>−</mo></msup></mrow></math>), we need to draw 4 additional points. Two points will be on the left-hand side of pl (one above the x-axis, and one below) and two other points will be on the right-hand side of pr. We mark those points by the following four lines of code:
+</p>
+<code class="bash">
+  pair pl_l_u = pl + L*dir(+120);  // upper-left-hand side of pl, by an angle +120 measured counterclockwise from the positive x-axis.<br>
+  pair pl_l_d = pl + L*dir(-120);  // down-left-hand side of pl, by an angle -120 measured counterclockwise from the positive x-axis.<br>
+  pair pr_r_u = pr + L*dir(+60);   // upper-right-hand side of pr, by an angle +60 measured counterclockwise from the positive x-axis.<br>
+  pair pr_r_d = pr + L*dir(-60);   // upper-right side relative to pr, by an angle -60 measured counterclockwise from the positive x-axis.<br>
+</code>
+
+<p>
+  Notice that here L can be multiplied by a number to adjust the displacement between to spatial points. For example, if we wished pl_l_u to be further away from pl, we can multiply L by, for instance, 1.5 as follows:
+</p>
+<code>
+  pair pl_l_u = pl + 1.5*L*dir(+120);<br>
+</code>
+
+<h2>Step 2: Drawing Propagators (Particle Lines)</h2>
+<p>
+  If we will to run the Asymptote code:
+</p>
+<code>
+  import feynman;<br>
+  currentpen = linewidth(0.5); // set line width<br>
+  fmdefaults(); // scale all other defaults.<br>
+  real L = 50;<br>
+  pair pl = (-0.75*L,0); pair pr = (+0.75*L,0);<br>
+  pair pl_l_u = pl + L*dir(+120);<br>
+  pair pl_l_d = pl + L*dir(-120);<br>
+  pair pr_r_u = pr + L*dir(+60);<br>
+  pair pr_r_d = pr + L*dir(-60);<br>
+</code>
+
+<p>
+  we won’t see anything. This is because we only defined some points in the space, and no lines are actually drawn yet. In Asymptote, we use the <span class="inline-code">draw()</span> function to draw lines linking two predefined spatial points. For example, if we want to draw a line linking points pl and pl_l_u, we write:
+</p>
+<code>
+  draw(pl -- pl_l_u);<br>
+</code>
+
+<p>
+  If we wish the lined to be dashed, we write:
+</p>
+<code>
+  draw(pl -- pl_l_u,dashed);<br>
+</code>
+
+<p>
+  The feynman package provides functions to draw fermions by <span class="inline-code">drawFermion()</span>, vector bosons by <span class="inline-code">drawPhoton()</span>, gluons by <span class="inline-code">drawGluon()</span>, scalar lines by <span class="inline-code">drawScalar()</span>, ghost lines by <span class="inline-code">drawGhost()</span>, and double lines by <span class="inline-code">drawDoubleLine()</span>.
+</p>
+
+<p>
+  To draw Feynman diagram of muon pair production via s-channel exchange of Z boson (<math><mrow><mi>q</mi><mover><mi>q</mi><mo stretchy='false' class='tml-xshift' style='math-style:normal;math-depth:0;'>‾</mo></mover><mo>→</mo><mi>Z</mi><mo>→</mo><msup><mi>μ</mi><mo form='prefix' stretchy='false'>+</mo></msup><msup><mi>μ</mi><mo>−</mo></msup></mrow></math>), the predefined spatial points are linked as follows:
+</p>
+<code>
+  drawFermion(pl -- pl_l_u);  // antiquark leaving point pl heading to point pl_l_u<br>
+  drawFermion(pl_l_d --pl);   // quark leaving point pl_l_d heading to point pl<br>
+  drawPhoton(pl -- pr);        // Z boson leaving point pl heading to point pr.<br>
+  drawFermion(pr -- pr_r_u);   // muon leaving point pr heading to point pr_r_u<br>
+  drawFermion(pr_r_d -- pr);   // antimuon leaving point pr_r_d heading to point pr<br>
+</code>
+
+<p>
+  Now if we run the code we get the following diagram (without labels):
+</p>
+
+<img src="./images/Picture1.png">
+
+<h2>Step 3: Drawing LaTeX Labels</h2>
+<p>
+  Adding labels in Asymptote is relatively easy. You just need to tell Asymptote the point in space (or any line connecting two points) you want to label, what do label it, and where the label should be place relative to the point (or the line), whether it should be up, down, left or right. Continuing our example, we label the elements of Feynman diagram for the <math><mrow><mi>q</mi><mover><mi>q</mi><mo stretchy='false' class='tml-xshift' style='math-style:normal;math-depth:0;'>‾</mo></mover><mo>→</mo><mi>Z</mi><mo>→</mo><msup><mi>μ</mi><mo form='prefix' stretchy='false'>+</mo></msup><msup><mi>μ</mi><mo>−</mo></msup></mrow></math> process as follows:
+</p>
+<code>
+  label("$q$",pl_l_d,left);       // to label quark propagator, label is placed on the left-hand side of the point<br>
+  label("$\\bar{q}$",pl_l_u,left); // to label the antiquark propagator, label is placed on the left-hand side of the point<br>
+  label("$Z$",pl--pr,up);         // to label the Z boson propagator, label is placed up side the pl--pr line<br>
+  label("$\\mu^-$",pr_r_u,right);  // to label the muon propagator, label is placed on the right-hand side of the point<br>
+  label("$\\mu^+$",pr_r_d,right);  // to label the antimuon propagator, label is placed on the right-hand side of the point<br>
+</code>
+
+<p>
+  Now if we run the full code we get the following diagram:
+</p>
+
+<img src="./images/Picture2.png">
+
+<p>
+  Say that we don’t want our fermion labels placed beside the points. Instead we want them placed beside the arrows, we update the labels into the following;
+</p>
+<code>
+  label("$q$ ",pl_l_d--pl,left);         // to label the q line, label is placed on the left-hand side of the point<br>
+  label("$\\bar{q}$ ",pl--pl_l_u,left); // to label the antiquark line, label is placed on the left-hand side of the point<br>
+  label("$Z$",pl--pr,up);               // to label the Z boson propagator, label is placed up side the vector boson line<br>
+  label(" $\\mu^+$",pr--pr_r_u,right);  // to label the antimuon propagator, label is placed on the right-hand side of the point<br>
+  label(" $\\mu^-$",pr_r_d--pr,right);  // to label the muon propagator, label is placed on the right-hand side of the point<br>
+</code>
+
+<p>
+  By compiling we get:
+</p>
+
+<img src="./images/Picture3.png">
+
+<p style="color: red;">
+  (Notice that we added some empty space in the label text to adjust the separation between the text and arrows of the lines. The current Feynman package doesn’t include this auto adjusting yet, so we do it manually until the package is update for further notice.)
+</p>
+
+<h2>Step 4: Drawing Vertices</h2>
+<p>
+  Sometimes we may like to add some vertices in our Feynman diagrams. The Asymptote feynman package provides a wide variety of different kinds of vertices to draw. To use the vertices functions we just need to specify the point in space to draw the vertex above, and the size of the vertex (which not necessarily needed by default). To draw a vertex dot, we use <span class="inline-code">drawVertex()</span>, to draw an empty vertex dot, we use <span class="inline-code">drawVertexO()</span>, to draw a vertex triangle, we use <span class="inline-code">drawVertexTriangle()</span>, to draw an empty vertex triangle, we use <span class="inline-code">drawVertexTriangleO()</span>, to draw a vertex box, we use <span class="inline-code">drawVertexBox()</span>, to draw an empty vertex box, we use <span class="inline-code">drawVertexBoxO()</span>, to draw an X, we use <span class="inline-code">drawVertexX()</span>, to draw a circle with an X in the middle, we use <span class="inline-code">drawVertexOX()</span>, to draw a box with an X in the middle, we use <span class="inline-code">drawVertexBoxX()</span>.
+</p>
+
+<p>
+  For the Feynman diagram of the <math><mrow><mi>q</mi><mover><mi>q</mi><mo stretchy='false' class='tml-xshift' style='math-style:normal;math-depth:0;'>‾</mo></mover><mo>→</mo><mi>Z</mi><mo>→</mo><msup><mi>μ</mi><mo form='prefix' stretchy='false'>+</mo></msup><msup><mi>μ</mi><mo>−</mo></msup></mrow></math> process, we add the following dot vertices:
+</p>
+<code>
+  drawVertex(pl);<br>
+  drawVertex(pr);<br>
+</code>
+
+<p>
+  giving us:
+</p>
+
+<img src="./images/Picture4.png">
+
+<p>
+  If we want larger vertex radius we add an integer parameter of the radius, for example, as follows:
+</p>
+<code>
+  drawVertex(pl,3);<br>
+</code>
+
+<h2>Step 5: Drawing Momentum Arrows (if needed)</h2>
+<p>
+  The feynman package also provides momentum arrows drawing functionality. To this we only need to input the <span class="inline-code">drawMomArrow()</span> function the path, for example pr--pl, and the relative position to the path the momentum arrow should be. In the example we use, one may be interested in drawing the following momentum arrows:
+</p>
+<code>
+  drawMomArrow(pl_l_d--pl, Relative(right));  // draw momentum arrow to the right side of quark propagator<br>
+  drawMomArrow(pl--pr, Relative(right));     // momentum arrow “downside” the vector boson propagator. Notice if we chose relative position to be left, the momentum arrow will be drawn above the vector boson propagator<br>
+  drawMomArrow(pr--pr_r_u, Relative(left));  // draw momentum arrow to the left side of antimuon propagator<br>
+</code>
+
+<p>
+  We can also add some momentum labels with
+</p>
+<code>
+  label(Label("$k'$",2LeftSide), pl_l_d--pl);<br>
+  label(Label("$k$",2LeftSide), pl_l_u--pl);<br>
+  label(Label("$p'$",2RightSide), pr--pr_r_u);<br>
+  label(Label("$p$",2LeftSide), pr_r_d--pr);<br>
+</code>
+
+<p>
+  Running the code gives:
+</p>
+
+<img src="./images/Picture5.png">
+
+<p style="color: red;">
+  (Notice here some minor adjustments were made. Instead of labelling the fermions alongside the propagators, we label them along side the marked points)
+</p>
+
+<h1>Examples:</h1>
+
+<h2>Example #1: t-channel Z boson exchange</h2>
+<p>
+  Electron neutrino emits a virtual Z boson, electron then absorbs the Z boson, resulting in change of its momentum and direction.
+</p>
+<p>
+  Code:
+</p>
+<code>
+  import feynman;<br>
+  currentpen = linewidth(0.5);<br>
+  fmdefaults(); // scale all other defaults of the feynman module appropriately<br>
+  real L = 50;<br>
+  // defining spatial points<br>
+  pair pu = (0,+0.55*L);  pair pd = (0,-0.55*L);<br>
+  pair pd_l = pd + L*dir(-150); // pd_l is placed left-side to pd, by an angle -150 counterclockwise from the positive x-axis<br>
+  pair pd_r = pd + L*dir(-30);  // pd_r is placed right-side to pd, by an angle -30 counterclockwise from the positive x-axis<br>
+  pair pu_l = pu + L*dir(+150); // pu_l is placed left-side to pu, by an angle +150 counterclockwise from the +x axis<br>
+  pair pu_r = pu + L*dir(+30);  // pu_r is placed right-side to pu, by an angle +30 counterclockwise from the +x axis<br>
+  // drawing and labeling lines<br>
+  drawFermion(pd_l--pd); //electron<br>
+  label("$e^-$",pd_l,left);<br>
+  drawFermion(pd--pd_r); //electron<br>
+  label("$e^-$",pd_r,right);<br>
+  drawPhoton(pd--pu); // vector boson<br>
+  label("$Z^*$",pd--pu,left);<br>
+  drawFermion(pu_l--pu); //electron neutrino<br>
+  label("$\\nu_e$",pu_l,left);<br>
+  drawFermion(pu--pu_r); //electron neutrino<br>
+  label("$\\nu_e$",pu_r,right);<br>
+  // drawing vertices<br>
+  drawVertex(pu);<br>
+  drawVertex(pd);<br>
+</code>
+
+<p>
+  Result:
+</p>
+
+<img src="./images/Picture6.png">
+
+<h2>Example #2: Gluon-gluon fusion production of a Z boson decaying into muon pairs.</h2>
+<p>
+  Code:
+</p>
+<code>
+  import feynman;<br>
+  currentpen = linewidth(0.5);<br>
+  fmdefaults(); // scale all other defaults of the feynman module appropriately<br>
+  real L = 50;<br>
+  // defining spatial points<br>
+  pair pl = (-0.55*L,0); pair pr = (+0.55*L,0);  <br>
+  pair pl_l_u = pl + 0.7*L*dir(+140);<br>
+  pair pl_l_d = pl + 0.7*L*dir(-140); <br>
+  pair pl_l_u_l = pl_l_u + L*dir(+140);<br>
+  pair pl_l_d_l = pl_l_d + L*dir(-140);<br>
+  pair pr_r_u = pr + L*dir(+40); <br>
+  pair pr_r_d = pr + L*dir(-40);  <br>
+  // drawing and labeling lines<br>
+  drawFermion(pl -- pl_l_u); <br>
+  drawFermion(pl_l_u--pl_l_d); <br>
+  label("$t,b$ ",pl_l_u--pl_l_d,left);<br>
+  drawFermion(pl_l_d --pl); <br>
+  drawGluon(pl_l_u_l--pl_l_u);<br>
+  label("$g\\quad$",pl_l_u_l);<br>
+  drawGluon(pl_l_d_l--pl_l_d);<br>
+  label("$g\\quad$",pl_l_d_l);<br>
+  drawPhoton(pl -- pr);   <br>
+  label("$Z$",pl--pr,up); <br>
+  drawFermion(pr -- pr_r_u); <br>
+  label("$\\mu^-$",pr_r_u,right); <br>
+  drawFermion(pr_r_d -- pr);<br>
+  label("$\\mu^+$",pr_r_d,right); <br>
+  // drawing vertices<br>
+  drawVertex(pl);<br>
+  drawVertex(pr);<br>
+  drawVertex(pl_l_u);<br>
+  drawVertex(pl_l_d);<br>
+</code>
+
+<p>
+  Result:
+</p>
+
+<img src="./images/Picture7.png">
+
+<h2>Example #3: Z-boson production via weak vector boson fusion</h2>
+<p>
+  Code:
+</p>
+<code>
+  import feynman;<br>
+  currentpen = linewidth(0.5);<br>
+  fmdefaults(); // scale all other defaults of the feynman module appropriately<br>
+  real L = 50;<br>
+  // defining spatial points<br>
+  pair pl = (-0.5*L,0); pair pr = (+0.5*L,0);  <br>
+  pair pl_l_u = pl + L*dir(+120);<br>
+  pair pl_l_u_l = pl_l_u + 1.5*L*dir(+170);<br>
+  pair pl_l_u_r = pl_l_u + 2.1*L*dir(+10);<br>
+  pair pl_l_d = pl + L*dir(-120); <br>
+  pair pl_l_d_l = pl_l_d + 1.5*L*dir(-170);<br>
+  pair pl_l_d_r = pl_l_d + 2.1*L*dir(-10);<br>
+  pair pr_r_u = pr + 0.8*L*dir(+40); <br>
+  pair pr_r_d = pr + 0.8*L*dir(-40);  <br>
+  // drawing and labeling lines<br>
+  drawPhoton(pl -- pl_l_u); <br>
+  label("$W^+$ ",pl -- pl_l_u,left);<br>
+  drawPhoton(pl_l_d --pl); <br>
+  label("$W^-$ ",pl_l_d --pl,left);<br>
+  drawFermion(pl_l_u_l--pl_l_u);<br>
+  label("$q_1$",pl_l_u_l,left);<br>
+  drawFermion(pl_l_u--pl_l_u_r);<br>
+  label("$q_1'$",pl_l_u_r,right);<br>
+  drawFermion(pl_l_d_l--pl_l_d);<br>
+  label("$q_2$",pl_l_d_l,left);<br>
+  drawFermion(pl_l_d--pl_l_d_r);<br>
+  label("$q_2'$",pl_l_d_r,right);<br>
+  drawPhoton(pl -- pr);   <br>
+  label("$Z$",pl--pr,up); <br>
+  drawFermion(pr -- pr_r_u); <br>
+  label("$\\mu^-$",pr_r_u,right); <br>
+  drawFermion(pr_r_d -- pr);<br>
+  label("$\\mu^+$",pr_r_d,right); <br>
+  // drawing vertices<br>
+  drawVertex(pl);<br>
+  drawVertex(pr);<br>
+  drawVertex(pl_l_u);<br>
+  drawVertex(pl_l_d);<br>
+</code>
+
+<p>
+  Result:
+</p>
+
+<img src="./images/Picture8.png">
+
+
+</section>
+
+
+<!-- #########################################  -->
+<!-- #########################################  -->
+<!-- ###     Your Content Ends Here      #####  -->
+<!-- #########################################  -->
+<!-- #########################################  -->
+
+</main>
+<my-footer></my-footer>
+<script type="module" src="../../../styles/footer.js"></script>
+<script src="../../../user/upload_social_links.js"></script> 
+</body>
+</html>

@@ -1,0 +1,141 @@
+
+<!-- /* ------------------------------- *\ -->
+<!-- /*     AUTHOR: A.M.M. Elsayed      *\ -->
+<!-- /*    * ALL RIGHTS RESERVED *      *\ -->
+<!-- /* ------------------------------- *\ -->
+ 
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="A.M.M. Elsayed's personal website: publications, blog posts, and contact information." />
+
+<!--     Search Engine Verifications -->
+<meta name="google-site-verification" content="dZ4cWeELhqce-wnptiEpQ8nEEQt4cjBGB3flJtAHcik" />
+<meta name="msvalidate.01" content="22CDD981AEB3F6E43611F461ED34A9C2" />
+
+<title>A.M.M. Elsayed</title>
+
+<!--Browser Tap icon-->
+<link rel="icon" href="images/tap-icon.png">
+
+<!--Body and Body-Main styles-->
+<link rel="stylesheet" href="home.css">
+<link rel="stylesheet" href="./publications/style.css">
+
+<!--Header and footer stylings-->
+<link rel="stylesheet" href="styles/header.css">
+<link rel="stylesheet" href="styles/footer.css">
+
+<!-- Hide “index.html” from the URL bar -->
+<script>
+(function() {
+const p = window.location.pathname;
+if (p.endsWith('index.html')) {
+  // strip off “index.html” (10 chars) and replace the URL without reloading
+  const clean = p.slice(0, -'index.html'.length);
+  window.history.replaceState(null, '', clean);
+}
+})();
+</script>
+
+</head>
+
+<body>
+
+    <my-header></my-header>
+    <script type="module" src="styles/header.js"></script>
+    <script src="menu.js"></script>
+
+<main>
+
+
+<div id="greetings">
+<div id="greetings-image">
+<img src="./images/ammelsayed.jpg">
+<p style="font-size: 40px; font-weight: 400; text-align: center; padding-bottom: 20px; white-space: nowrap;">A.M.M Elsayed</p>
+<a style="font-size: 18px; text-align: center; white-space: nowrap;" href="ahmedphysica@outlook.com">ahmedphysica@outlook.com</a>
+<p style="font-size: 18px; text-align: center; white-space: nowrap;">Masters Student in Particle Physics</p>
+<p style="font-size: 18px; text-align: center; white-space: nowrap;">University Of Science and Technology of China</p>
+<!-- <a style="font-size: 20px; justify-content: center;" href="ahmedphysica@outlook.com">ahmedphysica@outlook.com</p> -->
+</div>
+
+<!-- <div id="greetings-text">
+Hi, I'm Ahmed,<br>
+Welcome to my personal website!
+</div> -->
+
+</div>
+
+
+<!-- <div class="recents">
+<section>
+<h2>
+Recent Events
+</h2>
+</section>
+<div id="publications-list">
+</div>
+</div> -->
+
+
+
+</main>
+    
+<my-footer></my-footer>
+<script type="module" src="styles/footer.js"></script>
+<script src="user/upload_social_links.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchLatestPublication();
+  });
+
+  async function fetchLatestPublication() {
+    try {
+      const res = await fetch('publications/publications.json');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      if (!data.length) {
+        console.warn('No publications found');
+        return;
+      }
+
+      // 1) Sort by date descending (newest first)
+      data.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      // 2) Grab the very first (most recent)
+      const latest = data[0];
+
+      // 3) Build a small HTML snippet
+      const html = `
+        <div class="publication">
+          <div class="content">
+            <p style="color: navy;"><em><b>${latest.paper_type}</b></em></p>
+            <h2>${latest.title}</h2>
+            <p><em>${latest.date}, ${latest.journal}</em></p>
+            <p><b>Abstract:</b> ${latest.description}</p>
+            <p><b>DOI:</b>
+              <a href="${latest.link}" target="_blank">${latest.link}</a>
+            </p>
+          </div>
+          <img src="${latest.image_soruce}" class="publication-image">
+        </div>
+      `;
+
+      // 4) Inject into your container
+      const container = document.getElementById('publications-list');
+      container.innerHTML = html;
+
+    } catch (err) {
+      console.error('Error fetching latest publication:', err);
+    }
+  }
+</script>
+    
+</body>
+</html>

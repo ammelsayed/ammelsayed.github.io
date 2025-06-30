@@ -1,0 +1,22 @@
+[
+    {
+        "author": "A.M.M. Elsayed",
+        "author_image": "ammelsayed.jpg",
+        "author_link": "https://ammelsayed.github.io/",
+        "title": "Instructions for Drawing Feynman Diagrams Using Asymptote (Vector Graphics Language)",
+        "date": "May 2025",
+        "description": "Feynman diagrams are a powerful way to visualize particle interactions in physics, and the Asymptote language, with its feynman package, provides an elegant tool to create them. This guide will walk you through the process of drawing a Feynman diagram for the process <math><mrow><mi>q</mi><mover><mi>q</mi><mo stretchy='false' class='tml-xshift' style='math-style:normal;math-depth:0;'>‾</mo></mover><mo>→</mo><mi>Z</mi><mo>→</mo><msup><mi>μ</mi><mo form='prefix' stretchy='false'>+</mo></msup><msup><mi>μ</mi><mo>−</mo></msup></mrow></math> using Asymptote. One can adapt these steps for other diagrams by adjusting points, propagators, labels, and vertices as needed. More code examples will be provided at the end of this document for references.",
+        "image_soruce":"./post1/images/ggHaa.png",
+        "link": "./post1/index.html"
+    },
+    {
+        "author": "A.M.M. Elsayed",
+        "author_image": "ammelsayed.jpg",
+        "author_link": "https://ammelsayed.github.io/",
+        "title": "Lets talk about Git",
+        "date": "April 2025",
+        "description": "If you think of Git just as a tool to upload your files from your local or working device to a Respority on Github or Gitee, then you badly under estimated this powerful tool oreated by the Father of Linux. Under this post, I will try to explain the basics of Git and how it works. This post is not a tutorial, but rather an introduction to the world of Git.",
+        "image_soruce":"https://git-scm.com/images/logos/downloads/Git-Logo-2Color.png",
+        "link": "./blog/post1/index.html"
+    }
+]

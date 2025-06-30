@@ -1,0 +1,154 @@
+/*---------------------------------------*\ 
+    AUTHOR: A.M.M. Elsayed   
+    * ALL RIGHTS RESERVED *
+\*---------------------------------------*/
+
+/*  this is for all the elements in the html file 
+    Here we chose to set zero distance between the
+    browser borders and the elements borders
+*/
+.navigations nav ul li #home {
+    font-weight:350;
+}
+
+/*---------------------------------------*\ 
+    AUTHOR: A.M.M. Elsayed   
+    * ALL RIGHTS RESERVED *
+\*---------------------------------------*/
+
+*{
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    text-decoration: none;
+}
+
+html {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column; /* Items are placed left to right. */
+    /* background-color: #101010; */
+}
+
+body {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column; 
+    justify-content: space-between; /* Items are placed top to bottom. */
+    /* align-items: stretch;  */
+}
+
+body main {
+    margin: 0px;   /* Space outside the border */
+    padding: 20px;  /* Space inside the border, between content and border */
+    flex: 1; /* Fills available space */
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    display: flex;
+    flex-direction: column; 
+    justify-content: flex-start;   
+    align-items: center; 
+    background-color: white;
+}
+
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+/* Defining the title of any page */
+
+.page-top {
+    width: 100%;
+    height: 150px;
+    max-width: 1000px;
+    min-width: 0;
+    display: flex;
+    flex-direction: row; 
+    justify-content: space-between;
+    align-items: center;   
+}
+
+.page-top h1 {
+    font-size: 45px;
+}
+
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+
+
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+/*  Defining (text) sections      */
+
+section {
+    width: 100%;
+    max-width: 1000px;
+    min-width: 0;
+    margin: 20px 0px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    color: black;
+    display: flex;
+    flex-direction: column; 
+    justify-content: space-between;   
+    align-items: stretch; 
+}
+
+section p, section ul li {
+    padding: 10px 20px 20px 20px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+section h2, section h3, section h4 {
+    padding: 20px 20px 10px 20px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    background-color: rgb(240, 240, 240);
+}
+
+#greetings {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    align-content: center;
+    flex-wrap: nowrap;
+
+    max-width: 1000px;
+    min-width: 0;
+    font-size: 40px;
+    padding-top: 30px;
+    padding-bottom: 50px;
+    background-color: rgba(0, 0, 0, 0);
+    box-shadow: none;
+    color: black;
+    letter-spacing: 0;
+    font-weight: 100;
+}
+
+#greetings #greetings-image{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;    
+    align-items: center;
+    align-content: center;
+    flex-wrap: nowrap;
+}
+
+#greetings img {
+    width: 250px;          /* 25% of viewport width */
+    aspect-ratio: 1 / 1;  /* force a square */
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 20px;
+}
+
+#greetings #greetings-text {
+    font-size: 80px;
+    text-align: center;
+}
+
+.recents{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;    
+    flex-wrap: nowrap;
+    gap: 0;
+    
+}
