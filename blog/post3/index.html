@@ -1,0 +1,156 @@
+
+<!-- /* ------------------------------- *\ -->
+<!-- /*     AUTHOR: A.M.M. Elsayed      *\ -->
+<!-- /*    * ALL RIGHTS RESERVED *      *\ -->
+<!-- /* ------------------------------- *\ -->
+ 
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+<!-- #########################################  -->
+<title>Feynmann</title>
+<!-- #########################################  -->
+
+
+<!--Browser Tap icon-->
+<link rel="icon" href="../../../images/tap-icon.png">
+<!--Body and Body-Main styles-->
+<link rel="stylesheet" href="../post_style.css">
+<!--Header and footer stylings-->
+<link rel="stylesheet" href="../../../styles/header.css">
+<link rel="stylesheet" href="../../../styles/footer.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<!-- Hide “index.html” from the URL bar -->
+<script>
+  (function() {
+    const p = window.location.pathname;
+    if (p.endsWith('index.html')) {
+      // strip off “index.html” (10 chars) and replace the URL without reloading
+      const clean = p.slice(0, -'index.html'.length);
+      window.history.replaceState(null, '', clean);
+    }
+  })();
+</script>
+</head>
+
+
+<body>
+<my-header></my-header>
+<script type="module" src="../../../styles/header.js"></script>
+<script src="../../../menu.js"></script>
+<main>
+
+
+<!-- #########################################  -->
+<!-- #########################################  -->
+<!-- ###    Your Content Starts Here     #####  -->
+<!-- #########################################  -->
+<!-- #########################################  -->
+
+
+
+
+<div class="page-top">
+<h1>CERN ROOT Installation on Windows 11 and Ubuntu 22.04</h1>
+</div>
+
+<div class="author_information">
+<img src="../../images/ammelsayed.jpg" class="author_image">
+<div class="AuthorName_and_Date">
+<em style="font-size: 18px;"> By  <a href="https://ammelsayed.github.io/" target="_blank" rel="noopener">
+A.M.M. Elsayed,
+</a> </em>
+<em style="font-size: 18px;">May 2024</em>
+</div>
+</div>
+
+<section>
+
+<p></p>
+
+<p>
+I wrote this because I found it challenging to successfully install and use ROOT on windows. After I successfully installed ROOT on my Windows 11 OS, I re-examined by steps to arrive at the most efficient way to install ROOT, so I wrote this document hoping it can help others facing same problem.
+</p>
+
+<hr>
+
+<h2>(1) CERN ROOT installation on Windows 11</h2>
+
+<p>
+<i class="fas fa-file-pdf" style="color: #e74c3c; font-size: 20px; margin-right: 6px;"></i>
+<a href="./CERN ROOT installation on WIn11.pdf" target="_blank" rel="noopener noreferrer"> PDF: Windows 11 Installation Guide </a>
+</p>
+
+<h3> (I) INSTALLING ROOT AND OTHER REQUIRED PROGRAMS:</h3>
+
+<p>To use ROOT, make sure to install:</p>
+
+<ul>
+<li>
+Go to download latest release of CERN ROOT at official website: <a href="https://root.cern/install/all_releases/" target="_blank">Releases - ROOT</a>. In the binary Binary distributions area download the Windows Visual Studio 2022 64-bit x64 version. Make sure to add ROOT to path for current user and select Full installation in the <span class="inline-code">.exe</span> file installing process.
+</li>
+<li>
+<b>CMake :</b> Latest stable version available from official website; <a href="https://cmake.org/download/" target="_blank">https://cmake.org/download/</a>. In the binary distributions area download the Windows x64 Installer version (<span class="inline-code">.msi</span>) file.
+</li>
+<li>
+<b>Microsoft Visual C++:</b> The Community version is free (download at <a href="https://visualstudio.microsoft.com/downloads/" target="_blank">https://visualstudio.microsoft.com/downloads//</a>). The Desktop Development With C++ workload must be selected. Normally after selecting Desktop Development With C++, the installer will automatically select some optional features, most of them are unnecessary which can be unselected, BUT, must include the first option and <b>Windows 11 SDK</b> as shown in figure below.
+</li>
+</ul>
+
+<img src="images/Picture1.png">
+
+<p>
+Now u can either open ROOT by clicking the shortcut on start menu, or from windows Terminal by calling:
+</p>
+
+<code>
+root
+</code>
+
+<h3> (II) IMPORTANT NOTES ABOUT PyROOT:</h3>
+
+<p>
+Apparently to use PyROOT you must download and use same python3 version on your computer as used by the ROOT framework you installed. Every ROOT version you will find on the official website inhabits different python3 versions. In the case of v6.30.06 used as example in the document, the implemented python3 version in framework was 3.11.7. I know by calling the following code in terminal: 
+</p>
+
+<code>
+root-config --python-version
+</code>
+
+<img src="images/Picture2.png">
+
+<p>
+If you have different python version installed you must head to python official website to download and install EXACTLY same version edition. 
+</p>
+
+<p>
+AFTER INSTALLING SAME PYTHON VERSION: You can now call ROOT functions in .py file by importing code using Import ROOT However, you will notice that you will get error ModuleNotFoundError: No module named 'ROOT' if your .py file is not located in root\bin directory at your disk. To avoid this problem, remember to add the following lines of code before Import ROOT:
+</p>
+
+<img src="images/Picture3.png">
+
+<hr>
+
+<h2>(2) CERN ROOT Installation on Ubuntu 22.04</h2>
+
+</section>
+
+
+<!-- #########################################  -->
+<!-- #########################################  -->
+<!-- ###     Your Content Ends Here      #####  -->
+<!-- #########################################  -->
+<!-- #########################################  -->
+
+</main>
+<my-footer></my-footer>
+<script type="module" src="../../../styles/footer.js"></script>
+<script src="../../../user/upload_social_links.js"></script> 
+</body>
+</html>

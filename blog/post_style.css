@@ -124,6 +124,16 @@ section p {
     overflow-wrap: break-word;
 }
 
+section hr {
+    display: block;
+    margin-left: 20px;
+    align-self: left;
+    max-width: 900px;
+    width: 90%;
+    height: 2px;
+    background-color: black;
+}
+
 
 section ul li {
     padding: 10px 20px 20px 20px;
@@ -181,7 +191,7 @@ section img {
     align-self: center;
     margin: 20px auto;   
     width: auto;
-    max-width: min(450px, 80%);
+    max-width: min(800px, 90%);
     height: auto;
 }
 
