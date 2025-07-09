@@ -133,7 +133,12 @@ If you have different python version installed you must head to python official 
 AFTER INSTALLING SAME PYTHON VERSION: You can now call ROOT functions in .py file by importing code using Import ROOT However, you will notice that you will get error ModuleNotFoundError: No module named 'ROOT' if your .py file is not located in root\bin directory at your disk. To avoid this problem, remember to add the following lines of code before Import ROOT:
 </p>
 
-<img src="images/Picture3.png">
+<code>
+## Finding PyROOT <br>
+import sys <br>
+root_path = r'C:/root/bin' # change your path if u installed ROOT elsewhere <br>
+sys.path.append(root_path)
+</code>
 
 <hr>
 
