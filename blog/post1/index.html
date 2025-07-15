@@ -106,66 +106,87 @@ If you are using an offline complier, create a new <span class="inline-code">.as
 <p>
   To draw Feynman diagrams using the Asymptote language, we being by loading the feynman module through the following line of code:
 </p>
-
+<div class="code-block">
+<button class="copy-btn" aria-label="Copy code">Copy</button>
 <code>
   import feynman;<br>
 </code>
+</div>
 
 <p>
   Next, we set default line width to 0.5 bp (or any other value you prefer), and scale all other defaults of the feynman module appropriately using the following lines of code:
 </p>
-
+<div class="code-block">
+<button class="copy-btn" aria-label="Copy code">Copy</button>
 <code>
   currentpen = linewidth(0.5); // set line width<br>
   fmdefaults(); // scale all other defaults.<br>
 </code>
+</div>
 
 
 <h2>Step 1: Marking Spatial Points</h2>
 <p>
   We begin by defining an arbitrary length L by
 </p>
+<div class="code-block">
+<button class="copy-btn" aria-label="Copy code">Copy</button>
 <code>
   real L = 50;<br>
 </code>
+</div>
 
 <p>
   With such setting, we can easily uniformly change the overall size of the Feynman diagram by increasing or decreasing the value of L. Next, we define two spatial points on the space separated by some multiple of L. The two points can be placed on the x-axis:
 </p>
+<div class="code-block">
+<button class="copy-btn" aria-label="Copy code">Copy</button>
 <code>
   pair pl = (-0.75*L,0); // point on the left (pl = point left)<br>
   pair pr = (+0.75*L,0);  // point on the right (pr = point right)<br>
 </code>
+</div>
 
 <p>
   or along the y axis (if needed):
 </p>
+<div class="code-block">
+<button class="copy-btn" aria-label="Copy code">Copy</button>
 <code>
   pair pu = (0,+0.75*L); // point up<br>
   pair pd = (0,-0.75*L); // point down<br>
 </code>
+</div>
 
 <p>
   where pl (short for point left) and pr (short for point right) are separated by 1.5L bp. Now we can easily mark additional spatial points required to construct our code for Feynman diagram drawing, relative to those two points. For example, to draw Feynman diagram of muon pair production via s-channel exchange of Z boson (<math><mrow><mi>q</mi><mover><mi>q</mi><mo stretchy='false' class='tml-xshift' style='math-style:normal;math-depth:0;'>‾</mo></mover><mo>→</mo><mi>Z</mi><mo>→</mo><msup><mi>μ</mi><mo form='prefix' stretchy='false'>+</mo></msup><msup><mi>μ</mi><mo>−</mo></msup></mrow></math>), we need to draw 4 additional points. Two points will be on the left-hand side of pl (one above the x-axis, and one below) and two other points will be on the right-hand side of pr. We mark those points by the following four lines of code:
 </p>
+<div class="code-block">
+<button class="copy-btn" aria-label="Copy code">Copy</button>
 <code class="bash">
   pair pl_l_u = pl + L*dir(+120);  // upper-left-hand side of pl, by an angle +120 measured counterclockwise from the positive x-axis.<br>
   pair pl_l_d = pl + L*dir(-120);  // down-left-hand side of pl, by an angle -120 measured counterclockwise from the positive x-axis.<br>
   pair pr_r_u = pr + L*dir(+60);   // upper-right-hand side of pr, by an angle +60 measured counterclockwise from the positive x-axis.<br>
   pair pr_r_d = pr + L*dir(-60);   // upper-right side relative to pr, by an angle -60 measured counterclockwise from the positive x-axis.<br>
 </code>
+</div>
 
 <p>
   Notice that here L can be multiplied by a number to adjust the displacement between to spatial points. For example, if we wished pl_l_u to be further away from pl, we can multiply L by, for instance, 1.5 as follows:
 </p>
+<div class="code-block">
+<button class="copy-btn" aria-label="Copy code">Copy</button>
 <code>
   pair pl_l_u = pl + 1.5*L*dir(+120);<br>
 </code>
+</div>
 
 <h2>Step 2: Drawing Propagators (Particle Lines)</h2>
 <p>
   If we will to run the Asymptote code:
 </p>
+<div class="code-block">
+<button class="copy-btn" aria-label="Copy code">Copy</button>
 <code>
   import feynman;<br>
   currentpen = linewidth(0.5); // set line width<br>
@@ -177,20 +198,27 @@ If you are using an offline complier, create a new <span class="inline-code">.as
   pair pr_r_u = pr + L*dir(+60);<br>
   pair pr_r_d = pr + L*dir(-60);<br>
 </code>
+</div>
 
 <p>
   we won’t see anything. This is because we only defined some points in the space, and no lines are actually drawn yet. In Asymptote, we use the <span class="inline-code">draw()</span> function to draw lines linking two predefined spatial points. For example, if we want to draw a line linking points pl and pl_l_u, we write:
 </p>
+<div class="code-block">
+<button class="copy-btn" aria-label="Copy code">Copy</button>
 <code>
   draw(pl -- pl_l_u);<br>
 </code>
+</div>
 
 <p>
   If we wish the lined to be dashed, we write:
 </p>
+<div class="code-block">
+<button class="copy-btn" aria-label="Copy code">Copy</button>
 <code>
   draw(pl -- pl_l_u,dashed);<br>
 </code>
+</div>
 
 <p>
   The feynman package provides functions to draw fermions by <span class="inline-code">drawFermion()</span>, vector bosons by <span class="inline-code">drawPhoton()</span>, gluons by <span class="inline-code">drawGluon()</span>, scalar lines by <span class="inline-code">drawScalar()</span>, ghost lines by <span class="inline-code">drawGhost()</span>, and double lines by <span class="inline-code">drawDoubleLine()</span>.
@@ -199,6 +227,8 @@ If you are using an offline complier, create a new <span class="inline-code">.as
 <p>
   To draw Feynman diagram of muon pair production via s-channel exchange of Z boson (<math><mrow><mi>q</mi><mover><mi>q</mi><mo stretchy='false' class='tml-xshift' style='math-style:normal;math-depth:0;'>‾</mo></mover><mo>→</mo><mi>Z</mi><mo>→</mo><msup><mi>μ</mi><mo form='prefix' stretchy='false'>+</mo></msup><msup><mi>μ</mi><mo>−</mo></msup></mrow></math>), the predefined spatial points are linked as follows:
 </p>
+<div class="code-block">
+<button class="copy-btn" aria-label="Copy code">Copy</button>
 <code>
   drawFermion(pl -- pl_l_u);  // antiquark leaving point pl heading to point pl_l_u<br>
   drawFermion(pl_l_d --pl);   // quark leaving point pl_l_d heading to point pl<br>
@@ -206,6 +236,7 @@ If you are using an offline complier, create a new <span class="inline-code">.as
   drawFermion(pr -- pr_r_u);   // muon leaving point pr heading to point pr_r_u<br>
   drawFermion(pr_r_d -- pr);   // antimuon leaving point pr_r_d heading to point pr<br>
 </code>
+</div>
 
 <p>
   Now if we run the code we get the following diagram (without labels):
@@ -217,13 +248,16 @@ If you are using an offline complier, create a new <span class="inline-code">.as
 <p>
   Adding labels in Asymptote is relatively easy. You just need to tell Asymptote the point in space (or any line connecting two points) you want to label, what do label it, and where the label should be place relative to the point (or the line), whether it should be up, down, left or right. Continuing our example, we label the elements of Feynman diagram for the <math><mrow><mi>q</mi><mover><mi>q</mi><mo stretchy='false' class='tml-xshift' style='math-style:normal;math-depth:0;'>‾</mo></mover><mo>→</mo><mi>Z</mi><mo>→</mo><msup><mi>μ</mi><mo form='prefix' stretchy='false'>+</mo></msup><msup><mi>μ</mi><mo>−</mo></msup></mrow></math> process as follows:
 </p>
+<div class="code-block">
+<button class="copy-btn" aria-label="Copy code">Copy</button>
 <code>
   label("$q$",pl_l_d,left);       // to label quark propagator, label is placed on the left-hand side of the point<br>
-  label("$\\bar{q}$",pl_l_u,left); // to label the antiquark propagator, label is placed on the left-hand side of the point<br>
+  label("$\bar{q}$",pl_l_u,left); // to label the antiquark propagator, label is placed on the left-hand side of the point<br>
   label("$Z$",pl--pr,up);         // to label the Z boson propagator, label is placed up side the pl--pr line<br>
-  label("$\\mu^-$",pr_r_u,right);  // to label the muon propagator, label is placed on the right-hand side of the point<br>
-  label("$\\mu^+$",pr_r_d,right);  // to label the antimuon propagator, label is placed on the right-hand side of the point<br>
+  label("$\mu^-$",pr_r_u,right);  // to label the muon propagator, label is placed on the right-hand side of the point<br>
+  label("$\mu^+$",pr_r_d,right);  // to label the antimuon propagator, label is placed on the right-hand side of the point<br>
 </code>
+</div>
 
 <p>
   Now if we run the full code we get the following diagram:
@@ -234,13 +268,16 @@ If you are using an offline complier, create a new <span class="inline-code">.as
 <p>
   Say that we don’t want our fermion labels placed beside the points. Instead we want them placed beside the arrows, we update the labels into the following;
 </p>
+<div class="code-block">
+<button class="copy-btn" aria-label="Copy code">Copy</button>
 <code>
   label("$q$ ",pl_l_d--pl,left);         // to label the q line, label is placed on the left-hand side of the point<br>
-  label("$\\bar{q}$ ",pl--pl_l_u,left); // to label the antiquark line, label is placed on the left-hand side of the point<br>
+  label("$\bar{q}$ ",pl--pl_l_u,left); // to label the antiquark line, label is placed on the left-hand side of the point<br>
   label("$Z$",pl--pr,up);               // to label the Z boson propagator, label is placed up side the vector boson line<br>
-  label(" $\\mu^+$",pr--pr_r_u,right);  // to label the antimuon propagator, label is placed on the right-hand side of the point<br>
-  label(" $\\mu^-$",pr_r_d--pr,right);  // to label the muon propagator, label is placed on the right-hand side of the point<br>
+  label("$\mu^+$",pr--pr_r_u,right);  // to label the antimuon propagator, label is placed on the right-hand side of the point<br>
+  label("$\mu^-$",pr_r_d--pr,right);  // to label the muon propagator, label is placed on the right-hand side of the point<br>
 </code>
+</div>
 
 <p>
   By compiling we get:
@@ -260,10 +297,13 @@ If you are using an offline complier, create a new <span class="inline-code">.as
 <p>
   For the Feynman diagram of the <math><mrow><mi>q</mi><mover><mi>q</mi><mo stretchy='false' class='tml-xshift' style='math-style:normal;math-depth:0;'>‾</mo></mover><mo>→</mo><mi>Z</mi><mo>→</mo><msup><mi>μ</mi><mo form='prefix' stretchy='false'>+</mo></msup><msup><mi>μ</mi><mo>−</mo></msup></mrow></math> process, we add the following dot vertices:
 </p>
+<div class="code-block">
+<button class="copy-btn" aria-label="Copy code">Copy</button>
 <code>
   drawVertex(pl);<br>
   drawVertex(pr);<br>
 </code>
+</div>
 
 <p>
   giving us:
@@ -274,29 +314,40 @@ If you are using an offline complier, create a new <span class="inline-code">.as
 <p>
   If we want larger vertex radius we add an integer parameter of the radius, for example, as follows:
 </p>
+
+<div class="code-block">
+<button class="copy-btn" aria-label="Copy code">Copy</button>
 <code>
   drawVertex(pl,3);<br>
 </code>
+</div>
 
 <h2>Step 5: Drawing Momentum Arrows (if needed)</h2>
 <p>
   The feynman package also provides momentum arrows drawing functionality. To this we only need to input the <span class="inline-code">drawMomArrow()</span> function the path, for example pr--pl, and the relative position to the path the momentum arrow should be. In the example we use, one may be interested in drawing the following momentum arrows:
 </p>
+<div class="code-block">
+<button class="copy-btn" aria-label="Copy code">Copy</button>
 <code>
   drawMomArrow(pl_l_d--pl, Relative(right));  // draw momentum arrow to the right side of quark propagator<br>
   drawMomArrow(pl--pr, Relative(right));     // momentum arrow “downside” the vector boson propagator. Notice if we chose relative position to be left, the momentum arrow will be drawn above the vector boson propagator<br>
   drawMomArrow(pr--pr_r_u, Relative(left));  // draw momentum arrow to the left side of antimuon propagator<br>
 </code>
+</div>
 
 <p>
   We can also add some momentum labels with
 </p>
+<div class="code-block">
+<button class="copy-btn" aria-label="Copy code">Copy</button>
 <code>
   label(Label("$k'$",2LeftSide), pl_l_d--pl);<br>
   label(Label("$k$",2LeftSide), pl_l_u--pl);<br>
   label(Label("$p'$",2RightSide), pr--pr_r_u);<br>
   label(Label("$p$",2LeftSide), pr_r_d--pr);<br>
 </code>
+</div>
+</div>
 
 <p>
   Running the code gives:
@@ -317,6 +368,8 @@ If you are using an offline complier, create a new <span class="inline-code">.as
 <p>
   Code:
 </p>
+<div class="code-block">
+<button class="copy-btn" aria-label="Copy code">Copy</button>
 <code>
   import feynman;<br>
   currentpen = linewidth(0.5);<br>
@@ -336,13 +389,14 @@ If you are using an offline complier, create a new <span class="inline-code">.as
   drawPhoton(pd--pu); // vector boson<br>
   label("$Z^*$",pd--pu,left);<br>
   drawFermion(pu_l--pu); //electron neutrino<br>
-  label("$\\nu_e$",pu_l,left);<br>
+  label("$\nu_e$",pu_l,left);<br>
   drawFermion(pu--pu_r); //electron neutrino<br>
-  label("$\\nu_e$",pu_r,right);<br>
+  label("$\nu_e$",pu_r,right);<br>
   // drawing vertices<br>
   drawVertex(pu);<br>
   drawVertex(pd);<br>
 </code>
+</div>
 
 <p>
   Result:
@@ -354,6 +408,8 @@ If you are using an offline complier, create a new <span class="inline-code">.as
 <p>
   Code:
 </p>
+<div class="code-block">
+<button class="copy-btn" aria-label="Copy code">Copy</button>
 <code>
   import feynman;<br>
   currentpen = linewidth(0.5);<br>
@@ -379,15 +435,16 @@ If you are using an offline complier, create a new <span class="inline-code">.as
   drawPhoton(pl -- pr);   <br>
   label("$Z$",pl--pr,up); <br>
   drawFermion(pr -- pr_r_u); <br>
-  label("$\\mu^-$",pr_r_u,right); <br>
+  label("$\mu^-$",pr_r_u,right); <br>
   drawFermion(pr_r_d -- pr);<br>
-  label("$\\mu^+$",pr_r_d,right); <br>
+  label("$\mu^+$",pr_r_d,right); <br>
   // drawing vertices<br>
   drawVertex(pl);<br>
   drawVertex(pr);<br>
   drawVertex(pl_l_u);<br>
   drawVertex(pl_l_d);<br>
 </code>
+</div>
 
 <p>
   Result:
@@ -399,6 +456,8 @@ If you are using an offline complier, create a new <span class="inline-code">.as
 <p>
   Code:
 </p>
+<div class="code-block">
+<button class="copy-btn" aria-label="Copy code">Copy</button>
 <code>
   import feynman;<br>
   currentpen = linewidth(0.5);<br>
@@ -430,15 +489,16 @@ If you are using an offline complier, create a new <span class="inline-code">.as
   drawPhoton(pl -- pr);   <br>
   label("$Z$",pl--pr,up); <br>
   drawFermion(pr -- pr_r_u); <br>
-  label("$\\mu^-$",pr_r_u,right); <br>
+  label("$\mu^-$",pr_r_u,right); <br>
   drawFermion(pr_r_d -- pr);<br>
-  label("$\\mu^+$",pr_r_d,right); <br>
+  label("$\mu^+$",pr_r_d,right); <br>
   // drawing vertices<br>
   drawVertex(pl);<br>
   drawVertex(pr);<br>
   drawVertex(pl_l_u);<br>
   drawVertex(pl_l_d);<br>
 </code>
+</div>
 
 <p>
   Result:
@@ -460,5 +520,28 @@ If you are using an offline complier, create a new <span class="inline-code">.as
 <my-footer></my-footer>
 <script type="module" src="../../../styles/footer.js"></script>
 <script src="../../../user/upload_social_links.js"></script> 
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll('.code-block').forEach(block => {
+    const btn = block.querySelector('.copy-btn');
+    const code = block.querySelector('code');
+
+    btn.addEventListener('click', async () => {
+      try {
+        // Get the text—including line breaks—from the code element
+        const text = code.innerText;
+        await navigator.clipboard.writeText(text);
+
+        // Flash “Copied!” state
+        btn.classList.add('copied');
+        setTimeout(() => btn.classList.remove('copied'), 1500);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+    });
+  });
+});
+</script>
+
 </body>
 </html>
