@@ -42,24 +42,12 @@ body main {
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
 /* Defining the title of any page */
 
-.page-top {
-    margin-top: 60px;
-    width: 100%;
-    max-width: 1000px;
-    min-width: 0;
-    display: flex;
-    flex-direction: row; 
-    justify-content: space-between;
-    align-items: center;   
-}
-
 .page-top h1 {
     font-size: 45px;
-    font-weight: 1000;
 }
 
 .page-top {
-    margin-top: 60px;
+    margin: 60px 0px 20px 0px;
     width: 100%;
     max-width: 1000px;
     min-width: 0;
@@ -70,11 +58,10 @@ body main {
 }
 
 .author_information {
-    margin-top: 30px;
     width: 100%;
     max-width: 1000px;
     min-width: 0;
-    margin-bottom: 15px;
+    margin-bottom: 30px;
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
@@ -108,7 +95,6 @@ section {
     width: 100%;
     max-width: 1000px;
     min-width: 0;
-    margin: 20px 0px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     color: black;
     display: flex;
@@ -118,8 +104,8 @@ section {
 }
 
 section p {
-    padding: 10px 20px 20px 20px;
-    font-size: 20px;
+    padding: 10px 30px;
+    font-size: 16.5px;
     word-wrap: break-word;
     overflow-wrap: break-word;
 }
@@ -136,8 +122,8 @@ section hr {
 
 
 section ul li {
-    padding: 10px 20px 20px 20px;
-    font-size: 20px;
+    padding: 5px 30px;
+    font-size: 16.5px;
     word-wrap: break-word;
     overflow-wrap: break-word;
     list-style-type: disc; /* Use disc bullets for list items */
@@ -145,7 +131,7 @@ section ul li {
 }
 
 section p .inline-code, section ul li .inline-code {
-    font-size: 17px;                        /* slightly smaller than body text */
+    font-size: 14px;                        /* slightly smaller than body text */
     font-family: Menlo, Consolas, monospace;
 
     background-color: #f5f5f5;               /* very light gray */
@@ -163,10 +149,9 @@ section p .inline-code, section ul li .inline-code {
 section code {
     display: block;
 
-    padding: 20px;
-    margin: 0px 20px;
+    margin: 5px 30px;
 
-    font-size: 18px;                        /* slightly smaller than body text */
+    font-size: 15px;                        /* slightly smaller than body text */
     font-family: Menlo, Consolas, monospace;
 
     background-color: #f5f5f5;               /* very light gray */
@@ -197,7 +182,7 @@ section img {
 
 
 section h1, section h2, section h3, section h4 {
-    padding: 20px 20px 10px 20px;
+    padding: 10px 30px;
     word-wrap: break-word;
     overflow-wrap: break-word;
 }
