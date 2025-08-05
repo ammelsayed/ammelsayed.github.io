@@ -1,0 +1,103 @@
+
+<!-- /* ------------------------------- *\ -->
+<!-- /*     AUTHOR: A.M.M. Elsayed      *\ -->
+<!-- /*    * ALL RIGHTS RESERVED *      *\ -->
+<!-- /* ------------------------------- *\ -->
+ 
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+<!-- #########################################  -->
+<title>Feynmann</title>
+<!-- #########################################  -->
+
+
+<!--Browser Tap icon-->
+<link rel="icon" href="../../../images/tap-icon.png">
+<!--Body and Body-Main styles-->
+<link rel="stylesheet" href="../post_style.css">
+<!--Header and footer stylings-->
+<link rel="stylesheet" href="../../../styles/header.css">
+<link rel="stylesheet" href="../../../styles/footer.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<!-- Hide “index.html” from the URL bar -->
+<script>
+  (function() {
+    const p = window.location.pathname;
+    if (p.endsWith('index.html')) {
+      // strip off “index.html” (10 chars) and replace the URL without reloading
+      const clean = p.slice(0, -'index.html'.length);
+      window.history.replaceState(null, '', clean);
+    }
+  })();
+</script>
+</head>
+
+<body>
+<my-header></my-header>
+<script type="module" src="../../../styles/header.js"></script>
+<script src="../../../menu.js"></script>
+<main>
+
+
+<!-- #########################################  -->
+<!-- #########################################  -->
+<!-- ###    Your Content Starts Here     #####  -->
+<!-- #########################################  -->
+<!-- #########################################  -->
+
+
+
+
+<div class="page-top">
+<h1>Desktop TDL</h1>
+</div>
+
+<section>
+<p>
+Welcome to the homepage of the Desktop TDL App.
+</p>
+</section>
+
+
+<!-- #########################################  -->
+<!-- #########################################  -->
+<!-- ###     Your Content Ends Here      #####  -->
+<!-- #########################################  -->
+<!-- #########################################  -->
+
+</main>
+<my-footer></my-footer>
+<script type="module" src="../../../styles/footer.js"></script>
+<script src="../../../user/upload_social_links.js"></script> 
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll('.code-block').forEach(block => {
+    const btn = block.querySelector('.copy-btn');
+    const code = block.querySelector('code');
+
+    btn.addEventListener('click', async () => {
+      try {
+        // Get the text—including line breaks—from the code element
+        const text = code.innerText;
+        await navigator.clipboard.writeText(text);
+
+        // Flash “Copied!” state
+        btn.classList.add('copied');
+        setTimeout(() => btn.classList.remove('copied'), 1500);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+    });
+  });
+});
+</script>
+
+</body>
+</html>

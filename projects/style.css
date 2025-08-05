@@ -1,0 +1,197 @@
+/*---------------------------------------*\
+    AUTHOR: A.M.M. Elsayed   
+    * ALL RIGHTS RESERVED *
+\*---------------------------------------*/
+
+/*  this is for all the elements in the html file 
+    Here we chose to set zero distance between the
+    browser borders and the elements borders
+*/
+
+* {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    text-decoration: none;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+}
+
+body main {
+    margin: 10px;
+    padding: 10px;
+    flex: 1;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.navigations nav ul li #publications {
+    font-weight: 350;
+}
+
+.page-top {
+    width: 100%;
+    height: 150px;
+    max-width: 1000px;
+    min-width: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.page-top h1 {
+    font-size: 45px;
+}
+
+.page-content {
+    width: 100%;
+    max-width: 1000px;
+    min-width: 0;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+#events-list {
+    max-width: 1000px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+#events-list .publication {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    cursor: pointer; /* make it obvious the card is clickable */
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+#events-list .publication:hover {
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    transform: scale(1.001);
+}
+
+#events-list .publication .content {
+    margin: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+#events-list .publication img {
+    margin: 20px;
+    width: 95%;
+    max-width: 250px;
+    height: auto;
+}
+
+
+#events-list .publication .content p {
+    margin-bottom: 5px;
+}
+
+#events-list .publication .content h2 {
+    margin-bottom: 10px;
+}
+
+#events-list .publication .content .abstract {
+    font-size: 15px;
+    text-align: justify;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+/* Styles for screens below 1000px */
+@media screen and (max-width: 1000px) {
+    #events-list .publication {
+        flex-direction: column;
+    }
+}
+
+/* Ensure text wraps */
+#events-list .publication .content p,
+#events-list .publication .content h2 {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* %-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-% */
+/*   Special Styling Search Bars   */
+/* %-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-% */
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    position: relative;
+    width: 400px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 40px 10px 15px;
+    border: 2px solid #ccc;
+    border-radius: 25px;
+    font-size: 16px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.search-button {
+    position: absolute;
+    right: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.search-icon {
+    width: 20px;
+    height: 20px;
+    fill: #666;
+    transition: fill 0.3s ease;
+}
+
+.search-button:hover .search-icon {
+    fill: #007bff;
+}
+
+@media screen and (max-width: 1000px) {
+    .search-bar {
+        display: none;
+    }
+}
+
+.highlight {
+    background-color: yellow;
+    font-weight: bold;
+}

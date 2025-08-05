@@ -1,0 +1,9 @@
+[
+    {
+        "type":"Desktop App",
+        "title": "Desktop TDL",
+        "description": "Harnessing Python, this cross-platform utility leverages Pillow’s robust image-compositing engine together with a CustomTkinter/Tkinter front end to render your to-do list directly onto the desktop wallpaper. Users can tailor font attributes, opacity, layout, and choose from multiple themes, all managed through an intuitive settings panel. Whether deployed as a standalone executable or installed via platform-specific installer, the application maintains consistent functionality across Windows, Linux, and macOS. Real-time updates are driven by event-based callbacks, and all preferences are saved in human-readable JSON for effortless syncing or automation. The result is a seamless, non-intrusive workflow companion that keeps your tasks in view without diverting focus from your desktop environment.",
+        "image_soruce":"./DesktopTDL/images/checklist.png",
+        "link": "./DesktopTDL/index.html"
+    }
+]

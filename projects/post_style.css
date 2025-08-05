@@ -1,0 +1,249 @@
+/*---------------------------------------*\ 
+    AUTHOR: A.M.M. Elsayed   
+    * ALL RIGHTS RESERVED *
+\*---------------------------------------*/
+
+*{
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    text-decoration: none;
+}
+
+html {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column; /* Items are placed left to right. */
+    /* background-color: #101010; */
+}
+
+body {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column; 
+    justify-content: space-between; /* Items are placed top to bottom. */
+    /* align-items: stretch;  */
+}
+
+body main {
+    margin: 0px;   /* Space outside the border */
+    padding: 20px;  /* Space inside the border, between content and border */
+    flex: 1; /* Fills available space */
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    display: flex;
+    flex-direction: column; 
+    justify-content: flex-start;   
+    align-items: center; 
+    background-color: white;
+}
+
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+/* Defining the title of any page */
+
+.page-top h1 {
+    font-size: 45px;
+}
+
+.page-top {
+    margin: 60px 0px 20px 0px;
+    width: 100%;
+    max-width: 1000px;
+    min-width: 0;
+    display: flex;
+    flex-direction: row; 
+    justify-content: space-between;
+    align-items: center;   
+}
+
+.author_information {
+    width: 100%;
+    max-width: 1000px;
+    min-width: 0;
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.author_information img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;    /* crop to fill without distortion */
+    border-radius: 50%;   /* make it a perfect circle */
+    margin: 0;
+    margin-right: 10px;
+    display: block;       /* remove any inline gaps */
+}
+
+.author_information .AuthorName_and_Date {
+    height: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+
+
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+/*  Defining (text) sections      */
+
+section {
+    width: 100%;
+    max-width: 1000px;
+    min-width: 0;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    color: black;
+    display: flex;
+    flex-direction: column; 
+    justify-content: space-between;   
+    align-items: stretch; 
+}
+
+section p {
+    padding: 10px 30px;
+    font-size: 16.5px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+section hr {
+    display: block;
+    margin-left: 20px;
+    align-self: left;
+    max-width: 900px;
+    width: 90%;
+    height: 2px;
+    background-color: black;
+}
+
+
+section ul li {
+    padding: 5px 30px;
+    font-size: 16.5px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    list-style-type: disc; /* Use disc bullets for list items */
+    list-style-position: inside;
+}
+
+section p .inline-code, section ul li .inline-code {
+    font-size: 14px;                        /* slightly smaller than body text */
+    font-family: Menlo, Consolas, monospace;
+
+    background-color: #f5f5f5;               /* very light gray */
+    color: #c7254e;                          /* dark reddish code color */
+
+    padding: 0.15em 0.3em;                   /* small top/bottom & left/right padding */
+    border: 1px solid #e1e1e8;               /* subtle border for definition */
+    border-radius: 3px;                      /* rounded corners */
+
+    white-space: nowrap;                     /* prevent wrapping mid-snippet */
+    display: inline-block;                   /* makes padding/margin behave more predictably */
+}
+
+
+section code {
+    display: block;
+
+    margin: 5px 30px;
+
+    font-size: 15px;                        /* slightly smaller than body text */
+    font-family: Menlo, Consolas, monospace;
+
+    background-color: #f5f5f5;               /* very light gray */
+    color: #c7254e;                          /* dark reddish code color */
+
+    padding: 0.15em 0.3em;                   /* small top/bottom & left/right padding */
+    border: 1px solid #e1e1e8;               /* subtle border for definition */
+    border-radius: 3px;                      /* rounded corners */
+
+    white-space: nowrap;                     /* prevent wrapping mid-snippet */
+
+    overflow-x: auto; /* Horizontal scrolling for long code */
+    line-height: 2;
+
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    }
+
+
+section img {
+    display: block;
+    align-self: center;
+    margin: 20px auto;   
+    width: auto;
+    max-width: min(800px, 90%);
+    height: auto;
+}
+
+
+section h1, section h2, section h3, section h4 {
+    padding: 10px 30px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* container around each code chunk */
+.code-block {
+  position: relative;
+  display: block;        /* ensure it spans the full width */
+}
+
+/* the copy button */
+.copy-btn {
+  position: absolute;
+  top: 6px;
+  right: 30px;
+  background: rgba(107, 107, 107, 0.425);
+  border: none;
+  color: #fff;
+  padding: 4px 8px;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* show on hover */
+.code-block:hover .copy-btn {
+  opacity: 1;
+}
+
+/* optional: on-click feedback */
+.copy-btn.copied {
+  background: #28a745; /* green */
+}
+.copy-btn.copied::after {
+  /* content: "Copied"; */
+  position: absolute;
+  top: 30px;
+  right: 5px;
+  font-size: 12px;
+  color: #28a745;
+}
+
+
+
+@media screen and (max-width: 1000px) {
+    section p, section ul li  {
+        font-size: 18px;
+    }
+
+    section p .inline-code, section ul li .inline-code  {
+        font-size: 15px;
+    }
+
+    section code {
+        font-size: 15px;
+    }
+
+    .page-top h1 {
+        font-size: 35px;
+    }
+}
+

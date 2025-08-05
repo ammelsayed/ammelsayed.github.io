@@ -17,7 +17,7 @@ function fetchJSONData() {
 
 function updatePublicationCounts(currentCount, totalCount) {
     const countsEl = document.getElementById('event-count');
-    countsEl.innerHTML = `<i>Showing <b>${currentCount}</b> out of <b>${totalCount}</b> events.</i>`;
+    countsEl.innerHTML = `<i>Showing <b>${currentCount}</b> out of <b>${totalCount}</b> event(s).</i>`;
 }
 
 function displayPublications(data) {

@@ -26,7 +26,7 @@ function fetchJSONData() {
 // Helper: create or update the count line
 function updatePublicationCounts(currentCount, totalCount) {
     const countsEl = document.getElementById('publication-count');
-    countsEl.innerHTML = `<i>Showing <b>${currentCount}</b> out of <b>${totalCount}</b> published works.</i>`;
+    countsEl.innerHTML = `<i>Showing <b>${currentCount}</b> out of <b>${totalCount}</b> published work(s).</i>`;
 }
 
 // Display publications without filtering or highlighting

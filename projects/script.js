@@ -8,7 +8,7 @@ let publicationsData = [];
 
 // fetch JSON & kick off
 function fetchJSONData() {
-  fetch('blogs.json')
+  fetch('projects.json')
     .then(res => {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return res.json();
@@ -23,7 +23,7 @@ function fetchJSONData() {
 // update count line
 function updatePublicationCounts(current, total) {
   document.getElementById('event-count').innerHTML =
-    `<i>Showing <b>${current}</b> out of <b>${total}</b> post(s).</i>`;
+    `<i>Showing <b>${current}</b> out of <b>${total}</b> project(s).</i>`;
 }
 
 // render ALL posts (no highlight)
@@ -40,17 +40,8 @@ function displayPublications(data) {
 
     card.innerHTML = `
       <div class="content">
+        <p style="color: navy;"><em><b>${pub.type}</b></em></p>
         <h2>${pub.title}</h2>
-        <div class="author_information">
-          <img src="${pub.author_image}" class="author_image">
-          <div class="AuthorName_and_Date">
-            <em> By  <a href="${pub.author_link}" target="_blank" rel="noopener">
-              ${pub.author},
-            </a> </em>
-            <em>${pub.date}</em>
-          </div>
-        </div>
-        <hr>
         <p class="abstract">${pub.description}</p>
       </div>
       <img src="${pub.image_soruce}" class="publication-image">
@@ -113,24 +104,14 @@ function displayPublicationsWithHighlights(data, term) {
     card.style.cursor = 'pointer';
 
     // highlightTextInHTML(fromHTML, term) preserves tags
+    const hType  = highlightTextInHTML(pub.type, term);
     const hTitle = highlightTextInHTML(pub.title, term);
     const hDesc  = highlightTextInHTML(pub.description, term);
 
     card.innerHTML = `
       <div class="content">
+        <p style="color: navy;"><em><b>${hType}</b></em></p>
         <h2>${hTitle}</h2>
-        <p class="author_information">
-          <img src="${pub.author_image}" class="author_image">
-          <div class="AuthorName_and_Date">
-            By 
-            <a href="${pub.author_link}" target="_blank" rel="noopener">
-              ${highlightTextInHTML(pub.author, term)}
-            </a>
-            <br>  
-            ${highlightTextInHTML(pub.date, term)}
-          </div>
-        </p>
-        <hr>
         <p class="abstract">${hDesc}</p>
       </div>
       <img src="${pub.image_soruce}" class="publication-image">
