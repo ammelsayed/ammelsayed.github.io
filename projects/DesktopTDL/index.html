@@ -53,16 +53,205 @@
 <!-- #########################################  -->
 
 
-
-
 <div class="page-top">
-<h1>Desktop TDL</h1>
+<div class="text">
+<h1 style="font-size: 55px">Download Desktop TDL</h1>
+<br>
+<h2 style="font-weight: 400;">Free and built on open source.</h2>
+</div>
+<!-- <img 
+    style = " 
+    margin: 20px;
+    width: 95%;
+    max-width: 150px;
+    height: auto;" 
+    src="./images/checklist.png"> -->
 </div>
 
 <section>
 <p>
-Welcome to the homepage of the Desktop TDL App.
+<div style="
+    width: 100%;
+    max-width: 1000px;
+    min-width: 0;
+    display: flex;
+    flex-direction: row; 
+    justify-content: space-evenly;
+    align-items: center; ">
+
+<div style="
+    display: flex;
+    flex-direction: column; 
+    justify-content: space-evenly;
+    align-items: center; ">
+<img 
+    style = " 
+    margin: 20px;
+    width: 95%;
+    max-width: 120px;
+    height: auto;" 
+    src="https://code.visualstudio.com/assets/images/windows-logo.png">
+<a href="#"
+   style="display:inline-flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:center;
+          width:160px;
+          height:80px;
+          background:#0063B1;
+          border-radius:4px;
+          padding:2px;
+          box-sizing:border-box;
+          text-decoration:none;
+          color:#fff;
+          font-family:'Segoe UI',sans-serif;">
+  <div style="
+    display: flex;
+    flex-direction: row; 
+    justify-content: space-evenly;
+    align-items: center;
+    margin-bottom: -5px;">
+  <img src="https://code.visualstudio.com/assets/icons/download.svg" style="width: 18px; height: 18px;">
+  <div style="font-size:17px;
+              margin-left: 15px;
+              font-weight:600;">
+    Windows
+  </div>
+  </div>
+  <div style="font-size:12px;
+              line-height:1;
+              opacity:0.9;
+              margin-bottom:15px;">
+    Windows 10, 11
+  </div>
+</a>
+
+
+</div>
+
+<div style="
+    display: flex;
+    flex-direction: column; 
+    justify-content: space-evenly;
+    align-items: center; ">
+<img 
+    style = " 
+    margin: 20px;
+    width: 95%;
+    max-width: 100px;
+    height: auto;" 
+    src="https://code.visualstudio.com/assets/images/linux-logo.png">
+<a href="#"
+   style="display:inline-flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:center;
+          width:160px;
+          height:80px;
+          background:#0063B1;
+          border-radius:4px;
+          padding:2px;
+          box-sizing:border-box;
+          text-decoration:none;
+          color:#fff;
+          font-family:'Segoe UI',sans-serif;">
+  <div style="
+    display: flex;
+    flex-direction: row; 
+    justify-content: space-evenly;
+    align-items: center;
+    margin-bottom: -5px;">
+  <img src="https://code.visualstudio.com/assets/icons/download.svg" style="width: 18px; height: 18px;">
+  <div style="font-size:17px;
+              margin-left: 15px;
+              font-weight:600;">
+    .deb
+  </div>
+  </div>
+  <div style="font-size:12px;
+              line-height:1;
+              opacity:0.9;
+              margin-bottom:15px;">
+    Debian, Ubuntu
+  </div>
+</a>
+</div>
+
+<div style="
+    display: flex;
+    flex-direction: column; 
+    justify-content: space-evenly;
+    align-items: center; ">
+<img 
+    style = " 
+    margin: 20px;
+    width: 95%;
+    max-width: 100px;
+    height: auto;" 
+    src="https://code.visualstudio.com/assets/images/apple-logo.svg">
+<a href="#"
+   style="display:inline-flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:center;
+          width:160px;
+          height:80px;
+          background:#0063B1;
+          border-radius:4px;
+          padding:2px;
+          box-sizing:border-box;
+          text-decoration:none;
+          color:#fff;
+          font-family:'Segoe UI',sans-serif;">
+  <div style="
+    display: flex;
+    flex-direction: row; 
+    justify-content: space-evenly;
+    align-items: center;
+    margin-bottom: -5px;">
+  <img src="https://code.visualstudio.com/assets/icons/download.svg" style="width: 18px; height: 18px;">
+  <div style="font-size:17px;
+              margin-left: 15px;
+              font-weight:600;">
+    Mac
+  </div>
+  </div>
+  <div style="font-size:12px;
+              line-height:1;
+              opacity:0.9;
+              margin-bottom:15px;">
+    macOS 11.0+
+  </div>
+</a>
+</div>
+
+</div>
 </p>
+<br>
+<br>
+
+
+<h1 style="font-size: 30px;">About Dekstop TDL</h1>
+<p style="font-size: 18px;">
+Harnessing Python, this cross-platform utility leverages Pillow’s robust image-compositing engine together with a CustomTkinter/Tkinter front end to render your to-do list directly onto the desktop wallpaper. Users can tailor font attributes, opacity, layout, and choose from multiple themes, all managed through an intuitive settings panel. Whether deployed as a standalone executable or installed via platform-specific installer, the application maintains consistent functionality across Windows, Linux, and macOS. Real-time updates are driven by event-based callbacks, and all preferences are saved in human-readable JSON for effortless syncing or automation. The result is a seamless, non-intrusive workflow companion that keeps your tasks in view without diverting focus from your desktop environment.
+</p>
+
+<p style="font-size: 18px;">
+We chose Pillow because it gives us a clean, Python-native API for loading images, drawing shapes, and rendering TrueType text with minimal setup. Its lightweight dependency footprint means the app installs quickly and runs reliably across environments. Pillow’s intuitive ImageDraw and ImageFont classes let us compose each To-Do overlay in just a few lines of code, keeping the codebase lean and easy to maintain. In contrast, OpenCV’s broader CV toolset and C-style interface would add unnecessary complexity for simple text-and-box rendering. Pillow lets us focus on clarity and performance without extra overhead.
+</p>
+
+
+<h1 style="font-size: 30px;">How to use the app?</h1>
+<p style="font-size: 18px;">
+<img src="./images/usage.png" style=" 
+    width: 100%;
+    max-width: 900px;
+    height: auto;
+    align-self: center;" >
+</p>
+
+
+
 </section>
 
 
@@ -100,5 +289,4 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 
 </body>
-
 </html>
