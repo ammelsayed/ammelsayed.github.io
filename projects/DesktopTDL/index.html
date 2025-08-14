@@ -55,7 +55,7 @@
 
 <div class="page-top">
 <div class="text">
-<h1 style="font-size: 55px">Download Desktop TDL</h1>
+<h1 style="font-size: 60px">Download Desktop TDL</h1>
 <br>
 <h2 style="font-weight: 400;">Free and built on open source.</h2>
 </div>
@@ -70,14 +70,8 @@
 
 <section>
 <p>
-<div style="
-    width: 100%;
-    max-width: 1000px;
-    min-width: 0;
-    display: flex;
-    flex-direction: row; 
-    justify-content: space-evenly;
-    align-items: center; ">
+  
+<div class="downloads">
 
 <div style="
     display: flex;
@@ -186,7 +180,7 @@
     style = " 
     margin: 20px;
     width: 95%;
-    max-width: 100px;
+    max-width: 99px;
     height: auto;" 
     src="https://code.visualstudio.com/assets/images/apple-logo.svg">
 <a href="#"
@@ -230,29 +224,75 @@
 <br>
 <br>
 
+<h1 style="font-size: 30px;">About Desktop TDL</h1> 
+<p style="font-size: 18px;"> 
+  Desktop TDL is a compact, cross-platform Python utility that writes your to-do list directly onto the desktop wallpaper. It uses <a href="https://pillow.readthedocs.io/" target="_blank" rel="noopener noreferrer">Pillow</a> for image composition and a modern, themeable UI built with <a href="https://customtkinter.tomschimansky.com/" target="_blank" rel="noopener noreferrer">CustomTkinter</a> (with occasional native dialogs from <a href="https://docs.python.org/3/library/tkinter.html" target="_blank" rel="noopener noreferrer">Tkinter</a>). In the Settings panel you can pick fonts, colors, layout, and padding, select the wallpaper image, and adjust UI scaling and theme. When you click “Write On Desktop,” the app renders a neatly formatted task list and applies it as your wallpaper so your tasks remain visible without getting in the way. </p>
 
-<h1 style="font-size: 30px;">About Dekstop TDL</h1>
-<p style="font-size: 18px;">
-Harnessing Python, this cross-platform utility leverages Pillow’s robust image-compositing engine together with a CustomTkinter/Tkinter front end to render your to-do list directly onto the desktop wallpaper. Users can tailor font attributes, opacity, layout, and choose from multiple themes, all managed through an intuitive settings panel. Whether deployed as a standalone executable or installed via platform-specific installer, the application maintains consistent functionality across Windows, Linux, and macOS. Real-time updates are driven by event-based callbacks, and all preferences are saved in human-readable JSON for effortless syncing or automation. The result is a seamless, non-intrusive workflow companion that keeps your tasks in view without diverting focus from your desktop environment.
-</p>
+  <p style="font-size: 18px;"> We use <a href="https://pillow.readthedocs.io/" target="_blank" rel="noopener noreferrer">Pillow</a> because it gives a direct, Python-native API for opening images, drawing shapes, and rendering TrueType text with minimal boilerplate. Pillow’s <span class="inline-code">ImageDraw</span> and <span class="inline-code">ImageFont</span> primitives make it straightforward to measure text, compute the exact bounding box, and draw both the rectangle and the multi-line text. A general computer-vision toolkit like <a href="https://opencv.org/" target="_blank" rel="noopener noreferrer">OpenCV</a> is powerful, but for this use case it adds extra complexity and heavier dependencies without practical benefit. Likewise, <a href="https://customtkinter.tomschimansky.com/" target="_blank" rel="noopener noreferrer">CustomTkinter</a> provides modern themed widgets and simple scaling controls that keep the UI compact and pleasant; we only use a few native Tkinter dialogs (color chooser, file dialogs, message boxes) where they make sense. </p>
 
-<p style="font-size: 18px;">
-We chose Pillow because it gives us a clean, Python-native API for loading images, drawing shapes, and rendering TrueType text with minimal setup. Its lightweight dependency footprint means the app installs quickly and runs reliably across environments. Pillow’s intuitive ImageDraw and ImageFont classes let us compose each To-Do overlay in just a few lines of code, keeping the codebase lean and easy to maintain. In contrast, OpenCV’s broader CV toolset and C-style interface would add unnecessary complexity for simple text-and-box rendering. Pillow lets us focus on clarity and performance without extra overhead.
-</p>
+  <p style="font-size: 18px;">
+    The <span class="inline-code">.exe</span> file is generated using <a href="https://nuitka.net" target="_blank" rel="noopener noreferrer">Nuitka</a>. <a href="https://nuitka.net" target="_blank" rel="noopener noreferrer">Nuitka</a> compiles Python code into C, then uses a C compiler (e.g., GCC, MSVC) to create a native executable, potentially improving performance by producing machine code rather than relying on the Python interpreter. <a href="https://nuitka.net" target="_blank" rel="noopener noreferrer">Nuitka</a> translates Python code to C and compiles it into a standalone executable or a shared library. This process can result in faster execution compared to tools like PyInstaller. Potential performance improvements (up to 2-5x faster in some cases) due to compilation to machine code. Supports Windows, macOS, and Linux. 
+  </p>
 
-
-<h1 style="font-size: 30px;">How to use the app?</h1>
+<!-- <h1 style="font-size: 30px;">How to use the app?</h1>
 <p style="font-size: 18px;">
 <img src="./images/usage.png" style=" 
     width: 100%;
     max-width: 900px;
     height: auto;
     align-self: center;" >
-</p>
+</p> -->
 
+
+<!-- Versions (replace the previous Versions section content with the block below) -->
+<div class="versions">
+  <h1>Version History</h1>
+
+  <div class="table-wrapper">
+    <table class="versions-table" aria-describedby="versions-desc">
+      <!-- <caption id="versions-desc">Release history and short notes</caption> -->
+      <thead>
+        <tr>
+          <th scope="col">Version</th>
+          <th scope="col">Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="version-number">v 1.0.0</td>
+          <td class="version-desc">Initial release — includes Settings, History, and Console pages.</td>
+        </tr>
+        <tr>
+          <td class="version-number">v 1.0.1</td>
+          <td class="version-desc">History and Console textboxes are now read-only for users.</td>
+        </tr>
+        <tr>
+          <td class="version-number">v 1.0.2</td>
+          <td class="version-desc">Wallpaper selection is now available in the Settings page. Users can choose any desktop wallpaper; the app automatically calculates a suggested TDL font size and outputs the related image information to the Console page. Known issues: (1) optimal text-box and frame padding are not calculated automatically; (2) performance may degrade with very large background images.</td>
+        </tr>
+        <tr>
+          <td class="version-number">Next</td>
+          <td class="version-desc">(1) An update in the code to adjust with .exe files on windows. This update will save the app history.txt and settings.json files on the C:/ drive, such that all users files are saved on one directoy. This will help in making the app more generally used. (2) Setting up the app for macOS and Linux systems.</td>
+        </tr>
+        <tr>
+          <td class="version-number">v 1.0.9<br>(planned)</td>
+          <td class="version-desc">
+            Changing the theme no longer requires restarting the app. Instead, widget colors are updated instantly according to the selected theme and appearance mode, using a built-in themes dictionary and newly developed dedicated algorithms. These algorithms are open-source and have been contributed to the <a href="https://customtkinter.tomschimansky.com/" target="_blank" rel="noopener noreferrer">CustomTkinter</a> project.
+          </td>
+        </tr>
+        <tr>
+          <td class="version-number">v 2.0.0<br>(planned)</td>
+          <td class="version-desc">The To-Do input textbox will move to a "Write" tab. Items will be auto-converted into CTk.Checkbox widgets in a new "Marked" tab, where users can mark items completed. When an item is completed, its list number will be replaced with a checkmark (✔) on the desktop wallpaper.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
 
 </section>
+
+
 
 
 <!-- #########################################  -->
