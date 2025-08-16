@@ -85,7 +85,7 @@
     max-width: 120px;
     height: auto;" 
     src="https://code.visualstudio.com/assets/images/windows-logo.png">
-<a href="#"
+<a href="https://github.com/ammelsayed/Desktop-TDL/raw/refs/heads/main/GUI.exe"
    style="display:inline-flex;
           flex-direction:column;
           align-items:center;
@@ -226,13 +226,29 @@
 
 <h1 style="font-size: 30px;">About Desktop TDL</h1> 
 <p style="font-size: 18px;"> 
-  Desktop TDL is a lightweight (20 MB), compact, cross-platform Python utility that writes your to-do list directly onto the desktop wallpaper. It uses <a href="https://pillow.readthedocs.io/" target="_blank" rel="noopener noreferrer">Pillow</a> for image composition and a modern, themeable UI built with <a href="https://customtkinter.tomschimansky.com/" target="_blank" rel="noopener noreferrer">CustomTkinter</a> (with occasional native dialogs from <a href="https://docs.python.org/3/library/tkinter.html" target="_blank" rel="noopener noreferrer">Tkinter</a>). In the Settings panel you can pick fonts, colors, layout, and padding, select the wallpaper image, and adjust UI scaling and theme. When you click “Write On Desktop,” the app renders a neatly formatted task list and applies it as your wallpaper so your tasks remain visible without getting in the way. </p>
+  Desktop TDL is a lightweight (20 MB), compact, cross-platform Python utility that writes your to-do list directly onto the desktop wallpaper. The python code can be found on the project <a href="https://github.com/ammelsayed/Desktop-TDL" target="_blank" rel="noopener noreferrer">Github page</a>. It uses <a href="https://pillow.readthedocs.io/" target="_blank" rel="noopener noreferrer">Pillow</a> for image composition and a modern, themeable UI built with <a href="https://customtkinter.tomschimansky.com/" target="_blank" rel="noopener noreferrer">CustomTkinter</a> (with occasional native dialogs from <a href="https://docs.python.org/3/library/tkinter.html" target="_blank" rel="noopener noreferrer">Tkinter</a>). In the Settings panel you can pick fonts, colors, layout, and padding, select the wallpaper image, and adjust UI scaling and theme. When you click “Write On Desktop,” the app renders a neatly formatted task list and applies it as your wallpaper so your tasks remain visible without getting in the way. </p>
 
   <p style="font-size: 18px;"> We use <a href="https://pillow.readthedocs.io/" target="_blank" rel="noopener noreferrer">Pillow</a> because it gives a direct, Python-native API for opening images, drawing shapes, and rendering TrueType text with minimal boilerplate. Pillow’s <span class="inline-code">ImageDraw</span> and <span class="inline-code">ImageFont</span> primitives make it straightforward to measure text, compute the exact bounding box, and draw both the rectangle and the multi-line text. A general computer-vision toolkit like <a href="https://opencv.org/" target="_blank" rel="noopener noreferrer">OpenCV</a> is powerful, but for this use case it adds extra complexity and heavier dependencies without practical benefit. Likewise, <a href="https://customtkinter.tomschimansky.com/" target="_blank" rel="noopener noreferrer">CustomTkinter</a> provides modern themed widgets and simple scaling controls that keep the UI compact and pleasant; we only use a few native Tkinter dialogs (color chooser, file dialogs, message boxes) where they make sense. </p>
 
   <p style="font-size: 18px;">
-    The <span class="inline-code">.exe</span> file is generated using <a href="https://nuitka.net" target="_blank" rel="noopener noreferrer">Nuitka</a>. <a href="https://nuitka.net" target="_blank" rel="noopener noreferrer">Nuitka</a> compiles Python code into C, then uses a C compiler (e.g., GCC, MSVC) to create a native executable, potentially improving performance by producing machine code rather than relying on the Python interpreter. <a href="https://nuitka.net" target="_blank" rel="noopener noreferrer">Nuitka</a> translates Python code to C and compiles it into a standalone executable or a shared library. This process can result in faster execution compared to tools like PyInstaller. Potential performance improvements (up to 2-5x faster in some cases) due to compilation to machine code. Supports Windows, macOS, and Linux. 
+    The <span class="inline-code">.exe</span> file is generated using <a href="https://nuitka.net" target="_blank" rel="noopener noreferrer">Nuitka</a>. <a href="https://nuitka.net" target="_blank" rel="noopener noreferrer">Nuitka</a> compiles Python code into C, then uses a C compiler to create a native executable, potentially improving performance (up to 2-5x faster in some cases) by producing machine code rather than relying on the Python interpreter, and thus resulting in faster execution compared to tools like PyInstaller. The command used for this project is (on Windows):
   </p>
+
+  <div class="code-block">
+  <button class="copy-btn" aria-label="Copy code">Copy</button>
+  <code>
+  python -m nuitka --standalone<br><span style="display:inline-block; width:16.1ch;"></span> 
+  --onefile<br><span style="display:inline-block; width:16.1ch;"></span> 
+  --windows-console-mode=disable<br><span style="display:inline-block; width:16.1ch;"></span> 
+  --windows-icon-from-ico=./assets/checklist.png<br><span style="display:inline-block; width:16.1ch;"></span> 
+  --include-data-dir=data=data<br><span style="display:inline-block; width:16.1ch;"></span> 
+  --include-data-dir=assets=assets<br><span style="display:inline-block; width:16.1ch;"></span> 
+  --enable-plugin=tk-inter<br><span style="display:inline-block; width:16.1ch;"></span> 
+  --show-progress<br><span style="display:inline-block; width:16.1ch;"></span> 
+  --remove-output<br><span style="display:inline-block; width:18.1ch;"></span> 
+    GUI.py
+  </code>
+  </div>
 
 <!-- <h1 style="font-size: 30px;">How to use the app?</h1>
 <p style="font-size: 18px;">
@@ -247,14 +263,14 @@
 
 <ul>
   <li style="margin: 20px; font-size: 18px;">
-    <b>A.M.M. Elsayed</b>: Writing code and testing on Windows.
+    <b>A.M.M. Elsayed</b>: Sole architect and lead developer of Desktop TDL. Designed and implemented the desktop app in Python, engineered the Nuitka build pipeline to produce standalone Windows binaries. Created and deployed the project website and maintained the GitHub repository with release artifacts, documentation, and asset management.
   </li>
   <li style="margin: 20px; font-size: 18px;">
-    <b>Yee lin Phang</b>: Testing and optimizing code on macOS syetems.
+    <b>Yee lin Phang</b>: Led macOS validation for Desktop TDL. Executed functional and compatibility tests across multiple macOS versions and hardware profiles. Provided prioritized bug reports and remediation recommendations.
   </li>
-  <li style="margin: 20px; font-size: 18px;">
+  <!-- <li style="margin: 20px; font-size: 18px;">
     <b>Someone else</b>: Testing and optimizing code on Linux syetems.
-  </li>
+  </li> -->
 </ul>
 
 <h1 style="font-size: 30px; margin-top: 30px;">Q &amp; A</h1> 
@@ -296,6 +312,12 @@
           <td class="version-number">v 1.0.3</td>
           <td class="version-desc">Last to-do input is now written into the TDL textbox of main page every time the app starts. A "Clear" button is added to instantly empty the to-do textbox. The update also includes changing the wallpaper setting process from saving the output image as a permanent local file to instead saving it as a temporary PNG. This avoids clutter, preserves full image quality, and then directly sets the temporary PNG as the desktop wallpaper.</td>
         </tr>
+         <tr>
+          <td class="version-number">v 1.0.4</td>
+          <td class="version-desc"><b>Fix: Windows Defender false positive (Program:Win32/Wacapew.C!ml)</b><br>
+          Windows Defender heuristically flagged the packaged EXE as suspicious because the one-file bundle self-extracts at runtime and the app performs system-setting changes and network operations. To prevent false positives we moved risky imports (ctypes.windll, requests) into Windows-only functions (lazy imports), disabled automatic theme downloads at startup, and avoided creating unexpected temp/executable artifacts.</td>
+        </tr>
+
         <tr>
           <td class="version-number">Next</td>
           <td class="version-desc">(1) An update in the code to adjust with .exe files on windows. This update will save the app history.txt and settings.json files on the C:/ drive, such that all users files are saved on one directoy. This will help in making the app more generally used. (2) Setting up the app for macOS and Linux systems.</td>
