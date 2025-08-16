@@ -317,10 +317,13 @@
           <td class="version-desc"><b>Fix: Windows Defender false positive (Program:Win32/Wacapew.C!ml)</b><br>
           Windows Defender heuristically flagged the packaged EXE as suspicious because the one-file bundle self-extracts at runtime and the app performs system-setting changes and network operations. To prevent false positives we moved risky imports (ctypes.windll, requests) into Windows-only functions (lazy imports), disabled automatic theme downloads at startup, and avoided creating unexpected temp/executable artifacts.</td>
         </tr>
-
+        </tr>
         <tr>
-          <td class="version-number">Next</td>
-          <td class="version-desc">(1) An update in the code to adjust with .exe files on windows. This update will save the app history.txt and settings.json files on the C:/ drive, such that all users files are saved on one directoy. This will help in making the app more generally used. (2) Setting up the app for macOS and Linux systems.</td>
+          <td class="version-number">v 1.0.5</td>
+          <td class="version-desc">
+            "Reset Settings" to default option added. This update also saves the app's <span class="inline-code">history.txt</span> and <span class="inline-code">settings.json</span> files by default in the <span class="inline-code">C:\Users\&lt;user-name&gt;\AppData\Local\Desktop TDL\</span> folder. 
+            Additionally, a "Reset App Data" option has been added to the settings panel, allowing users to completely remove this folder created by the app.
+          </td>
         </tr>
         <tr>
           <td class="version-number">v 1.0.9<br>(planned)</td>

@@ -150,7 +150,7 @@ section ul li {
     list-style-position: inside;
 }
 
-section p .inline-code, section ul li .inline-code {
+.inline-code{
     font-size: 14px;                        /* slightly smaller than body text */
     font-family: Menlo, Consolas, monospace;
 
