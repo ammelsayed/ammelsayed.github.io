@@ -48,6 +48,7 @@ body main {
 
 .page-top {
     margin: 60px 0px 20px 0px;
+    padding: 10px 30px;
     width: 100%;
     max-width: 1000px;
     min-width: 0;
@@ -72,6 +73,10 @@ body main {
     flex-direction: column; 
     justify-content: center;
     align-items: center;   
+}
+
+.page-top .text h1{
+    font-size: 60px
 }
 
 .author_information {
@@ -249,26 +254,25 @@ section h1, section h2, section h3, section h4 {
 /* Versions container — matches other sections: max-width 1000px, padding included */
 .versions {
     width: 100%;
-    max-width: 1000px;    /* same as other sections */
+    max-width: 1000px;
     min-width: 0;
-    margin: 20px auto 40px;
-    padding: 0 20px;      /* included in max-width thanks to border-box */
     display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    align-self: center;
+    flex-direction: column; 
+    justify-content: space-between;   
+    align-items: stretch; 
 }
 
 /* keep same h1 sizing used elsewhere */
 .versions h1 {
     font-size: 30px;
-    padding: 10px 0;
+    padding: 10px 30px;
     margin: 0 0 8px 0;
     color: #111;
 }
 
 /* allow horizontal scroll on narrow viewports */
 .table-wrapper {
+    padding: 10px 30px;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     min-width: 0; /* critical so flex children can shrink instead of forcing overflow */
@@ -345,6 +349,8 @@ section h1, section h2, section h3, section h4 {
 
 /* responsive adjustments */
 @media screen and (max-width: 700px) {
+
+    
     section p, section ul li  {
         font-size: 18px;
     }
@@ -357,19 +363,13 @@ section h1, section h2, section h3, section h4 {
         font-size: 15px;
     }
 
-    .page-top h1 {
-        font-size: 35px;
+    .page-top .text h1 {
+        font-size: 40px;
     }
 
     .downloads {
-        display: flex;
-        flex-direction: column; 
-        scale: 90%;
-    }
-
-    /* Versions table mobile tweaks */
-    .versions {
-        padding: 0 12px;
+        display: none;
+        
     }
 
     .versions-table {
