@@ -438,15 +438,15 @@ document.addEventListener("DOMContentLoaded", () => {
 <script>
 const repoOwner = "ammelsayed";
 const repoName = "Desktop-TDL";
-const githubToken = "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"; // replace with your token
 
 async function updateDownloads() {
   try {
+    // Add a timestamp to prevent caching
+    const timestamp = new Date().getTime();
     const response = await fetch(
-      `https://api.github.com/repos/${repoOwner}/${repoName}/releases/latest`,
+      `https://api.github.com/repos/${repoOwner}/${repoName}/releases/latest?cacheBust=${timestamp}`,
       {
         headers: {
-          "Authorization": `token ${githubToken}`,
           "Accept": "application/vnd.github.v3+json"
         }
       }
@@ -458,9 +458,9 @@ async function updateDownloads() {
     // Sum download counts for all assets in the latest release
     const totalDownloads = data.assets.reduce((sum, asset) => sum + asset.download_count, 0);
 
-    // Update badge dynamically
+    // Update badge dynamically with a cache-busting query for the badge itself
     document.getElementById("download-badge").src =
-      `https://img.shields.io/badge/Downloads-${totalDownloads}-brightgreen`;
+      `https://img.shields.io/badge/Downloads-${totalDownloads}-brightgreen?cacheBust=${timestamp}`;
   } catch (err) {
     console.error(err);
     document.getElementById("download-badge").src =
@@ -470,5 +470,7 @@ async function updateDownloads() {
 
 updateDownloads();
 </script>
+
+
 </body>
 </html>
