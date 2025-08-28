@@ -1,0 +1,121 @@
+{
+  "profile": {
+    "name": "Ahmed M. M. Elsayed",
+    "title": "Particle Physicist & Software Engineer",
+    "description": "Ahmed M. M. Elsayed is a particle physicist specializing in neutrino physics, with a particular emphasis on the phenomenology of the Type III seesaw mechanism. He is currently pursuing his master’s research at the University of Science and Technology of China under the supervision of Professor Wu Yusheng. His work focuses on studying the collider signatures of heavy fermionic triplets predicted by Type III seesaw models, with the goal of identifying viable experimental signals that could be observed at the Large Hadron Collider (LHC) and at future high-energy facilities. By combining event generation, detector-level simulations, and phenomenological modeling, his research aims to bridge theoretical proposals with realistic experimental conditions, contributing to the global effort to uncover the origin of neutrino masses. <br><br> In addition to his physics research, Elsayed has cultivated expertise in software engineering and computational methods. He has extensive experience in desktop graphical user interface (GUI) development, backend infrastructure, and full-stack web development. These skills complement his scientific work by enabling the design of efficient tools for data handling, simulation workflows, and collaborative analysis, thereby enhancing productivity and accessibility in high-energy physics research environments. <br><br> Publications and preprints can be found on publications page <a href='../projects/index.html'>here</a>. Projects and codes can be found on projects page <a href='../projects/index.html'>here</a>.",
+    "research_interests": [
+      "Collider phenomenology of neutrino mass models, particularly the Type III seesaw",
+      "Monte Carlo event generation and detector simulations for beyond-the-Standard-Model physics",
+      "Experimental strategies for probing heavy fermionic triplets at the LHC and future colliders",
+      "Development of computational and software tools for data analysis in particle physics",
+      "Application of attenuation of gamma rays"
+    ],
+    "disciplines": [
+      "Accelerator Physics",
+      "Nuclear and Particle Physics",
+      "Experimental Physics",
+      "Monte Carlo Simulations",
+      "Data Analysis",
+      "Software Engineering",
+      "Computational Physics",
+      "Scientific Research"
+    ],
+    "languages": ["Arabic", "English", "Chinese", "Russian (working knowledge)"],
+    "links": [
+      {
+        "name": "ORCID",
+        "url": "https://orcid.org/0000-0002-4955-4958",
+        "icon": "../images/ORCID_iD.svg.png"
+      },
+      {
+        "name": "ResearchGate",
+        "url": "https://www.researchgate.net/profile/Amm-Elsayed",
+        "icon": "../images/ResearchGate_icon_SVG.svg.png"
+      },
+      {
+        "name": "Google Scholar",
+        "url": "https://scholar.google.com/citations?user=Xo0hJpMAAAAJ&hl=en",
+        "icon": "../images/Google_Scholar_logo.svg.png"
+      },
+      {
+        "name": "Stack Overflow",
+        "url": "https://stackoverflow.com/users/20435147/a-m-m-elsayed-%E9%A9%AC%E5%85%8B",
+        "icon": "../images/stackexchangepng.png"
+      }
+    ]
+  },
+
+  "education": [
+    {
+      "date": "Sep 2023 - Present",
+      "degree": "Master of Science in Nuclear and Particle Physics",
+      "institution": "University of Science and Technology of China",
+      "institution_url": "https://en.ustc.edu.cn/",
+      "location": "Hefei, China",
+      "research_focus": "Research focus: Neutrino Physics. Phenomological work on the Type III Seesaw model. Investigating the potential of discovering TeV mass scale triplet fermions at the ATLAS detector in the LHC (CERN, Switzerland).",
+      "logo": "../images/ustc_logo.png"
+    },
+    {
+      "date": "Sep 2019 - July 2023",
+      "degree": "Bachelor of Science in Applied Physics",
+      "institution": "Sichuan University of Science and Engineering",
+      "institution_url": "https://www.suse.edu.cn/",
+      "location": "Yibin, China",
+      "research_focus": "My graduation work focused on neutrino physics from a theoritical perspective, specifically on neutrino mass measurements.",
+      "logo": "../images/suse_logo.svg.png"
+    }
+  ],
+
+  "work_experience": [
+    {
+      "date": "Dec 2021 - Aug 2022",
+      "role": "Supervisor of Web Development Department",
+      "company": "J&T Express Egypt LLC",
+      "company_url": "https://www.jtexpress-eg.com/",
+      "location": "New Cairo, Egypt",
+      "description": "Responsible for directing and teaching employees in Egypt for adjusting the company JMS website in Egypt and adjusting the algorithm and calculations according to the needs of the market. System integration, data structuring and operations. Automating reporting cycles and working cycles. Creating softwares for automating and achieving higher quality of all kinds of reports (mainly using python).",
+      "logo": "../images/jt_logo.png"
+    },
+    {
+      "date": "April 2021 - Dec 2021",
+      "role": "Director of Information Control Department",
+      "company": "HANDA EGYPT TEXTILE S.A.E. CO",
+      "company_url": "https://www.handagroup.com/en/Global/105.html",
+      "location": "Belbies, Sharkiya, Egypt",
+      "description": "Established a sophisticated ACESS system for company data manamgent. Responsible for directing 70 exployees from warehouses, production and HR department on corresponding data gathering and information management. Responsible for assisting the IT department in Egypt for establishing the ERP system and server connection with China.",
+      "logo": "../images/handa.jpg"
+    }
+  ],
+
+  "programming_skills": {
+    "Operating Systems": [
+      { "name": "Linux", "logo": "../images/linux-logo.png" },
+      { "name": "Windows", "logo": "../images/windows-logo.png" },
+      { "name": "Mac OS", "logo": "../images/apple-logo.svg" }
+    ],
+    "Data Analysis": [
+      { "name": "Python", "logo": "https://cdn-icons-png.flaticon.com/128/5968/5968350.png" },
+      { "name": "C++", "logo": "https://tse4-mm.cn.bing.net/th/id/OIP-C.TJV6iIH-jJ33vMojmj-IigHaIn" },
+      { "name": "C", "logo": "https://w3schools.cn/wp-content/uploads/c/c-logo.png" },
+      { "name": "Fortran 77", "logo": "https://tse2-mm.cn.bing.net/th/id/OIP-C.BkvQw8SvBKnZUib38L04HgHaHa" }
+    ],
+    "Graphics Languages": [
+      { "name": "ROOT", "logo": "https://root.cern.ch/img/logos/ROOT_Logo/misc/generic-logo-cyan-512.png" },
+      { "name": "Asymptote", "logo": "https://tse3-mm.cn.bing.net/th/id/OIP-C.S4JWGTqW9yQJc9UgVLWz_wAAAA" }
+    ],
+    "Web Development": [
+      { "name": "HTML5", "logo": "https://img.icons8.com/?size=96&id=20909&format=png" },
+      { "name": "CSS3", "logo": "https://img.icons8.com/?size=96&id=21278&format=png" },
+      { "name": "JavaScript", "logo": "https://img.icons8.com/?size=96&id=108784&format=png" },
+      { "name": "Git", "logo": "https://img.icons8.com/?size=96&id=20906&format=png" }
+    ],
+    "Database Management": [
+      { "name": "MySQL", "logo": "https://img.icons8.com/?size=96&id=UFXRpPFebwa2&format=png" },
+      { "name": "SQL", "logo": "https://img.icons8.com/?size=96&id=J6KcaRLsTgpZ&format=png" },
+      { "name": "SQLite", "logo": "https://img.icons8.com/?size=100&id=yjSayFwWHyCo&format=png" }
+    ],
+    "Typesetting": [
+      { "name": "LaTeX", "logo": "https://img.icons8.com/?size=96&id=WBooq2dInw0x&format=png" }
+    ]
+  }
+}

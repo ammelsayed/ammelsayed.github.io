@@ -4,13 +4,13 @@
         "title": "Desktop TDL",
         "description": "Harnessing Python, this cross-platform utility leverages Pillow’s robust image-compositing engine together with a CustomTkinter/Tkinter front end to render your to-do list directly onto the desktop wallpaper. Users can tailor font attributes, opacity, layout, and choose from multiple themes, all managed through an intuitive settings panel. Whether deployed as a standalone executable or installed via platform-specific installer, the application maintains consistent functionality across Windows, Linux, and macOS. Real-time updates are driven by event-based callbacks, and all preferences are saved in human-readable JSON for effortless syncing or automation. The result is a seamless, non-intrusive workflow companion that keeps your tasks in view without diverting focus from your desktop environment.",
         "image_soruce":"./DesktopTDL/images/checklist.png",
-        "link": "./DesktopTDL/index.html"
+        "link": "https://ammelsayed.github.io/projects/DesktopTDL/"
     },
     {
         "type": "Software Framework",
         "title": "User Friendly Monte Carlo Analysis Framework",
         "description": "(PLANNED) This is a framework that uses python with flask to preform Monte Carlo BSM signal and SM background event generator with MadGraph5_aMC@NLO. It uses Pythia for parton showering and Delphes for fast detecor response and event construction. The framework contains all nessasrcy configrations and options for preforming phenomological studies on BSM physics. The main selling point is that users do not have to deal with codes and configeration files, everything is embedded into a beautiful HTML webpage, where usesrs specify their requirments, BSM model, SM backgrounds, generator-level cuts and selection cuts etc, then the framework will do all ther work and output all the required results. There are many different outputs the user can chose, LaTeX tables, cutflow tables, histograms in all reqiured formats and way more. One important aspect of this framework is that it also expected to be able to draw Feyman diagrams. This is a planned project.",
-        "image_soruce":"https://miro.medium.com/v2/resize:fit:1400/1*Ady4QAsZgCkE9oZ5ke93QQ.png",
+        "image_soruce":"./ParticlePhysics/images/1_Ady4QAsZgCkE9oZ5ke93QQ.png",
         "link": "#"
     }
 ]
