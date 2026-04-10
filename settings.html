@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Admin Dashboard</title>
+    <link rel="icon" href="/images/tap-icon.png">
+    <link rel="stylesheet" href="/styles/theme.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            margin: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: var(--font-main);
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 100px;
+            background: var(--header-bg);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 40px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .sidebar-item {
+            width: 100%;
+            padding: 20px 0;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+
+        .sidebar-item:hover, .sidebar-item.active {
+            background: rgba(255,255,255,0.1);
+            opacity: 1;
+        }
+
+        .sidebar-item.active {
+            border-left: 3px solid var(--primary-color);
+        }
+
+        /* Main Content Area */
+        .content-area {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            max-width: calc(var(--container-max-width) - 100px);
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-family: var(--font-heading);
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        /* Editor Styles */
+        .editor-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 400px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background: var(--card-bg);
+            color: var(--text-color);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .save-btn {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .save-btn:hover {
+            background: var(--secondary-color);
+        }
+
+        .cancel-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        /* List Items Styling */
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .list-item {
+            background: var(--card-bg);
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .list-item-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+        }
+
+        .list-item-info p {
+            margin: 0;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Modal / Dialog for Adding/Editing JSON */
+        .dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .dialog {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--background-color);
+            color: var(--text-color);
+            box-sizing: border-box;
+            height: auto;
+        }
+
+        /* Status Banner */
+        .status-banner {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 30px;
+            border-radius: var(--radius-md);
+            background: #4caf50;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 2000;
+        }
+
+        .status-banner.error {
+            background: #ff4d4d;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-item" data-section="about">About</div>
+        <div class="sidebar-item" data-section="publications">Pubs</div>
+        <div class="sidebar-item" data-section="projects">Projects</div>
+        <div class="sidebar-item" data-section="blog">Blog</div>
+        <div class="sidebar-item" data-section="events">Events</div>
+        <div class="sidebar-item" style="margin-top: auto; padding-bottom: 40px;" onclick="logout()">Logout</div>
+    </div>
+
+    <div class="content-area">
+        <div id="section-content">
+            <!-- Content loaded dynamically -->
+        </div>
+    </div>
+
+    <!-- Edit Dialog -->
+    <div id="dialog-overlay" class="dialog-overlay">
+        <div class="dialog">
+            <h2 id="dialog-title">Edit Item</h2>
+            <div id="dialog-form">
+                <!-- Form fields generated dynamically -->
+            </div>
+            <div class="btn-container" style="margin-top: 30px;">
+                <button class="cancel-btn" onclick="closeDialog()">Cancel</button>
+                <button class="save-btn" onclick="saveItem()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="status-banner" class="status-banner">Success! Changes downloaded.</div>
+
+    <script>
+        // Check Authentication
+        if (sessionStorage.getItem('isAdmin') !== 'true') {
+            window.location.href = '/login.html';
+        }
+
+        function logout() {
+            sessionStorage.removeItem('isAdmin');
+            window.location.href = '/login.html';
+        }
+
+        // Section Data Storage
+        let currentSection = '';
+        let sectionData = [];
+        let editingIndex = -1;
+
+        // Configuration for Sections
+        const configs = {
+            about: { title: 'Edit About Me (Markdown)', type: 'markdown', file: '/about/about.md' },
+            publications: { title: 'Manage Publications', type: 'json', file: '/data/publications.json', fields: ['badge', 'title', 'description', 'link', 'image', 'date', 'pinned'] },
+            projects: { title: 'Manage Projects', type: 'json', file: '/data/projects.json', fields: ['badge', 'title', 'description', 'link', 'image', 'date'] },
+            blog: { title: 'Manage Blog Posts', type: 'blog', file: '/data/blogs.json', fields: ['badge', 'title', 'description', 'image', 'link', 'date', 'pinned'] },
+            events: { title: 'Manage Events', type: 'json', file: '/data/events.json', fields: ['badge', 'title', 'description', 'image', 'date', 'pinned'] }
+        };
+
+        // Navigation
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const section = item.getAttribute('data-section');
+                if (section) loadSection(section);
+            });
+        });
+
+        async function loadSection(section) {
+            currentSection = section;
+            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+            document.querySelector(`[data-section="${section}"]`).classList.add('active');
+
+            const config = configs[section];
+            const content = document.getElementById('section-content');
+            content.innerHTML = '<h1>' + config.title + '</h1><div class="loading">Loading data...</div>';
+
+            try {
+                const response = await fetch(config.file);
+                if (config.type === 'markdown') {
+                    const text = await response.text();
+                    renderMarkdownEditor(text);
+                } else {
+                    sectionData = await response.json();
+                    renderJSONList();
+                }
+            } catch (err) {
+                content.innerHTML = '<h1>Error</h1><p>Could not load file: ' + config.file + '</p>';
+            }
+        }
+
+        // Render Editors
+        function renderMarkdownEditor(content) {
+            const container = document.getElementById('section-content');
+            container.innerHTML = `
+                <h1>Edit About Me</h1>
+                <div class="editor-container">
+                    <textarea id="markdown-editor">${content}</textarea>
+                    <div class="btn-container">
+                        <button class="save-btn" onclick="saveMarkdown()">Download Updated about.md</button>
+                    </div>
+                </div>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 20px;">
+                    Note: For local development without a backend, please download the file and replace the existing one in <code>/about/about.md</code>.
+                </p>
+            `;
+        }
+
+        function renderJSONList() {
+            const container = document.getElementById('section-content');
+            const config = configs[currentSection];
+            let html = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h1>${config.title}</h1>
+                    <button class="save-btn" onclick="openDialog(-1)">+ Add New Item</button>
+                </div>
+                <div class="item-list">
+            `;
+
+            sectionData.forEach((item, index) => {
+                html += `
+                    <div class="list-item">
+                        <div class="list-item-info">
+                            <h3>${item.title}</h3>
+                            <p>${item.date || ''} ${item.pinned ? '📌 Pinned' : ''}</p>
+                        </div>
+                        <div class="item-actions">
+                            ${currentSection === 'blog' ? `<button class="action-btn cancel-btn" onclick="editBlogPostContent(${index})">Edit Content</button>` : ''}
+                            <button class="action-btn cancel-btn" onclick="openDialog(${index})">Edit Details</button>
+                            <button class="action-btn cancel-btn" style="color:#ff4d4d; border-color:#ff4d4d;" onclick="deleteItem(${index})">Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                </div>
+                <div class="btn-container" style="margin-top: 40px;">
+                    <button class="save-btn" onclick="downloadJSON()">Download Updated ${currentSection}.json</button>
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        // Dialog Functions
+        function openDialog(index) {
+            editingIndex = index;
+            const config = configs[currentSection];
+            const dialogTitle = document.getElementById('dialog-title');
+            const dialogForm = document.getElementById('dialog-form');
+            const item = index === -1 ? {} : sectionData[index];
+
+            dialogTitle.innerText = index === -1 ? 'Add New ' + currentSection : 'Edit ' + currentSection;
+            
+            let formHtml = '';
+            config.fields.forEach(field => {
+                const value = item[field] || '';
+                if (field === 'pinned') {
+                    formHtml += `
+                        <div class="form-group">
+                            <label><input type="checkbox" id="field-${field}" ${value ? 'checked' : ''}> Pinned</label>
+                        </div>
+                    `;
+                } else if (field === 'description') {
+                    formHtml += `
+                        <div class="form-group">
+                            <label for="field-${field}">${field.charAt(0).toUpperCase() + field.slice(1)}</label>
+                            <textarea id="field-${field}" style="height:100px;">${value}</textarea>
+                        </div>
+                    `;
+                } else {
+                    formHtml += `
+                        <div class="form-group">
+                            <label for="field-${field}">${field.charAt(0).toUpperCase() + field.slice(1)}</label>
+                            <input type="text" id="field-${field}" value="${value}">
+                        </div>
+                    `;
+                }
+            });
+
+            dialogForm.innerHTML = formHtml;
+            document.getElementById('dialog-overlay').style.display = 'flex';
+        }
+
+        function closeDialog() {
+            document.getElementById('dialog-overlay').style.display = 'none';
+        }
+
+        function saveItem() {
+            const config = configs[currentSection];
+            const item = {};
+            config.fields.forEach(field => {
+                const input = document.getElementById(`field-${field}`);
+                if (field === 'pinned') {
+                    item[field] = input.checked;
+                } else {
+                    item[field] = input.value;
+                }
+            });
+
+            if (editingIndex === -1) {
+                sectionData.push(item);
+            } else {
+                sectionData[editingIndex] = { ...sectionData[editingIndex], ...item };
+            }
+
+            closeDialog();
+            renderJSONList();
+        }
+
+        function deleteItem(index) {
+            if (confirm('Are you sure you want to delete this item?')) {
+                sectionData.splice(index, 1);
+                renderJSONList();
+            }
+        }
+
+        // Content Editing for Blogs
+        async function editBlogPostContent(index) {
+            const post = sectionData[index];
+            const id = post.link.split('=')[1];
+            const fileName = id + '.md';
+            const filePath = '/blog/posts/' + fileName;
+
+            const content = document.getElementById('section-content');
+            content.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h1>Edit Content: ${post.title}</h1>
+                    <button class="cancel-btn" onclick="renderJSONList()">← Back to List</button>
+                </div>
+                <div class="editor-container">
+                    <textarea id="blog-markdown-editor">Loading content...</textarea>
+                    <div class="btn-container">
+                        <button class="save-btn" onclick="saveBlogMarkdown('${fileName}')">Download Updated ${fileName}</button>
+                    </div>
+                </div>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 20px;">
+                    Note: Replace the existing file in <code>/blog/posts/${fileName}</code> with this downloaded version.
+                </p>
+            `;
+
+            try {
+                const response = await fetch(filePath);
+                if (!response.ok) throw new Error('New post or file not found');
+                const text = await response.text();
+                document.getElementById('blog-markdown-editor').value = text;
+            } catch (err) {
+                document.getElementById('blog-markdown-editor').value = '# ' + post.title + '\n\nStart writing here...';
+            }
+        }
+
+        function saveBlogMarkdown(fileName) {
+            const content = document.getElementById('blog-markdown-editor').value;
+            downloadFile(content, fileName, 'text/markdown');
+        }
+
+        // Download Functions
+        function saveMarkdown() {
+            const content = document.getElementById('markdown-editor').value;
+            downloadFile(content, 'about.md', 'text/markdown');
+        }
+
+        function downloadJSON() {
+            const content = JSON.stringify(sectionData, null, 4);
+            downloadFile(content, currentSection + '.json', 'application/json');
+        }
+
+        function downloadFile(content, filename, type) {
+            const blob = new Blob([content], { type: type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            
+            showStatus('Downloaded ' + filename + '. Please move it to the correct folder.');
+        }
+
+        function showStatus(msg) {
+            const banner = document.getElementById('status-banner');
+            banner.innerText = msg;
+            banner.style.display = 'block';
+            setTimeout(() => banner.style.display = 'none', 5000);
+        }
+
+        // Initial Load
+        loadSection('about');
+    </script>
+</body>
+</html>

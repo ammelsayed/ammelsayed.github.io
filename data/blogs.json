@@ -11,6 +11,7 @@
         "image": "/images/ggHaa.png",
         "link": "/blog/post.html?id=post1",
         "date": "2025-05-01",
+        "pinned": true,
         "meta": [
             {"icon": "🗓️", "text": "May 2025"}
         ]

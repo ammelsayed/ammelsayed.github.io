@@ -40,17 +40,18 @@ body main {
     flex-direction: column; 
     justify-content: flex-start;   
     align-items: center; 
-    background-color: white;
+    background-color: var(--background-color);
+    color: var(--text-color);
 }
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
 /* Defining the title of any page */
 
 .page-top {
-    margin: 60px 0px 20px 0px;
+    margin: var(--page-top-margin) 0px 20px 0px;
     padding: 10px 30px;
     width: 100%;
-    max-width: 1000px;
+    max-width: var(--container-max-width);
     min-width: 0;
     display: flex;
     flex-direction: row; 
@@ -60,7 +61,7 @@ body main {
 
 .downloads {
     width: 100%;
-    max-width: 1000px;
+    max-width: var(--container-max-width);
     min-width: 0;
     display: flex;
     flex-direction: row; 
@@ -81,7 +82,7 @@ body main {
 
 .author_information {
     width: 100%;
-    max-width: 1000px;
+    max-width: var(--container-max-width);
     min-width: 0;
     margin-bottom: 30px;
     display: flex;
@@ -115,8 +116,11 @@ body main {
 
 section {
     width: 100%;
-    max-width: 1000px;
+    max-width: var(--container-max-width);
     min-width: 0;
+    margin: 20px 0px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: var(--card-bg);
     display: flex;
     flex-direction: column; 
     justify-content: space-between;   
@@ -257,8 +261,9 @@ section h1, section h2, section h3, section h4 {
 /* Versions container — matches other sections: max-width 1000px, padding included */
 .versions {
     width: 100%;
-    max-width: 1000px;
+    max-width: var(--container-max-width);
     min-width: 0;
+    margin: 20px 0px;
     display: flex;
     flex-direction: column; 
     justify-content: space-between;   

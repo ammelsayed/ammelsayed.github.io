@@ -23,7 +23,7 @@ footer {
 
 .inner-footer {
     width: 100%;
-    max-width: 1250px;
+    max-width: var(--container-max-width);
     padding: 0 20px;
     display: flex;
     flex-direction: row;

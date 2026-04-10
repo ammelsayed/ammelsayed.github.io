@@ -1,58 +1,185 @@
-
-<!-- /* ------------------------------- *\ -->
-<!-- /*     AUTHOR: A.M.M. Elsayed      *\ -->
-<!-- /*    * ALL RIGHTS RESERVED *      *\ -->
-<!-- /* ------------------------------- *\ -->
- 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>About</title>
-
-    <!--Browser Tap icon-->
-    <link rel="icon" href="../images/tap-icon.png">
+    <title>About Me - A.M.M. Elsayed</title>
+    <link rel="icon" href="/images/tap-icon.png">
     
-    <!--Global Theme Styling-->
-    <link rel="stylesheet" href="../styles/theme.css">
+    <!-- Global Theme Styles -->
+    <link rel="stylesheet" href="/styles/theme.css">
+    <link rel="stylesheet" href="/styles/header.css">
+    <link rel="stylesheet" href="/styles/footer.css">
 
-    <!--Body and Body-Main styles-->
-    <link rel="stylesheet" href="style.css">
+    <!-- Markdown Parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <!--Header and footer stylings-->
-    <link rel="stylesheet" href="../styles/header.css">
-    <link rel="stylesheet" href="../styles/footer.css">
+    <style>
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+        }
 
+        .about-wrapper {
+            max-width: var(--container-max-width);
+            margin: 0 auto;
+            padding: var(--page-top-margin) 20px;
+        }
+
+        .page-title {
+            font-family: var(--font-heading);
+            font-size: 45px;
+            margin-bottom: 40px;
+            color: var(--text-color);
+        }
+
+        /* Markdown Content Styling */
+        .about-content {
+            font-family: var(--font-main);
+            font-size: 18px;
+            line-height: 1.8;
+            color: var(--text-color);
+        }
+
+        .about-content h1 {
+            font-family: var(--font-heading);
+            font-size: 32px;
+            margin: 60px 0 24px 0;
+            color: var(--primary-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .about-content h2 {
+            font-family: var(--font-heading);
+            font-size: 26px;
+            margin: 40px 0 20px 0;
+            color: var(--text-color);
+        }
+
+        .about-content h3 {
+            font-family: var(--font-heading);
+            font-size: 20px;
+            margin: 32px 0 16px 0;
+            color: var(--secondary-color);
+        }
+
+        .about-content p {
+            margin-bottom: 24px;
+            text-align: justify;
+        }
+
+        .about-content ul {
+            margin-bottom: 24px;
+            padding-left: 20px;
+        }
+
+        .about-content li {
+            margin-bottom: 12px;
+        }
+
+        .about-content strong {
+            color: var(--primary-color);
+        }
+
+        .about-content hr {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 60px 0;
+        }
+
+        /* Skills Grid Styling (Custom for lists following a specific heading) */
+        .skills-section ul {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .skills-section li {
+            background: var(--inline-code-bg);
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 32px;
+            }
+            .about-content h1 {
+                font-size: 26px;
+            }
+        }
+    </style>
 </head>
-
 <body>
-
     <my-header></my-header>
-    <script type="module" src="../styles/header.js"></script>
-    <script src="../menu.js"></script>
+    <script type="module" src="/styles/header.js"></script>
+    <script src="/menu.js"></script>
 
     <main>
-        <div class="page-top">
-            <h1>About Me</h1>
-        </div>
-
-        <div id="about-content" class="about-markdown-content">
-            <p>Loading...</p>
+        <div class="about-wrapper">
+            <h1 class="page-title">About Me</h1>
+            <div id="about-content" class="about-content">
+                <p>Loading profile...</p>
+            </div>
         </div>
     </main>
 
-    <!-- Dependencies -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <my-footer></my-footer>
+    <script type="module" src="/styles/footer.js"></script>
 
-<script src="about.js"></script>
-<script src="../styles/utils.js"></script>
-    
-<my-footer></my-footer>
-<script type="module" src="../styles/footer.js"></script>
-    
+    <script>
+        async function loadAboutContent() {
+            try {
+                const response = await fetch('about.md');
+                if (!response.ok) throw new Error('Failed to load about.md');
+                const markdown = await response.text();
+                
+                const contentEl = document.getElementById('about-content');
+                contentEl.innerHTML = marked.parse(markdown);
+
+                // Special handling for the skills section to make it look like badges
+                // We'll find headings related to skills and style the subsequent list
+                const headings = contentEl.querySelectorAll('h1, h2, h3');
+                headings.forEach(heading => {
+                    if (heading.textContent.toLowerCase().includes('skills')) {
+                        let next = heading.nextElementSibling;
+                        while (next && next.tagName !== 'UL') {
+                            next = next.nextElementSibling;
+                        }
+                        if (next && next.tagName === 'UL') {
+                            next.classList.add('skills-list');
+                            // Style for the list items
+                            const items = next.querySelectorAll('li');
+                            items.forEach(li => {
+                                li.style.display = 'inline-block';
+                                li.style.background = 'var(--inline-code-bg)';
+                                li.style.padding = '6px 15px';
+                                li.style.borderRadius = '20px';
+                                li.style.fontSize = '14px';
+                                li.style.border = '1px solid var(--border-color)';
+                                li.style.margin = '0 8px 8px 0';
+                            });
+                            next.style.padding = '0';
+                            next.style.listStyle = 'none';
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('about-content').innerHTML = `<p style="color:red">Error loading content: ${error.message}</p>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAboutContent);
+    </script>
 </body>
 </html>

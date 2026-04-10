@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Admin Dashboard</title>
+    <link rel="icon" href="/images/tap-icon.png">
+    <link rel="stylesheet" href="/styles/theme.css">
+    <style>
+        body {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--background-color);
+            margin: 0;
+        }
+        .login-card {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px var(--shadow-color);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .login-card h1 {
+            margin-bottom: 30px;
+            font-family: var(--font-heading);
+            color: var(--text-color);
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--background-color);
+            color: var(--text-color);
+            box-sizing: border-box;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .login-btn:hover {
+            background: var(--secondary-color);
+        }
+        .error-msg {
+            color: #ff4d4d;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h1>Admin Login</h1>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Enter password">
+        </div>
+        <button class="login-btn" onclick="handleLogin()">Login</button>
+        <div id="error-msg" class="error-msg">Invalid password. Please try again.</div>
+    </div>
+
+    <script>
+        function handleLogin() {
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('error-msg');
+            
+            // In a real application, this would be a secure authentication process.
+            // For this project, we'll use a simple demonstration check.
+            if (password === 'admin123') { // Placeholder password
+                sessionStorage.setItem('isAdmin', 'true');
+                window.location.href = '/settings.html';
+            } else {
+                errorMsg.style.display = 'block';
+            }
+        }
+
+        // Auto-login if already authenticated
+        if (sessionStorage.getItem('isAdmin') === 'true') {
+            window.location.href = '/settings.html';
+        }
+    </script>
+</body>
+</html>

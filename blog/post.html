@@ -25,9 +25,9 @@
         }
 
         .blog-post-wrapper {
-            max-width: 1250px; /* Align with header max-width */
+            max-width: var(--container-max-width); /* Align with header max-width */
             margin: 0 auto;
-            padding: 40px 20px;
+            padding: var(--page-top-margin) 20px; /* Use global margin */
             display: flex;
             flex-direction: row;
             gap: 40px;
@@ -164,7 +164,7 @@
             width: 280px;
             height: fit-content;
             position: sticky;
-            top: 40px; /* Reduced distance to align with title */
+            top: var(--page-top-margin); /* Matches the padding of the wrapper for perfect alignment */
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 8px;

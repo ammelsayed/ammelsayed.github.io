@@ -45,7 +45,7 @@ body main {
 .page-top {
     width: 100%;
     height: 150px;
-    max-width: 1000px;
+    max-width: var(--container-max-width);
     min-width: 0;
     display: flex;
     flex-direction: row; 

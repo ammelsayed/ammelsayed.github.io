@@ -52,15 +52,23 @@
 
 <main>
     <div id="greetings">
-        <div id="greetings-image">
-            <img src="/images/me.jpg" alt="A.M.M Elsayed">
-        </div>
         <div id="greetings-text">
-            <h1>A.M.M Elsayed</h1>
-            <a class="email" href="mailto:ahmedphysica@outlook.com">ahmedphysica@outlook.com</a>
+            <div class="greetings-header">
+                <span class="welcome-text">Hello, I am</span>
+                <h1>A.M.M Elsayed</h1>
+            </div>
             <p class="title">Masters Student in Particle Physics</p>
             <p class="affiliation">University Of Science and Technology of China</p>
-            <p class="home-bio">Particle physicist specializing in neutrino physics and Type III seesaw mechanism. Expert in software engineering, desktop GUI development, and computational methods for high-energy physics.</p>
+            <p class="home-bio">Physicist specializing in neutrino phenomenology and Type III seesaw models. Bridge-builder between theoretical physics and computational engineering.</p>
+            <div class="greetings-actions">
+                <a class="email-btn" href="mailto:ahmedphysica@outlook.com">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    Contact Me
+                </a>
+            </div>
+        </div>
+        <div id="greetings-image">
+            <img src="/images/me.jpg" alt="A.M.M Elsayed">
         </div>
     </div>
 
@@ -69,6 +77,13 @@
         <div id="latest-content" class="latest-grid">
             <!-- Dynamic content will be loaded here -->
             <div class="loading-placeholder">Loading latest updates...</div>
+        </div>
+    </div>
+
+    <div id="pinned-container" class="latest-updates-container" style="display: none;">
+        <h2 class="section-title">Pinned</h2>
+        <div id="pinned-content" class="latest-grid">
+            <!-- Pinned content will be loaded here -->
         </div>
     </div>
 </main>
@@ -82,38 +97,63 @@
         ];
 
         const container = document.getElementById('latest-content');
+        const pinnedContainer = document.getElementById('pinned-content');
+        const pinnedSection = document.getElementById('pinned-container');
+        
         container.innerHTML = '';
+        pinnedContainer.innerHTML = '';
+        let hasPinned = false;
 
         for (const section of sections) {
             try {
                 const response = await fetch(section.url);
                 const data = await response.json();
                 
-                // Sort by date (latest first)
+                // Handle Pinned items
+                const pinnedItems = data.filter(item => item.pinned === true);
+                if (pinnedItems.length > 0) {
+                    hasPinned = true;
+                    pinnedItems.forEach(item => {
+                        const card = createCard(item, section, 'Pinned');
+                        pinnedContainer.appendChild(card);
+                    });
+                }
+
+                // Sort by date (latest first) for Latest Updates
                 data.sort((a, b) => new Date(b.date) - new Date(a.date));
                 
                 const latest = data[0];
                 if (latest) {
-                    const card = document.createElement('div');
-                    card.className = 'latest-card';
-                    card.onclick = () => window.location.href = latest.link || section.page;
-                    
-                    const dateText = (latest.meta && Array.isArray(latest.meta)) ? (latest.meta.find(m => m.icon === '🗓️')?.text || '') : '';
-                    
-                    card.innerHTML = `
-                        <div class="latest-card-header">
-                            <span class="badge">Latest ${section.name}</span>
-                            <span class="date">${dateText ? '🗓️ ' + dateText : ''}</span>
-                        </div>
-                        <h3>${latest.title}</h3>
-                        <p>${latest.description}</p>
-                    `;
+                    const card = createCard(latest, section, 'Latest');
                     container.appendChild(card);
                 }
             } catch (error) {
-                console.error(`Error loading latest ${section.name}:`, error);
+                console.error(`Error loading ${section.name}:`, error);
             }
         }
+
+        if (hasPinned) {
+            pinnedSection.style.display = 'block';
+        }
+    }
+
+    function createCard(item, section, typeLabel) {
+        const card = document.createElement('div');
+        card.className = 'latest-card';
+        card.onclick = () => window.location.href = item.link || section.page;
+        
+        // Remove emoji from dateText if present
+        let dateText = (item.meta && Array.isArray(item.meta)) ? (item.meta.find(m => m.icon === '🗓️')?.text || '') : '';
+        
+        card.innerHTML = `
+            <div class="latest-card-header">
+                <span class="badge">${typeLabel} ${section.name}</span>
+                <span class="date">${dateText ? dateText : ''}</span>
+            </div>
+            <h3>${item.title}</h3>
+            <p>${item.description}</p>
+        `;
+        return card;
     }
 
     document.addEventListener('DOMContentLoaded', loadLatest);

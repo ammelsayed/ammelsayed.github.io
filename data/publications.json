@@ -6,6 +6,7 @@
         "link": "https://doi.org/10.1016/j.net.2024.02.010",
         "image": "https://ars.els-cdn.com/content/image/1-s2.0-S1738573324000706-gr5.jpg",
         "date": "2024-07-01",
+        "pinned": true,
         "meta": [
             {"icon": "🗓️", "text": "July 2024"},
             {"icon": "📖", "text": "Nuclear Engineering and Technology"}

@@ -21,6 +21,7 @@ class MyHeader extends HTMLElement {
             <li><a href="/projects/index.html" id="projects">Projects</a></li>
             <li><a href="/blog/index.html" id="blog">Blog</a></li>
             <li><a href="/events/index.html" id="events">Events</a></li>
+            <li><a href="/login.html" id="login">Login</a></li>
         </ul>`;
 
         this.innerHTML = `    
@@ -80,12 +81,12 @@ class MyHeader extends HTMLElement {
         const sunIcon = toggleBtn.querySelector('.sun-icon');
         const moonIcon = toggleBtn.querySelector('.moon-icon');
         
-        const currentTheme = localStorage.getItem('theme') || 'light';
+        const currentTheme = localStorage.getItem('theme') || 'dark';
         document.documentElement.setAttribute('data-theme', currentTheme);
         this.updateIcons(currentTheme, sunIcon, moonIcon);
 
         toggleBtn.addEventListener('click', () => {
-            const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            const theme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
             this.updateIcons(theme, sunIcon, moonIcon);
@@ -93,12 +94,12 @@ class MyHeader extends HTMLElement {
     }
 
     updateIcons(theme, sunIcon, moonIcon) {
-        if (theme === 'dark') {
-            sunIcon.style.display = 'block';
-            moonIcon.style.display = 'none';
-        } else {
+        if (theme === 'light') {
             sunIcon.style.display = 'none';
             moonIcon.style.display = 'block';
+        } else {
+            sunIcon.style.display = 'block';
+            moonIcon.style.display = 'none';
         }
     }
 

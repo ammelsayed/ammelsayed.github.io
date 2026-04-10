@@ -16,7 +16,7 @@
 
 header {
   width: 100%; /* To take all width of the page */
-  height: 66px;
+  height: 80px;
 
   display: flex;
   flex-direction: row; /* Items are placed left to right. */
@@ -64,7 +64,7 @@ header {
 
 .inner-header {
   width: 100%;
-  max-width: 1250px;
+  max-width: var(--container-max-width);
   height: 100%;
   padding: 0px 20px;
   display: flex;
