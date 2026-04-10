@@ -12,66 +12,62 @@
 // Upload the headers 
 class MyHeader extends HTMLElement {
     connectedCallback() {
+        const navLinks = `
+        <ul>
+            <li><a href="/index.html" id="home">Home</a></li>
+            <li><a href="/about/index.html" id="about">About</a></li>
+            <li><a href="/docs/CV.pdf" target="_blank" id="cv_download">My CV</a></li>
+            <li><a href="/publications/index.html" id="publications">Publications</a></li>
+            <li><a href="/projects/index.html" id="projects">Projects</a></li>
+            <li><a href="/blog/index.html" id="blog">Blog</a></li>
+            <li><a href="/events/index.html" id="events">Events</a></li>
+            <li><a href="/appointment/index.html" id="appointment">Appointment</a></li>
+        </ul>`;
+
         this.innerHTML = `    
         <header>
-        <div class="inner-header">
-        <!--Logo goes here-->
-        <div class="logo-container">
-        <img src="images/logo.png" alt="Logo">
-        <h1>&Lambda;MM<span>Elsayed</span></h1>
-        </div>
+            <div class="inner-header">
+                <!--Logo goes here-->
+                <div class="logo-container">
+                    <a href="/index.html">
+                        <img src="/images/tap-icon.png" alt="Logo">
+                        <h1>&Lambda;MM<span>Elsayed</span></h1>
+                    </a>
+                </div>
 
-        <!--Navigation links goes here-->
-        <div class="navigations">
-        <nav>
-        <ul>
-        <li><a href= "/index.html" id="home">Home</a></li>
-        <li><a href="/about/index.html" id="about">About</a></li>
-        <li><a href="../docs/CV.pdf" target="_blank" id="action_btn">My CV</a></li>
-        <li><a href="/publications/index.html" id="publications">Publications</a></li>
-        <li><a href="/projects/index.html" id="cv">Projects</a></li>
-        <li><a href="/blog/index.html" id="blog">Blog</a></li>
-        <li><a href="/events/index.html" id="events">Events</a></li>
-        <li><a href="/appointment/index.html" id="appointment">Appointment</a></li>                         
-        <!--<li><a href="/contact_me/index.html" id="contact_me">Contact</a></li>--> 
-        <!--<li><a href="/user_cloud/index.html" id="user_cloud">User</a></li>--> 
-        <!--<li class="login"><a href="/login.html" id="contact_me">Login</a></li>-->       
-        </ul>
-        </nav>
-        </div>
+                <!--Navigation links goes here-->
+                <div class="navigations">
+                    <nav>${navLinks}</nav>
+                </div>
 
-        <!--Menu goes here -->
+                <!--Menu goes here -->
+                <div class="header-menu">
+                    <div class="menu-button">
+                        <button>
+                            <span class="line"></span>
+                            <span class="line"></span>
+                        </button>
 
-        <div class="header-menu">
+                        <div class="menu-navigations">
+                            <nav>${navLinks}</nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>`;
 
-        <div class="menu-button">
-        <button>
-        <span class="line"></span>
-        <span class="line"></span>
-        </button>
+        this.highlightActiveLink();
+    }
 
-        <div class="menu-navigations">
-        <nav>
-        <ul>
-        <li><a href= "/index.html" id="home">Home</a></li>
-        <li><a href="/about/index.html" id="about">About</a></li>
-        <li><a href="../docs/CV.pdf" target="_blank" id="action_btn">My CV</a></li>
-        <li><a href="/publications/index.html" id="publications">Publications</a></li>
-        <li><a href="/projects/index.html" id="cv">Projects</a></li>  
-        <li><a href="/blog/index.html" id="blog">Blog</a></li>
-        <li><a href="/events/index.html" id="events">Events</a></li>
-        <li><a href="/appointment/index.html" id="appointment">Appointment</a></li>                              
-        <!--<li><a href="/contact_me/index.html" id="contact_me">Contact</a></li>--> 
-        <!--<li><a href="/user_cloud/index.html" id="user_cloud">User</a></li>--> 
-        <!--<li class="login"><a href="/login.html" id="contact_me">Login</a></li>-->       
-        </ul>
-        </nav>
-        </div>
-        </div>
-        </div>
-        </div>
-        </header>
-    `
+    highlightActiveLink() {
+        const currentPath = window.location.pathname;
+        const links = this.querySelectorAll('nav a');
+        links.forEach(link => {
+            const linkPath = link.getAttribute('href');
+            if (currentPath === linkPath || (currentPath === '/' && linkPath === '/index.html')) {
+                link.classList.add('active');
+            }
+        });
     }
 }
-customElements.define('my-header',MyHeader)
+customElements.define('my-header', MyHeader)

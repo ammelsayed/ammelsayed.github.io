@@ -5,7 +5,7 @@
 
 
 document.addEventListener("DOMContentLoaded", () => {
-  const JSON_PATH = "about.json";
+  const JSON_PATH = "/data/about.json";
 
   const esc = s => (s == null ? "" : String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"));
   const attr = s => esc(s).replace(/"/g, "&quot;");

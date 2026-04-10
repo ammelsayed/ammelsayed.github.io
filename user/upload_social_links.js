@@ -5,7 +5,7 @@
 \*---------------------------------------*/
 
 document.addEventListener('DOMContentLoaded', () => {
-  fetch('/user/user_info.json')
+  fetch('/data/user_info.json')
     .then(response => {
       if (!response.ok) {
         console.error('Response not OK');

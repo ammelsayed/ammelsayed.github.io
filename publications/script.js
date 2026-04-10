@@ -3,136 +3,39 @@
     * ALL RIGHTS RESERVED *
 \*---------------------------------------*/
 
-// Store publications data globally
-let publicationsData = [];
-
-// Fetch and store JSON data
-function fetchJSONData() {
-    fetch('./publications.json')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            publicationsData = data;
-            // On initial load, show all
-            displayPublications(publicationsData);
-        })
-        .catch(error => console.error('Error loading publications:', error));
-}
-
-// Helper: create or update the count line
-function updatePublicationCounts(currentCount, totalCount) {
-    const countsEl = document.getElementById('publication-count');
-    countsEl.innerHTML = `<i>Showing <b>${currentCount}</b> out of <b>${totalCount}</b> published work(s).</i>`;
-}
-
-// Display publications without filtering or highlighting
-function displayPublications(data) {
-    // 1) update the counts (all displayed = total)
-    updatePublicationCounts(data.length, publicationsData.length);
-
-    // 2) render
-    const publicationsList = document.getElementById('publications-list');
-    publicationsList.innerHTML = '';
-    data.forEach(pub => {
-        const pubElement = document.createElement('div');
-        pubElement.classList.add('publication');
-        pubElement.innerHTML = `
-            <div class="content">
-                <p style="color: navy;"><em><b>${pub.paper_type}</b></em></p>
-                <h2>${pub.title}</h2>
-                <p><em>${pub.date}, ${pub.journal}</em></p>
-                <p id="abstract"><b>Abstract:</b> ${pub.description}</p>
-                <p id="doi-link"><b>DOI:</b>
-                   <a href="${pub.link}" target="_blank">${pub.link}</a>
-                </p>
-            </div>
-            <img src="${pub.image_soruce}" target="_blank" class="publication-image">
-        `;
-        publicationsList.appendChild(pubElement);
-    });
-}
-
-// Capture search input
-const searchInput = document.querySelector('.search-input');
-
-// Add real-time search with debouncing
-let debounceTimeout;
-searchInput.addEventListener('input', () => {
-    clearTimeout(debounceTimeout);
-    debounceTimeout = setTimeout(performSearch, 300);
-});
-
-function performSearch() {
-    const searchTerm = searchInput.value.trim().toLowerCase();
-    if (!searchTerm) {
-        // no term → show all
-        return displayPublications(publicationsData);
-    }
-
-    // Build filtered & sorted list
-    const filteredData = publicationsData
-        .map(pub => {
-            let matchCount = 0;
-            ['paper_type','title','date','journal','description','link']
-                .forEach(fld => {
-                    if (pub[fld].toLowerCase().includes(searchTerm)) matchCount++;
-                });
-            return { pub, matchCount };
-        })
-        .filter(item => item.matchCount > 0)
-        .sort((a,b) => b.matchCount - a.matchCount)
-        .map(item => item.pub);
-
-    displayPublicationsWithHighlights(filteredData, searchTerm);
-}
-
-// Display with highlights + update count
-function displayPublicationsWithHighlights(data, searchTerm) {
-    updatePublicationCounts(data.length, publicationsData.length);
-
-    const publicationsList = document.getElementById('publications-list');
-    publicationsList.innerHTML = '';
-    data.forEach(pub => {
-        const pubElement = document.createElement('div');
-        pubElement.classList.add('publication');
-        pubElement.innerHTML = `
-            <div class="content">
-                <p style="color: navy;">
-                  <em><b>${highlightText(pub.paper_type, searchTerm)}</b></em>
-                </p>
-                <h2>${highlightText(pub.title, searchTerm)}</h2>
-                <p><em>
-                  ${highlightText(pub.date, searchTerm)}, 
-                  ${highlightText(pub.journal, searchTerm)}
-                </em></p>
-                <p id="abstract">
-                  <b>Abstract:</b> ${highlightText(pub.description, searchTerm)}
-                </p>
-                <p id="doi-link">
-                  <b>DOI:</b>
-                  <a href="${pub.link}" target="_blank">
-                    ${highlightText(pub.link, searchTerm)}
-                  </a>
-                </p>
-            </div>
-            <img src="${pub.image_soruce}" target="_blank" class="publication-image">
-        `;
-        publicationsList.appendChild(pubElement);
-    });
-}
-
-// Utility to wrap matches in a <span>
-function highlightText(text, searchTerm) {
-    if (!searchTerm) return text;
-    const regex = new RegExp(`(${searchTerm})`, 'gi');
-    return text.replace(regex, '<span class="highlight">$1</span>');
-}
-
-// Kick things off
 document.addEventListener('DOMContentLoaded', () => {
-    fetchJSONData(); // ← move your init call here
+  new CardRenderer({
+    dataUrl: '/data/publications.json',
+    listElementId: 'publications-list',
+    countElementId: 'publication-count',
+    searchInputSelector: '.search-input',
+    itemTypeLabel: 'published work',
+    searchFields: ['paper_type', 'title', 'date', 'journal', 'description', 'link'],
+    renderCardFn: (pub, term, highlight) => {
+      const card = document.createElement('div');
+      card.className = 'publication';
+
+      const hType = highlight(pub.paper_type, term);
+      const hTitle = highlight(pub.title, term);
+      const hDate = highlight(pub.date, term);
+      const hJournal = highlight(pub.journal, term);
+      const hDesc = highlight(pub.description, term);
+      const hLink = highlight(pub.link, term);
+
+      card.innerHTML = `
+        <div class="content">
+          <p style="color: navy;"><em><b>${hType}</b></em></p>
+          <h2>${hTitle}</h2>
+          <p><em>${hDate}, ${hJournal}</em></p>
+          <p id="abstract"><b>Abstract:</b> ${hDesc}</p>
+          <p id="doi-link"><b>DOI:</b>
+             <a href="${pub.link}" target="_blank">${hLink}</a>
+          </p>
+        </div>
+        <img src="${pub.image_soruce}" target="_blank" class="publication-image">
+      `;
+
+      return card;
+    }
+  });
 });

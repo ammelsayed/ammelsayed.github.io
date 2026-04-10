@@ -66,9 +66,7 @@ body main {
     margin: 20px 0;
     border: 1px solid  rgba(10, 10, 10, 0.1);
     border-radius: 1em;
-    background: rgba(10, 10, 10, 0.02);
-    backdrop-filter: blur(5px);
-    box-shadow: inset 0 0 10px 1px rgba(10, 10, 10, 0.1);
+    background: white;
     transition: all 0.2s;
 }
 
