@@ -23,12 +23,48 @@ header {
   justify-content: space-evenly;   /*  Aligns flex items along the main axis (defined by flex-direction). */
   align-items: center; /*  Aligns flex items along the cross axis: */
 
-  background: rgba(10, 10, 10);
+  background: var(--header-bg);
+}
+
+.theme-toggle {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color var(--transition-fast);
+  margin-left: 15px;
+}
+
+.theme-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.theme-toggle svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: white;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+[data-theme='dark'] .theme-toggle svg {
+  stroke: #ffcc00;
+  fill: #ffcc00;
+}
+
+[data-theme='dark'] .theme-toggle .sun-icon {
+  fill: none; /* Keep sun as outline with rays */
 }
 
 .inner-header {
   width: 100%;
-  max-width: 1000px;
+  max-width: 1250px;
   height: 100%;
   padding: 0px 20px;
   display: flex;
@@ -146,7 +182,7 @@ header {
 /*%%%%%%%%%%%%%%%% MENU (UPDATED) %%%%%%%%*/
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
-//* Header-menu container (kept, only menu rules below were changed) */
+/* Header-menu container (kept, only menu rules below were changed) */
 .header-menu {
   height: 100%;
   display: flex;

@@ -18,7 +18,7 @@ body main {
 .page-top {
     width: 100%;
     height: 150px;
-    max-width: 1000px;
+    max-width: 1250px;
     min-width: 0;
     display: flex;
     flex-direction: row;
@@ -33,7 +33,7 @@ body main {
 
 .page-content {
     width: 100%;
-    max-width: 1000px;
+    max-width: 1250px;
     min-width: 0;
     margin-top: 10px;
     margin-bottom: 10px;
@@ -45,7 +45,7 @@ body main {
 
 #content-list {
     width: 100%;
-    max-width: 1000px;
+    max-width: 1250px;
     min-width: 0;
     display: flex;
     flex-direction: column;
@@ -61,9 +61,9 @@ body main {
     justify-content: space-between;
     align-items: center;
     margin: 20px 0;
-    border: 1px solid rgba(10, 10, 10, 0.1);
+    border: 1px solid var(--border-color);
     border-radius: 1em;
-    background: white;
+    background: var(--card-bg);
     transition: all 0.2s ease;
 }
 
@@ -88,9 +88,23 @@ body main {
     border-radius: var(--radius-sm);
 }
 
+.publication .content .badge-container {
+    margin-bottom: 5px;
+    color: var(--badge-color);
+}
+
+.publication .content .badge-container b {
+    background: var(--badge-bg);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
 .publication .content h2 {
     margin-bottom: 10px;
     font-size: 24px;
+    color: var(--text-color);
 }
 
 .publication .content .abstract {

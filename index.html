@@ -27,7 +27,7 @@
 
 <!--Body and Body-Main styles-->
 <link rel="stylesheet" href="home.css">
-<link rel="stylesheet" href="./publications/style.css">
+<link rel="stylesheet" href="styles/content.css">
 
 <!--Header and footer stylings-->
 <link rel="stylesheet" href="styles/header.css">
@@ -51,40 +51,78 @@
 <script src="menu.js"></script>
 
 <main>
-<!-- 
-<p>Press <a href="test.html"> here </a></p> -->
+    <div id="greetings">
+        <div id="greetings-image">
+            <img src="/images/me.jpg" alt="A.M.M Elsayed">
+        </div>
+        <div id="greetings-text">
+            <h1>A.M.M Elsayed</h1>
+            <a class="email" href="mailto:ahmedphysica@outlook.com">ahmedphysica@outlook.com</a>
+            <p class="title">Masters Student in Particle Physics</p>
+            <p class="affiliation">University Of Science and Technology of China</p>
+            <p class="home-bio">Particle physicist specializing in neutrino physics and Type III seesaw mechanism. Expert in software engineering, desktop GUI development, and computational methods for high-energy physics.</p>
+        </div>
+    </div>
 
-
-<div>
-
-
-<div id="greetings">
-<div id="greetings-image">
-<img src="./images/ammelsayed_new3.jpg">
-<p style="font-size: 40px; font-weight: 400; text-align: center; padding-bottom: 20px; white-space: nowrap;">A.M.M Elsayed</p>
-<a style="font-size: 18px; text-align: center; white-space: nowrap;" href="ahmedphysica@outlook.com">ahmedphysica@outlook.com</a>
-<p style="font-size: 18px; text-align: center; white-space: nowrap;">Masters Student in Particle Physics</p>
-<p style="font-size: 18px; text-align: center; white-space: nowrap;">University Of Science and Technology of China</p>
-<!-- <a style="font-size: 20px; justify-content: center;" href="ahmedphysica@outlook.com">ahmedphysica@outlook.com</p> -->
-</div>
-</div>
-
-</div>
-
+    <div class="latest-updates-container">
+        <h2 class="section-title">Latest Updates</h2>
+        <div id="latest-content" class="latest-grid">
+            <!-- Dynamic content will be loaded here -->
+            <div class="loading-placeholder">Loading latest updates...</div>
+        </div>
+    </div>
 </main>
 
-<div class="background-animation">
-<div class="layer1"></div>
-<div class="layer2"></div>
-<div class="layer3"></div>
-<div class="layer4"></div>
-<div class="layer5"></div>
-<link rel="stylesheet" href="styles/stars.css">
-</div>
+<script type="module">
+    async function loadLatest() {
+        const sections = [
+            { name: 'Publication', url: '/data/publications.json', page: '/publications/' },
+            { name: 'Blog', url: '/data/blogs.json', page: '/blog/' },
+            { name: 'Event', url: '/data/events.json', page: '/events/' }
+        ];
+
+        const container = document.getElementById('latest-content');
+        container.innerHTML = '';
+
+        for (const section of sections) {
+            try {
+                const response = await fetch(section.url);
+                const data = await response.json();
+                
+                // Sort by date (latest first)
+                data.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                const latest = data[0];
+                if (latest) {
+                    const card = document.createElement('div');
+                    card.className = 'latest-card';
+                    card.onclick = () => window.location.href = latest.link || section.page;
+                    
+                    const dateText = (latest.meta && Array.isArray(latest.meta)) ? (latest.meta.find(m => m.icon === '🗓️')?.text || '') : '';
+                    
+                    card.innerHTML = `
+                        <div class="latest-card-header">
+                            <span class="badge">Latest ${section.name}</span>
+                            <span class="date">${dateText ? '🗓️ ' + dateText : ''}</span>
+                        </div>
+                        <h3>${latest.title}</h3>
+                        <p>${latest.description}</p>
+                    `;
+                    container.appendChild(card);
+                }
+            } catch (error) {
+                console.error(`Error loading latest ${section.name}:`, error);
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadLatest);
+</script>
+
+<script src="styles/utils.js"></script>
 
 <my-footer></my-footer>
 <script type="module" src="styles/footer.js"></script>
-<script src="user/upload_social_links.js"></script>
 
     
 </body>

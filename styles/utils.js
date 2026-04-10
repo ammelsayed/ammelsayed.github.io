@@ -23,6 +23,14 @@ class CardRenderer {
             const response = await fetch(this.dataUrl);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             this.allData = await response.json();
+            
+            // Sort by date if available (latest first)
+            this.allData.sort((a, b) => {
+                if (!a.date) return 1;
+                if (!b.date) return -1;
+                return new Date(b.date) - new Date(a.date);
+            });
+
             this.displayItems(this.allData);
             this.setupSearch();
         } catch (error) {
@@ -134,11 +142,11 @@ class CardRenderer {
 
         card.innerHTML = `
             <div class="content">
-                ${hBadge ? `<p style="color: navy; margin-bottom: 5px;"><em><b>${hBadge}</b></em></p>` : ''}
+                ${hBadge ? `<p class="badge-container"><em><b>${hBadge}</b></em></p>` : ''}
                 <h2>${hTitle}</h2>
                 ${authorHtml}
                 ${metaHtml ? `<p>${metaHtml}</p>` : ''}
-                <hr style="margin: 10px 0;">
+                <hr style="margin: 10px 0; border: none; border-top: 1px solid var(--border-color);">
                 <p class="abstract">${hDesc}</p>
                 ${item.link && item.link.includes('doi.org') ? `<p id="doi-link"><b>DOI:</b> <a href="${item.link}" target="_blank">${highlight(item.link, term)}</a></p>` : ''}
             </div>
@@ -156,3 +164,33 @@ class CardRenderer {
 }
 
 window.CardRenderer = CardRenderer;
+
+/**
+ * Scroll to top functionality
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    const scrollBtn = document.createElement('button');
+    scrollBtn.id = 'scroll-to-top';
+    scrollBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+    `;
+    document.body.appendChild(scrollBtn);
+
+    window.addEventListener('scroll', () => {
+        if (window.pageYOffset > 300) {
+            scrollBtn.classList.add('visible');
+        } else {
+            scrollBtn.classList.remove('visible');
+        }
+    });
+
+    scrollBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+});
+

@@ -4,15 +4,24 @@
 */
 
 :root {
-    /* Colors */
+    /* Light Theme (Default) */
     --primary-color: #003366; /* Navy */
     --secondary-color: #0055a4; /* Lighter Navy */
     --accent-color: #ffcc00; /* Gold/Yellow for highlights */
     --background-color: #ffffff;
-    --text-color: #333;
+    --text-color: #1a1a1a;
     --text-muted: #666;
     --white: #ffffff;
-    --shadow-color: rgba(0, 0, 0, 0.1);
+    --shadow-color: rgba(0, 0, 0, 0.08);
+    --border-color: #eaeaea;
+    --header-bg: #0a0a0a;
+    --header-text: #ffffff;
+    --card-bg: #ffffff;
+    --inline-code-bg: #f5f5f5;
+    --badge-color: #000000;
+    --badge-bg: #f0f0f0;
+    --code-block-bg: #1a1a1a;
+    --code-block-text: #f8f8f2;
 
     /* Typography */
     --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -35,6 +44,26 @@
     --transition-medium: 0.3s ease;
 }
 
+/* Dark Theme Variables */
+[data-theme='dark'] {
+    --background-color: #0f0f0f;
+    --text-color: #e5e5e5;
+    --text-muted: #a0a0a0;
+    --white: #1a1a1a;
+    --shadow-color: rgba(0, 0, 0, 0.4);
+    --border-color: #2a2a2a;
+    --header-bg: #1a1a1a;
+    --header-text: #e5e5e5;
+    --card-bg: #1a1a1a;
+    --secondary-color: #4da3ff;
+    --inline-code-bg: #262626;
+    --primary-color: #8ab4f8;
+    --badge-color: #ffffff;
+    --badge-bg: #2a2a2a;
+    --code-block-bg: #ffffff; /* Bright background for code in dark mode as requested */
+    --code-block-text: #1a1a1a;
+}
+
 body {
     font-family: var(--font-main);
     color: var(--text-color);
@@ -42,6 +71,7 @@ body {
     line-height: 1.6;
     margin: 0;
     padding: 0;
+    transition: background-color var(--transition-medium), color var(--transition-medium);
 }
 
 a {
@@ -67,4 +97,36 @@ a:hover {
 .card:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 12px var(--shadow-color);
+}
+
+/* Scroll to top button */
+#scroll-to-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+#scroll-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+#scroll-to-top:hover {
+    transform: translateY(-5px);
+    background: var(--secondary-color);
 }
