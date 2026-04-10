@@ -1,0 +1,37 @@
+[
+    {
+        "title": "Young Egyptian Explores Science Enchantment in E China's Anhui",
+        "date": "November 2025",
+        "location": "Hefei, China",
+        "description": "I am delighted to share that I recently had the honor of being interviewed by Xinhua News, China’s official state news agency, about my academic journey and research life in China. The interview highlights my path as an Egyptian student pursuing a postgraduate degree in particle physics at the University of Science and Technology of China (USTC) in Hefei, and my aspirations to contribute to scientific research and academic exchange between China and the world. I am especially grateful that the feature was also republished on the official Chinese Academy of Sciences (CAS) website, under the “Scientists in Media” section. You can read the full interview and view the photos via the links: <a href='https://english.news.cn/20251203/21fb3d1327e14ca085431e9cfda96cda/c.html' target='_blank'>Xinhua News website</a>, <a href='https://english.cas.cn/scientists/media_scientists/202512/t20251203_1134431.shtml' target='_blank'>Chinese Academy of Sciences (CAS)</a>, <a href='https://en.people.cn/n3/2025/1202/c90000-20397647.html' target='_blank'>People's Daily</a>",
+        "image_soruce":"./images/W020251203554969141665.png"
+    },
+    {
+        "title": "Youth International Innovation Exchange Program in Yumin County, Xinjiang",
+        "date": "June 2025",
+        "location": "Yumin County, Xinjiang, China",
+        "description": "I participated in the Youth International Innovation Exchange Program held in Yumin County, Xinjiang, China. This program provided an exceptional platform for international students to engage in cross-cultural dialogue and collaborative learning with local youth, focusing on innovation, entrepreneurship, and community development. The program included a series of structured workshops, cultural exchange activities, and group discussions, which facilitated the sharing of ideas, experiences, and best practices across diverse cultural and academic backgrounds. Participation in these activities enhanced my understanding of regional innovation ecosystems, problem-solving approaches, and entrepreneurial strategies in the context of local development. Additionally, the program offered valuable exposure to the unique cultural and natural environment of Xinjiang, deepening my appreciation for the region’s heritage and traditions. The experience fostered meaningful interpersonal connections, strengthened intercultural communication skills, and contributed to both personal and professional growth. This program represents a significant step in my ongoing commitment to international collaboration, cross-cultural understanding, and the cultivation of global perspectives in innovation and entrepreneurship.",
+        "image_soruce":"./images/xinjiang_event.jpg"
+    },
+    {
+        "title": "The 15<sup>th</sup> Shanghai Region and 3<sup>rd</sup> Yangzi River Delta HEls International Students Dragon Boat Race (第十五届上海高校暨第三届长三角高校外国留学生龙舟赛)",
+        "date": "May 2025",
+        "location": "ECUST, Shanghai, China",
+        "description": "I participated as a member of my university’s team in the 15th Shanghai Region and 3rd Yangzi River Delta International Students Dragon Boat Race, a prestigious annual event promoting intercultural exchange and athletic collaboration among international students from 33 higher education institutions. Beyond the competitive results, the event served as an academic and cultural platform, fostering engagement between international students across the Yangzi River Delta region and facilitating greater understanding of traditional Chinese cultural practices, particularly the historical significance of dragon boat racing. This experience contributes not only to the development of personal resilience and collaborative competencies but also to the broader objectives of international education: cross-cultural integration, mutual learning, and the cultivation of global perspectives within academic communities..",
+        "image_soruce":"./images/shanghai_event.jpg"
+    },
+    {
+        "title": "2024 USTC Sino-Foreign Cultural Exchange Festival",
+        "date": "November 2024",
+        "location": "USTC, Anhui, Hefei, China",
+        "description": "Participating in the USTC Sino-Foreign Cultural Exchange Festival provided a unique opportunity to represent Egyptian culture and share its rich history and traditions with a diverse audience. The experience fostered a deep sense of pride while engaging with students from around the world, allowing for meaningful cultural dialogue and exchange. Immersed in a vibrant atmosphere of music, performance, and colorful displays, I was able to both showcase my own heritage and gain a greater appreciation for the diversity of global cultures, enhancing intercultural understanding, mutual respect, and a sense of global community.",
+        "image_soruce":"./images/culture_festival.jpg"
+    },
+    {
+        "title": "12th 'Huishan·Huishui·Huiwenhua' Cultural Study Program",
+        "date": "October  2024",
+        "location": "Huangshan University, Anhui, Huangshan, China",
+        "description": "We visited the huangshan mountain, and i was preforming as host for the libai poem we presented in there.Visiting Huangshan Mountain was an unforgettable adventure that filled me with awe and inspiration. The breathtaking scenery, with its majestic peaks and ancient pine trees, made every hike feel like a journey through a painting. As I practiced hiking along the winding trails, I felt a sense of freedom and connection to nature, each step helping me to escape the bustling world below.In addition to hiking, I immersed myself in the rich cultural offerings of the area. Visiting local museums provided insight into the history and traditions of the region. I marveled at ancient artifacts and learned about the philosophies that have shaped Chinese culture over centuries. These experiences deepened my appreciation for the heritage that accompanies the breathtaking landscapes. My experience in Huangshan was a harmonious blend of physical challenge, cultural immersion, and connection with others. I returned home not only with memories of stunning landscapes but also with a renewed sense of purpose and inspiration, eager to share the stories and experiences I had gained during my time there.",
+        "image_soruce":"./images/huangshan.jpg"
+    }
+]

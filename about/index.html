@@ -1,0 +1,80 @@
+
+<!-- /* ------------------------------- *\ -->
+<!-- /*     AUTHOR: A.M.M. Elsayed      *\ -->
+<!-- /*    * ALL RIGHTS RESERVED *      *\ -->
+<!-- /* ------------------------------- *\ -->
+ 
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>About</title>
+
+    <!--Browser Tap icon-->
+    <link rel="icon" href="../images/tap-icon.png">
+    
+    <!--Body and Body-Main styles-->
+    <link rel="stylesheet" href="style.css">
+
+    <!--Header and footer stylings-->
+    <link rel="stylesheet" href="../styles/header.css">
+    <link rel="stylesheet" href="../styles/footer.css">
+
+    <!-- CV Download Button Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+</head>
+
+<body>
+
+    <my-header></my-header>
+    <script type="module" src="../styles/header.js"></script>
+    <script src="../menu.js"></script>
+
+    <main>
+        
+        <div class="page-top">
+            <h1>About Me</h1>
+            <!-- CV Download Button will be inserted here by the script -->
+        </div>
+
+
+<section>
+  <h2>Profile</h2>
+  <div id="profile"></div>
+</section>
+
+<section>
+  <h2>Education</h2>
+  <ul id="education"></ul>
+</section>
+
+<section>
+  <h2>Work Experience</h2>
+  <ul id="work-experience"></ul>
+</section>
+
+<section>
+  <h2>Programming Skills</h2>
+  <div id="skills"></div>
+</section>
+
+
+
+</main>
+
+<script src="about.js"></script>
+
+<!-- CV Download Button Integration -->
+<script src="cv_download.js"></script>
+    
+<my-footer></my-footer>
+<script type="module" src="../styles/footer.js"></script>
+<script src="../user/upload_social_links.js"></script>
+    
+</body>
+</html>

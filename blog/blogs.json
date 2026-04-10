@@ -1,0 +1,22 @@
+[
+    {
+        "author": "A.M.M. Elsayed",
+        "author_image": "../images/ammelsayed_new1.png",
+        "author_link": "https://ammelsayed.github.io/",
+        "title": "Instructions for Drawing Feynman Diagrams Using Asymptote (Vector Graphics Language)",
+        "date": "May 2025",
+        "description": "Feynman diagrams are a powerful way to visualize particle interactions in physics, and the Asymptote language, with its feynman package, provides an elegant tool to create them. This guide will walk you through the process of drawing a Feynman diagram for the process <math><mrow><mi>q</mi><mover><mi>q</mi><mo stretchy='false' class='tml-xshift' style='math-style:normal;math-depth:0;'>‾</mo></mover><mo>→</mo><mi>Z</mi><mo>→</mo><msup><mi>μ</mi><mo form='prefix' stretchy='false'>+</mo></msup><msup><mi>μ</mi><mo>−</mo></msup></mrow></math> using Asymptote. One can adapt these steps for other diagrams by adjusting points, propagators, labels, and vertices as needed. More code examples will be provided at the end of this document for references.",
+        "image_soruce":"./post1/images/ggHaa.png",
+        "link": "./post1/index.html"
+    },
+   {
+        "author": "A.M.M. Elsayed",
+        "author_image": "../images/ammelsayed_new1.png",
+        "author_link": "https://ammelsayed.github.io/",
+        "title": "CERN ROOT Installation on Windows 11 and Ubuntu 22.04",
+        "date": "April 2025",
+        "description": "I wrote this because I found it challenging to successfully install and use ROOT on windows. After I successfully installed ROOT on my Windows 11 OS, I re-examined by steps to arrive at the most efficient way to install ROOT, so I wrote this document hoping it can help others facing same problem.",
+        "image_soruce":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTlrOs-GHJp70f5mArzQYzqbVkON7FAWF9vmA&s",
+        "link": "./post3/index.html"
+    }
+]

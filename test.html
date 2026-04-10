@@ -1,0 +1,315 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Particles — larger, crisper labels</title>
+  <style>
+    body { margin:0; overflow:hidden; background:#05060a; color:#fff; font-family:Arial, sans-serif; }
+    #canvas { width:100vw; height:100vh; display:block; }
+    #status { position:absolute; left:12px; top:12px; z-index:20; background:rgba(0,0,0,0.45); padding:8px 10px; border-radius:6px; font-size:13px; }
+  </style>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="canvas"></div>
+  <div id="status">Loading particles_data.json…</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const statusEl = document.getElementById('status');
+const container = document.getElementById('canvas');
+
+// scene
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x05060a);
+const camera = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.1, 5000);
+camera.position.set(350, 320, 750);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+container.appendChild(renderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+// lights
+const hemi = new THREE.HemisphereLight(0x9fb7ff, 0x10121a, 0.45);
+scene.add(hemi);
+const key = new THREE.DirectionalLight(0xffffff, 0.9); key.position.set(400,500,200); scene.add(key);
+const fill = new THREE.DirectionalLight(0xa0c5ff, 0.35); fill.position.set(-300,-200,200); scene.add(fill);
+
+// python constants (unchanged)
+const incoming_dist = 100;
+const length_scale = 0.004;
+const min_arrow = 30;
+const radius_frac = 0.08;
+const min_radius = 8;
+const max_radius = 70;
+
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+
+// sphere collection for raycast
+const sphereMeshes = [];
+
+// --- improved label texture generator (DPR-aware & sized by radius) ---
+function makeTextTextureDPR(text, fontPx, baseWidth = 512, baseHeight = 256, color = '#ffffff') {
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const W = Math.floor(baseWidth * DPR);
+  const H = Math.floor(baseHeight * DPR);
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  // style size will effectively be W/DPR x H/DPR in logical pixels
+  const ctx = c.getContext('2d');
+  ctx.scale(DPR, DPR); // draw in CSS px so font sizes are simple
+  ctx.clearRect(0, 0, baseWidth, baseHeight);
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = `bold ${fontPx}px sans-serif`;
+  // draw with slight stroke for contrast
+  ctx.lineWidth = Math.max(1, Math.round(fontPx / 12));
+  ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+  ctx.strokeText(text, baseWidth / 2, baseHeight / 2);
+  ctx.fillText(text, baseWidth / 2, baseHeight / 2);
+  const tex = new THREE.CanvasTexture(c);
+  tex.needsUpdate = true;
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  return tex;
+}
+
+function makeSpriteFromTexture(tex, scaleX = 1, scaleY = 1) {
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
+  sp.scale.set(scaleX, scaleY, 1);
+  return sp;
+}
+
+// other visuals (halo + sphere material reused)
+function hexToRgba(hex, a=1.0) {
+  const c = new THREE.Color(hex);
+  return `rgba(${Math.round(c.r*255)},${Math.round(c.g*255)},${Math.round(c.b*255)},${a})`;
+}
+function makeHaloSprite(radius, color) {
+  const size=256;
+  const c = document.createElement('canvas'); c.width=c.height=size;
+  const ctx = c.getContext('2d');
+  const grad = ctx.createRadialGradient(size/2,size/2,0,size/2,size/2,size/2);
+  grad.addColorStop(0, hexToRgba(color, 0.36));
+  grad.addColorStop(0.4, hexToRgba(color, 0.12));
+  grad.addColorStop(1, hexToRgba(color, 0.0));
+  ctx.fillStyle = grad; ctx.fillRect(0,0,size,size);
+  const tex = new THREE.CanvasTexture(c); tex.needsUpdate = true;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, blending: THREE.AdditiveBlending, depthTest: false, transparent: true }));
+  sp.scale.set(radius*2.6, radius*2.6, 1);
+  return sp;
+}
+function makeCoolMaterial(hexColor){
+  return new THREE.MeshPhysicalMaterial({
+    color: hexColor,
+    metalness: 0.2, roughness: 0.18, clearcoat: 0.6, clearcoatRoughness: 0.08,
+    reflectivity: 0.6, ior: 1.45, transparent: true, opacity: 0.92,
+    emissive: new THREE.Color(hexColor).multiplyScalar(0.06),
+  });
+}
+function makeSphere(radius, colorHex) {
+  const geom = new THREE.SphereGeometry(radius, 48, 32);
+  const mat = makeCoolMaterial(colorHex);
+  return new THREE.Mesh(geom, mat);
+}
+function getColorHexForID(id) {
+  if (!id) return 0x888888;
+  const s = id.toLowerCase();
+  if (s.includes('g')) return 0xaaaaaa;
+  if (s.includes('t~') || s.includes('tbar')) return 0xff8866;
+  if (s.includes('t')) return 0xff6633;
+  if (s.includes('b')) return 0x553311;
+  if (s.includes('w')) return 0x66ccff;
+  if (s.includes('e') || s.includes('mu') || s.includes('ta')) return 0x88ff88;
+  return 0xcccccc;
+}
+
+// cylinder between two points
+function makeCylinderBetween(a,b, radius, material) {
+  const dir = new THREE.Vector3().subVectors(b,a);
+  const length = dir.length();
+  if (length < 1e-6) {
+    const g = new THREE.CylinderGeometry(radius, radius, 1e-3, 8);
+    return new THREE.Mesh(g, material);
+  }
+  const geom = new THREE.CylinderGeometry(radius, radius, length, 12, 1, true);
+  const mesh = new THREE.Mesh(geom, material);
+  mesh.position.copy(new THREE.Vector3().addVectors(a,b).multiplyScalar(0.5));
+  mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir.clone().normalize());
+  return mesh;
+}
+
+// --- core builder (same python logic) ---
+async function tryFetchAndBuild() {
+  statusEl.textContent = 'Fetching particles_data.json…';
+  try {
+    const res = await fetch('particles_data.json', {cache:'no-store'});
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    const json = await res.json();
+    const arr = Array.isArray(json) ? json : (Array.isArray(json.particles) ? json.particles : null);
+    if (!arr) throw new Error('JSON does not contain array or {particles: [...]}');
+    buildFromArray(arr);
+  } catch (err) {
+    console.error(err);
+    statusEl.textContent = `Fetch failed: ${err.message}`;
+  }
+}
+
+function buildFromArray(arr) {
+  // remove old non-light children
+  scene.children.slice().forEach(obj => {
+    if (!(obj.type && (obj.type === 'HemisphereLight' || obj.type === 'DirectionalLight'))) scene.remove(obj);
+  });
+  scene.add(hemi); scene.add(key); scene.add(fill);
+
+  statusEl.textContent = 'Building scene — larger labels…';
+  const centers = {}, radii = {};
+  const shaftMat = new THREE.MeshStandardMaterial({ color:0xcccccc, roughness:0.4, metalness:0.15 });
+  sphereMeshes.length = 0;
+
+  for (let idx = 1; idx <= arr.length; idx++) {
+    const p = arr[idx-1];
+    const px = (p.P && p.P[0]) || 0;
+    const py = (p.P && p.P[1]) || 0;
+    const pz = (p.P && p.P[2]) || 0;
+    const rawVec = new THREE.Vector3(px, py, pz);
+    let dir_unit = rawVec.length() > 1e-9 ? rawVec.clone().normalize() : new THREE.Vector3(0,0,1);
+    let arrow_len = Math.max(min_arrow, length_scale * rawVec.length());
+    let start, center, radius;
+    const status = (p.Status !== undefined) ? p.Status : 0;
+
+    if (status === -1) {
+      start = new THREE.Vector3(0,0, Math.sign(rawVec.z || 1) * incoming_dist);
+      center = new THREE.Vector3(0,0,0).sub(dir_unit.clone().multiplyScalar(radius_frac * arrow_len));
+      const arrow_vec = center.clone().sub(start);
+      arrow_len = arrow_vec.length();
+      if (arrow_len > 1e-9) dir_unit = arrow_vec.clone().normalize();
+      radius = clamp(radius_frac * arrow_len, min_radius, max_radius);
+    } else {
+      const rawM1 = p.M1 ?? 0;
+      const m1Index = (rawM1 === 0 || rawM1 === null || rawM1 === undefined) ? null : Math.floor(rawM1);
+      if (m1Index === null || !centers[m1Index]) {
+        start = new THREE.Vector3(0,0,0);
+        center = start.clone().add(dir_unit.clone().multiplyScalar(arrow_len));
+        radius = clamp(radius_frac * arrow_len, min_radius, max_radius);
+      } else {
+        const mother_center = centers[m1Index];
+        const mother_radius = radii[m1Index];
+        start = mother_center.clone().add(dir_unit.clone().multiplyScalar(mother_radius + 1e-6));
+        center = start.clone().add(dir_unit.clone().multiplyScalar(arrow_len));
+        radius = clamp(radius_frac * arrow_len, min_radius, max_radius);
+      }
+    }
+
+    const endpoint = center.clone().sub(dir_unit.clone().multiplyScalar(radius));
+    const shaft = makeCylinderBetween(start, endpoint, Math.max(1.0, radius*0.12), shaftMat);
+    scene.add(shaft);
+
+    // sphere
+    const colorHex = getColorHexForID(p.ID);
+    const sphere = makeSphere(radius, colorHex);
+    sphere.position.copy(center);
+    sphere.userData = { idx, raw: p, center: center.clone(), radius, px,py,pz, hovered:false };
+    scene.add(sphere);
+    sphereMeshes.push(sphere);
+
+    centers[idx] = center.clone();
+    radii[idx] = radius;
+
+    // halo
+    const halo = makeHaloSprite(radius, hexToRgba(colorHex,1.0));
+    halo.material.depthTest = false;
+    halo.position.set(0,0,0);
+    sphere.add(halo);
+
+    // NAME inside sphere — compute font size based on radius and device pixel ratio
+    const nameFontPx = Math.max(18, Math.round(radius * 0.6));          // larger fonts for larger spheres
+    const nameTex = makeTextTextureDPR(String(p.ID || ('p'+idx)), nameFontPx, 512, 196, '#ffffff');
+    const nameSprite = makeSpriteFromTexture(nameTex, radius * 1.2, radius * 0.45);
+    nameSprite.material.depthTest = false; nameSprite.renderOrder = 10;
+    nameSprite.position.set(0, 0, 0.2);
+    sphere.add(nameSprite);
+    sphere.userData.nameSprite = nameSprite;
+
+    // pT inside sphere (hidden until hover) — sized relative to radius
+    const pt = Math.sqrt(px*px + py*py);
+    const ptFontPx = Math.max(14, Math.round(radius * 0.4));
+    const ptTex = makeTextTextureDPR(`pT=${pt.toFixed(1)}`, ptFontPx, 360, 120, '#6bd0ff');
+    const ptSprite = makeSpriteFromTexture(ptTex, radius * 1.0, radius * 0.32);
+    ptSprite.material.depthTest = false; ptSprite.renderOrder = 11;
+    ptSprite.position.set(0, -radius*0.35, 0.25);
+    ptSprite.visible = false;
+    sphere.add(ptSprite);
+    sphere.userData.ptSprite = ptSprite;
+
+    console.log(`Placed idx ${idx} ID=${p.ID} center=${center.toArray().map(v=>v.toFixed(1))} radius=${radius.toFixed(1)}`);
+  }
+
+  statusEl.textContent = 'Done — hover a sphere to show pT';
+  // auto camera
+  const all = Object.values(centers);
+  if (all.length) {
+    let mx = 0;
+    for (const v of all) mx = Math.max(mx, Math.abs(v.x), Math.abs(v.y), Math.abs(v.z));
+    const span = Math.max(220, mx * 1.6);
+    camera.position.set(span, span*0.6, span*1.2);
+    controls.target.set(0,0,0);
+    controls.update();
+  }
+}
+
+// raycast hover — show pT and scale
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let currentHover = null;
+function onPointerMove(e) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(sphereMeshes, true);
+  if (hits.length) {
+    let sphere = hits[0].object;
+    while (sphere && !sphereMeshes.includes(sphere)) sphere = sphere.parent;
+    if (sphere && currentHover !== sphere) {
+      if (currentHover) {
+        currentHover.scale.set(1,1,1);
+        if (currentHover.userData.ptSprite) currentHover.userData.ptSprite.visible = false;
+      }
+      currentHover = sphere;
+      currentHover.scale.set(1.12,1.12,1.12);
+      if (currentHover.userData.ptSprite) currentHover.userData.ptSprite.visible = true;
+    }
+  } else {
+    if (currentHover) {
+      currentHover.scale.set(1,1,1);
+      if (currentHover.userData.ptSprite) currentHover.userData.ptSprite.visible = false;
+      currentHover = null;
+    }
+  }
+}
+renderer.domElement.addEventListener('pointermove', onPointerMove, { passive:true });
+
+// initial fetch + build
+tryFetchAndBuild();
+
+// responsive & render loop
+window.addEventListener('resize', ()=>{ camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+(function animate(){ requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); })();
+
+</script>
+</body>
+</html>

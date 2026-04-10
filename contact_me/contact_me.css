@@ -1,0 +1,134 @@
+/*---------------------------------------*\ 
+    AUTHOR: A.M.M. Elsayed   
+    * ALL RIGHTS RESERVED *
+\*---------------------------------------*/
+
+* {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    text-decoration: none;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column; /* Items are placed left to right. */
+    background-color: white;
+}
+
+body main {
+    margin: 10px;   /* Space outside the border */
+    padding: 10px;  /* Space inside the border, between content and border */
+    flex: 1; /* Fills available space */
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    display: flex;
+    flex-direction: column; 
+    justify-content: flex-start;   
+    align-items: center; 
+}
+
+.navigations nav ul li #contact_me {
+    font-weight:350;
+}
+
+.page-top {
+    width: 100%;
+    height: 150px;
+    max-width: 500px;
+    min-width: 0;
+    display: flex;
+    flex-direction: row; 
+    justify-content: space-between;
+    align-items: center;   
+}
+
+.page-top h1 {
+    font-size: 35px;
+}
+
+section {
+    width: 100%;
+    max-width: 500px;
+    min-width: 0;
+    margin: 20px 0px;
+    padding: 20px 40px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    color: black;
+    display: flex;
+    flex-direction: column; 
+    justify-content: space-between;   
+    align-items: stretch; 
+}
+
+section .info-item {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 20px;
+    padding: 10px 0px;
+}
+
+section .info-item p {
+    font-size: 18px;
+    padding-bottom: 5px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+section .info-item img {
+    width: 18px; 
+    height: 18px;
+}
+
+
+/*---------------------------------------*/ 
+
+
+section form {
+    font-size: 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 20px 0px;
+    gap: 15px;
+}
+
+section form label {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+input, textarea {
+    font-size: 16px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+input[type="text"], input[type="email"] {
+    height: 40px; /* Consistent height for Name and Email fields */
+    padding: 5px;
+}
+
+textarea {
+    height: 150px; /* Controlled height for the Message field */
+    padding: 5px;
+    max-width: 500px;
+}
+
+#form-button {
+    margin-top: 20px;
+    font-size: 18px;
+    background-color: #101010;
+    height: 100%;
+    max-height: 50px;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#form-button:hover {
+    background-color: #202020;
+}

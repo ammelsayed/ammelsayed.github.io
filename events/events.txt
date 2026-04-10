@@ -1,0 +1,21 @@
+{
+        "title": "Anhui Danian",
+        "date": "October  2024",
+        "location": "Huangshan University, Anhui, Huangshan, China",
+        "description": "Visiting Huangshan Mountain during the 12th 'Huishan·Huishui·Huiwenhua' Cultural Study Program was an extraordinary experience that combined natural beauty, cultural immersion, and personal engagement. Serving as the host for the presentation of Li Bai’s poetry allowed me to actively participate in sharing Chinese literary heritage, while exploring the majestic peaks, ancient pine forests, and winding trails offered moments of reflection and inspiration. Immersing myself in local museums and cultural sites provided deeper insight into the history, philosophies, and traditions of the region, fostering a greater appreciation for the interplay between landscape and heritage. The program offered a harmonious blend of intellectual enrichment, artistic expression, and interpersonal connection, leaving me with lasting memories and renewed inspiration from both the environment and cultural experiences.",
+        "image_soruce":"./images/anhuidanian.jpg"
+    },
+    {
+        "title": "Wuhu",
+        "date": "October  2024",
+        "location": "Huangshan University, Anhui, Huangshan, China",
+        "description": "We visited the huangshan mountain, and i was preforming as host for the libai poem we presented in there.Visiting Huangshan Mountain was an unforgettable adventure that filled me with awe and inspiration. The breathtaking scenery, with its majestic peaks and ancient pine trees, made every hike feel like a journey through a painting. As I practiced hiking along the winding trails, I felt a sense of freedom and connection to nature, each step helping me to escape the bustling world below.In addition to hiking, I immersed myself in the rich cultural offerings of the area. Visiting local museums provided insight into the history and traditions of the region. I marveled at ancient artifacts and learned about the philosophies that have shaped Chinese culture over centuries. These experiences deepened my appreciation for the heritage that accompanies the breathtaking landscapes. My experience in Huangshan was a harmonious blend of physical challenge, cultural immersion, and connection with others. I returned home not only with memories of stunning landscapes but also with a renewed sense of purpose and inspiration, eager to share the stories and experiences I had gained during my time there.",
+        "image_soruce":"./images/wuhu.jpg"
+    },
+    {
+        "title": "SUSE 安徽校友会开幕式",
+        "date": "October  2024",
+        "location": "Huangshan University, Anhui, Huangshan, China",
+        "description": "We visited the huangshan mountain, and i was preforming as host for the libai poem we presented in there.Visiting Huangshan Mountain was an unforgettable adventure that filled me with awe and inspiration. The breathtaking scenery, with its majestic peaks and ancient pine trees, made every hike feel like a journey through a painting. As I practiced hiking along the winding trails, I felt a sense of freedom and connection to nature, each step helping me to escape the bustling world below.In addition to hiking, I immersed myself in the rich cultural offerings of the area. Visiting local museums provided insight into the history and traditions of the region. I marveled at ancient artifacts and learned about the philosophies that have shaped Chinese culture over centuries. These experiences deepened my appreciation for the heritage that accompanies the breathtaking landscapes. My experience in Huangshan was a harmonious blend of physical challenge, cultural immersion, and connection with others. I returned home not only with memories of stunning landscapes but also with a renewed sense of purpose and inspiration, eager to share the stories and experiences I had gained during my time there.",
+        "image_soruce":"./images/suse_xiaoyouhui.jpg"
+    }
