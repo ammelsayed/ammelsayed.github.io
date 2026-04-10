@@ -1,25 +1,20 @@
+<!-- /* ------------------------------- *\ -->
+<!-- /*     AUTHOR: A.M.M. Elsayed      *\ -->
+<!-- /*    * ALL RIGHTS RESERVED *      *\ -->
+<!-- /* ------------------------------- *\ -->
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Events</title>
-
-    <!--Browser Tap icon-->
     <link rel="icon" href="../images/tap-icon.png">
-    
-    <!--Global Theme Styling-->
     <link rel="stylesheet" href="../styles/theme.css">
-
-    <!--Body and Body-Main styles-->
-    <link rel="stylesheet" href="./style.css">
-
-    <!--Header and footer stylings-->
+    <link rel="stylesheet" href="../styles/content.css">
     <link rel="stylesheet" href="../styles/header.css">
     <link rel="stylesheet" href="../styles/footer.css">
 </head>
-
 <body>
     <my-header></my-header>
     <script type="module" src="../styles/header.js"></script>
@@ -32,27 +27,21 @@
                 <input type="text" class="search-input" placeholder="Search...">
                 <button class="search-button">
                     <svg class="search-icon" viewBox="0 0 24 24">
-                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 
-                        6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 
-                        4.23-1.57l.27.28v.79l5 4.99L20.49 
-                        19l-4.99-5zm-6 0C7.01 14 5 11.99 
-                        5 9.5S7.01 5 9.5 5 14 7.01 14 
-                        9.5 11.99 14 9.5 14z"/>
+                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
                     </svg>
                 </button>
             </div>
         </div>
 
         <div class="page-content">
-            <p id="event-count"><i></i></p>
+            <p id="content-count"><i></i></p>
         </div>
 
-        <div id="events-list"></div>
-        <div class="page-side"></div>
+        <div id="content-list"></div>
     </main>
 
     <script src="../styles/utils.js"></script>
-    <script src="script.js"></script>
+    <script src="../styles/content-loader.js"></script>
 
     <my-footer></my-footer>
     <script type="module" src="../styles/footer.js"></script>

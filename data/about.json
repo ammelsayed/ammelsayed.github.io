@@ -25,22 +25,22 @@
       {
         "name": "ORCID",
         "url": "https://orcid.org/0000-0002-4955-4958",
-        "icon": "../images/ORCID_iD.svg.png"
+        "icon": "/images/ORCID_iD.svg.png"
       },
       {
         "name": "ResearchGate",
         "url": "https://www.researchgate.net/profile/Amm-Elsayed",
-        "icon": "../images/ResearchGate_icon_SVG.svg.png"
+        "icon": "/images/ResearchGate_icon_SVG.svg.png"
       },
       {
         "name": "Google Scholar",
         "url": "https://scholar.google.com/citations?user=Xo0hJpMAAAAJ&hl=en",
-        "icon": "../images/Google_Scholar_logo.svg.png"
+        "icon": "/images/Google_Scholar_logo.svg.png"
       },
       {
         "name": "Stack Overflow",
         "url": "https://stackoverflow.com/users/20435147/a-m-m-elsayed-%E9%A9%AC%E5%85%8B",
-        "icon": "../images/stackexchangepng.png"
+        "icon": "/images/stackexchangepng.png"
       }
     ]
   },
@@ -53,7 +53,7 @@
       "institution_url": "https://en.ustc.edu.cn/",
       "location": "Hefei, China",
       "research_focus": "Research focus: Neutrino Physics. Phenomological work on the Type III Seesaw model. Investigating the potential of discovering TeV mass scale triplet fermions at the ATLAS detector in the LHC (CERN, Switzerland).",
-      "logo": "../images/ustc_logo.png"
+      "logo": "/images/ustc_logo.png"
     },
     {
       "date": "Sep 2019 - July 2023",
@@ -62,7 +62,7 @@
       "institution_url": "https://www.suse.edu.cn/",
       "location": "Yibin, China",
       "research_focus": "My graduation work focused on neutrino physics from a theoritical perspective, specifically on neutrino mass measurements.",
-      "logo": "../images/suse_logo.svg.png"
+      "logo": "/images/suse_logo.svg.png"
     }
   ],
 
@@ -74,7 +74,7 @@
       "company_url": "https://www.jtexpress-eg.com/",
       "location": "New Cairo, Egypt",
       "description": "Responsible for directing and teaching employees in Egypt for adjusting the company JMS website in Egypt and adjusting the algorithm and calculations according to the needs of the market. System integration, data structuring and operations. Automating reporting cycles and working cycles. Creating softwares for automating and achieving higher quality of all kinds of reports (mainly using python).",
-      "logo": "../images/jt_logo.png"
+      "logo": "/images/jt_logo.png"
     },
     {
       "date": "April 2021 - Dec 2021",
@@ -83,15 +83,15 @@
       "company_url": "https://www.handagroup.com/en/Global/105.html",
       "location": "Belbies, Sharkiya, Egypt",
       "description": "Established a sophisticated ACESS system for company data manamgent. Responsible for directing 70 exployees from warehouses, production and HR department on corresponding data gathering and information management. Responsible for assisting the IT department in Egypt for establishing the ERP system and server connection with China.",
-      "logo": "../images/handa.jpg"
+      "logo": "/images/handa.jpg"
     }
   ],
 
   "programming_skills": {
     "Operating Systems": [
-      { "name": "Linux", "logo": "../images/linux-logo.png" },
-      { "name": "Windows", "logo": "../images/windows-logo.png" },
-      { "name": "Mac OS", "logo": "../images/apple-logo.svg" }
+      { "name": "Linux", "logo": "/images/linux-logo.png" },
+      { "name": "Windows", "logo": "/images/windows-logo.png" },
+      { "name": "Mac OS", "logo": "/images/apple-logo.svg" }
     ],
     "Data Analysis": [
       { "name": "Python", "logo": "https://cdn-icons-png.flaticon.com/128/5968/5968350.png" },

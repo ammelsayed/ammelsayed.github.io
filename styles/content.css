@@ -1,0 +1,197 @@
+/*---------------------------------------*\
+    Unified Content Styling
+    Shared by Blog, Projects, Events, and Publications
+\*---------------------------------------*/
+
+body main {
+    margin: 0;
+    padding: 20px;
+    flex: 1;
+    font-family: var(--font-main);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    background: var(--background-color);
+}
+
+.page-top {
+    width: 100%;
+    height: 150px;
+    max-width: 1000px;
+    min-width: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.page-top h1 {
+    font-size: 45px;
+    font-family: var(--font-heading);
+}
+
+.page-content {
+    width: 100%;
+    max-width: 1000px;
+    min-width: 0;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+#content-list {
+    width: 100%;
+    max-width: 1000px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.publication {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0;
+    border: 1px solid rgba(10, 10, 10, 0.1);
+    border-radius: 1em;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.publication:hover {
+    transform: scale(1.005);
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.publication .content {
+    margin: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 1;
+}
+
+.publication-image {
+    margin: 20px;
+    width: 95%;
+    max-width: 300px;
+    height: auto;
+    border-radius: var(--radius-sm);
+}
+
+.publication .content h2 {
+    margin-bottom: 10px;
+    font-size: 24px;
+}
+
+.publication .content .abstract {
+    font-size: 15px;
+    text-align: justify;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    color: var(--text-color);
+}
+
+.author_information {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.author_image {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.AuthorName_and_Date {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#doi-link {
+    margin-top: 10px;
+    font-size: 14px;
+    word-break: break-all;
+}
+
+/* Search Bar */
+.search-bar {
+    display: flex;
+    align-items: center;
+    position: relative;
+    width: 400px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 40px 10px 15px;
+    border: 2px solid #ccc;
+    border-radius: 25px;
+    font-size: 16px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 5px rgba(0, 85, 164, 0.3);
+}
+
+.search-button {
+    position: absolute;
+    right: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.search-icon {
+    width: 20px;
+    height: 20px;
+    fill: #666;
+}
+
+.highlight {
+    background-color: #fff9c4;
+    font-weight: bold;
+    padding: 0 2px;
+}
+
+/* Responsive */
+@media screen and (max-width: 1000px) {
+    .publication {
+        flex-direction: column;
+    }
+    .publication-image {
+        max-width: 100%;
+    }
+    .search-bar {
+        width: 100%;
+        margin-top: 10px;
+    }
+    .page-top {
+        flex-direction: column;
+        height: auto;
+        padding: 20px 0;
+        text-align: center;
+    }
+}

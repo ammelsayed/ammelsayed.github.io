@@ -1,5 +1,6 @@
 /**
  * Shared utility for rendering list of cards with search and highlighting functionality.
+ * Supports a unified content schema for easy scaling across different sections.
  */
 class CardRenderer {
     constructor(options) {
@@ -7,9 +8,11 @@ class CardRenderer {
         this.listElementId = options.listElementId;
         this.countElementId = options.countElementId;
         this.searchInputSelector = options.searchInputSelector;
-        this.renderCardFn = options.renderCardFn;
-        this.searchFields = options.searchFields || [];
         this.itemTypeLabel = options.itemTypeLabel || 'item';
+        this.searchFields = options.searchFields || ['title', 'description', 'badge'];
+        
+        // Custom rendering function (optional, fallback to default)
+        this.renderCardFn = options.renderCardFn || this.defaultRenderCard.bind(this);
         
         this.allData = [];
         this.init();
@@ -24,6 +27,8 @@ class CardRenderer {
             this.setupSearch();
         } catch (error) {
             console.error(`Error loading data from ${this.dataUrl}:`, error);
+            const listEl = document.getElementById(this.listElementId);
+            if (listEl) listEl.innerHTML = `<p style="color:red">Failed to load content: ${error.message}</p>`;
         }
     }
 
@@ -71,6 +76,13 @@ class CardRenderer {
                 this.searchFields.forEach(field => {
                     const value = String(item[field] || '').toLowerCase();
                     if (value.includes(term)) matchCount++;
+                    
+                    // Also search in meta fields if they exist
+                    if (item.meta && Array.isArray(item.meta)) {
+                        item.meta.forEach(m => {
+                            if (String(m.text || '').toLowerCase().includes(term)) matchCount++;
+                        });
+                    }
                 });
                 return { item, matchCount };
             })
@@ -85,6 +97,61 @@ class CardRenderer {
         if (!term || !text) return text;
         const regex = new RegExp(`(${term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
         return String(text).replace(regex, '<span class="highlight">$1</span>');
+    }
+
+    /**
+     * Default rendering logic for the Unified Content Schema.
+     */
+    defaultRenderCard(item, term, highlight) {
+        const card = document.createElement('div');
+        card.className = 'publication'; // Using existing class for styling consistency
+        if (item.link) card.style.cursor = 'pointer';
+
+        const hTitle = highlight(item.title, term);
+        const hDesc = highlight(item.description, term);
+        const hBadge = item.badge ? highlight(item.badge, term) : '';
+        
+        // Handle meta fields
+        let metaHtml = '';
+        if (item.meta && Array.isArray(item.meta)) {
+            metaHtml = item.meta.map(m => `
+                <span>${m.icon || ''} <em>${highlight(m.text, term)}</em></span>
+            `).join(' ');
+        }
+
+        // Handle author info (for blogs)
+        let authorHtml = '';
+        if (item.author) {
+            authorHtml = `
+                <div class="author_information">
+                    ${item.author.image ? `<img src="${item.author.image}" class="author_image">` : ''}
+                    <div class="AuthorName_and_Date">
+                        <em> By <a href="${item.author.link || '#'}" target="_blank" rel="noopener">${highlight(item.author.name, term)}</a></em>
+                    </div>
+                </div>
+            `;
+        }
+
+        card.innerHTML = `
+            <div class="content">
+                ${hBadge ? `<p style="color: navy; margin-bottom: 5px;"><em><b>${hBadge}</b></em></p>` : ''}
+                <h2>${hTitle}</h2>
+                ${authorHtml}
+                ${metaHtml ? `<p>${metaHtml}</p>` : ''}
+                <hr style="margin: 10px 0;">
+                <p class="abstract">${hDesc}</p>
+                ${item.link && item.link.includes('doi.org') ? `<p id="doi-link"><b>DOI:</b> <a href="${item.link}" target="_blank">${highlight(item.link, term)}</a></p>` : ''}
+            </div>
+            ${item.image ? `<img src="${item.image}" class="publication-image">` : ''}
+        `;
+
+        if (item.link) {
+            card.addEventListener('dblclick', () => {
+                window.location.href = item.link;
+            });
+        }
+
+        return card;
     }
 }
 
