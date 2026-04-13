@@ -12,16 +12,21 @@
 // Upload the headers 
 class MyHeader extends HTMLElement {
     connectedCallback() {
+        // Check if user is logged in
+        const isLoggedIn = sessionStorage.getItem('isAdmin') === 'true';
+        const loginText = isLoggedIn ? 'Logout' : 'Login';
+        const loginHref = isLoggedIn ? 'javascript:logoutFromHeader()' : '/login.html';
+        
         const navLinks = `
         <ul>
             <li><a href="/index.html" id="home">Home</a></li>
             <li><a href="/about/index.html" id="about">About</a></li>
-            <li><a href="/docs/CV.pdf" target="_blank" id="cv_download">My CV</a></li>
             <li><a href="/publications/index.html" id="publications">Publications</a></li>
             <li><a href="/projects/index.html" id="projects">Projects</a></li>
             <li><a href="/blog/index.html" id="blog">Blog</a></li>
             <li><a href="/events/index.html" id="events">Events</a></li>
-            <li><a href="/login.html" id="login">Login</a></li>
+            <li><a href="/docs/CV.pdf" target="_blank" id="cv_download">My CV</a></li>
+            <!-- <li><a href="${loginHref}" id="login">${loginText}</a></li> -->
         </ul>`;
 
         this.innerHTML = `    
@@ -74,6 +79,14 @@ class MyHeader extends HTMLElement {
 
         this.highlightActiveLink();
         this.setupThemeToggle();
+        
+        // Add logout function to window so it can be called from the link
+        if (!window.logoutFromHeader) {
+            window.logoutFromHeader = () => {
+                sessionStorage.removeItem('isAdmin');
+                window.location.href = '/login.html';
+            };
+        }
     }
 
     setupThemeToggle() {

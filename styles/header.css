@@ -327,7 +327,7 @@ header {
 /* link styling inside the panel (left aligned, full-width hit area) */
 .header-menu .menu-button .menu-navigations nav ul li a,
 .header-menu .menu-navigations nav ul li a {
-  color: white;
+  color: var(--header-text);
   font-size: 18px; /* slightly larger than regular nav for clear reading */
   font-weight: 400;
   text-decoration: none;
