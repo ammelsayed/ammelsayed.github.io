@@ -94,7 +94,7 @@ class MyHeader extends HTMLElement {
         const sunIcon = toggleBtn.querySelector('.sun-icon');
         const moonIcon = toggleBtn.querySelector('.moon-icon');
         
-        const currentTheme = localStorage.getItem('theme') || 'dark';
+        const currentTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', currentTheme);
         this.updateIcons(currentTheme, sunIcon, moonIcon);
 

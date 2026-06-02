@@ -19,6 +19,15 @@
         "date": "2025-01-01",
         "meta": [
             {"icon": "🔬", "text": "Particle Physics, Python, Flask"}
-        ]
-    }
+        ]    },
+    {
+        "badge": "Data Visualization",
+        "title": "EventViz",
+        "description": "EventViz is a lightweight client-side tool to explore particle-collision events stored in Les Houches Event (.lhe) or HepMC (.hepmc) format. It parses event headers and per-particle kinematics from the uploaded file and renders an interactive 3D view of the collision (incoming beams, outgoing tracks and decay chains) using Three.js. It is current hosted on <a href='https://github.com/ammelsayed/EventVizl' target='_blank'>Github</a> and can be used directly from the browser without any installation. The tool is designed to be user-friendly and responsive, allowing users to zoom, rotate, and inspect individual particles in the event. EventViz is ideal for students and researchers who want a quick and accessible way to visualize particle collision events without needing complex software installations.",
+        "image": "/images/image.png",
+        "link": "https://ammelsayed.github.io/EventViz/",
+        "date": "2026-06-02",
+        "meta": [
+            {"icon": "📊", "text": "Interactive browser-based 3D visualizer for Les Houches Event (LHE) and HepMC files."}
+        ]    }
 ]
