@@ -31,5 +31,21 @@
         "meta": [
             {"icon": "🗓️", "text": "April 2025"}
         ]
+    },
+    {
+        "author": {
+            "name": "A.M.M. Elsayed",
+            "image": "/images/me.jpg",
+            "link": "https://ammelsayed.github.io/"
+        },
+        "badge": "Git Guide",
+        "title": "Git Mastery: From Local Repo to Powerful Collaboration",
+        "description": "A practical and technical Git guide for developers who want to move beyond basic upload workflows. Learn Git configuration, staging, branching, remotes, recovery, and the internals that make Git powerful.",
+        "image": "https://git-scm.com/images/logos/downloads/Git-Logo-2Color.png",
+        "link": "/blog/post.html?id=post4",
+        "date": "2026-06-02",
+        "meta": [
+            {"icon": "🗓️", "text": "June 2026"}
+        ]
     }
 ]
