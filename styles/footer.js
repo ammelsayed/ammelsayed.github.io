@@ -6,7 +6,6 @@ class MyFooter extends HTMLElement {
                 <div class="inner-footer">
                     <div class="footer-info">
                         <p>&copy; ${currentYear} <b>A.M.M. Elsayed</b></p>
-                        <p class="footer-tagline">Researcher & Physicist</p>
                     </div>
 
                     <div class="social-links"></div>
