@@ -3,7 +3,7 @@
         "author": {
             "name": "A.M.M. Elsayed",
             "image": "/images/me.jpg",
-            "link": "https://ammelsayed.github.io/"
+            "link": "https://ammelsayed.tech"
         },
         "badge": "Tutorial",
         "title": "Instructions for Drawing Feynman Diagrams Using Asymptote (Vector Graphics Language)",
@@ -16,11 +16,27 @@
             {"icon": "🗓️", "text": "May 2025"}
         ]
     },
+    {
+        "author": {
+            "name": "A.M.M. Elsayed",
+            "image": "/images/me.jpg",
+            "link": "https://ammelsayed.tech"
+        },
+        "badge": "Notes",
+        "title": "Robust Management of Long‑Running Computational Processes: A Case Study with MadGraph",
+        "description": "In high‑energy physics and beyond, computational workflows often rely on extensive event generators such as MadGraph5_aMC@NLO. These simulations may run for days, weeks or event months, consuming significant system resources. To ensure reproducibility, fault tolerance, and effective resource utilisation, it is imperative to launch such processes in a detached, non‑interactive manner while preserving the ability to monitor, log, and, if necessary, terminate them cleanly. This note discusses the practical aspects of process management in a Unix‑like environment, focusing on the use of nohup, background job control, process groups, and a self‑contained launcher script that encapsulates these mechanisms.",
+        "image": "https://tse4.mm.bing.net/th/id/OIP.Pg_yJDaFoFZjn-rA_lW9LQHaJW?rs=1&pid=ImgDetMain&o=7&rm=3",
+        "link": "/blog/post.html?id=post5",
+        "date": "2026-06-22",
+        "meta": [
+            {"icon": "🗓️", "text": "June 2026"}
+        ]
+   },
    {
         "author": {
             "name": "A.M.M. Elsayed",
             "image": "/images/me.jpg",
-            "link": "https://ammelsayed.github.io/"
+            "link": "https://ammelsayed.tech"
         },
         "badge": "Installation Guide",
         "title": "CERN ROOT Installation on Windows 11 and Ubuntu 22.04",
@@ -36,7 +52,7 @@
         "author": {
             "name": "A.M.M. Elsayed",
             "image": "/images/me.jpg",
-            "link": "https://ammelsayed.github.io/"
+            "link": "https://ammelsayed.tech"
         },
         "badge": "Git Guide",
         "title": "Git Mastery: From Local Repo to Powerful Collaboration",
