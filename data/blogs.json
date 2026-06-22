@@ -25,7 +25,7 @@
         "badge": "Notes",
         "title": "Robust Management of Long‑Running Computational Processes: A Case Study with MadGraph",
         "description": "In high‑energy physics and beyond, computational workflows often rely on extensive event generators such as MadGraph5_aMC@NLO. These simulations may run for days, weeks or event months, consuming significant system resources. To ensure reproducibility, fault tolerance, and effective resource utilisation, it is imperative to launch such processes in a detached, non‑interactive manner while preserving the ability to monitor, log, and, if necessary, terminate them cleanly. This note discusses the practical aspects of process management in a Unix‑like environment, focusing on the use of nohup, background job control, process groups, and a self‑contained launcher script that encapsulates these mechanisms.",
-        "image": "https://tse4.mm.bing.net/th/id/OIP.Pg_yJDaFoFZjn-rA_lW9LQHaJW?rs=1&pid=ImgDetMain&o=7&rm=3",
+        "image": "../images/linux-logo.png",
         "link": "/blog/post.html?id=post5",
         "date": "2026-06-22",
         "meta": [
@@ -54,9 +54,9 @@
             "image": "/images/me.jpg",
             "link": "https://ammelsayed.tech"
         },
-        "badge": "Git Guide",
-        "title": "Git Mastery: From Local Repo to Powerful Collaboration",
-        "description": "A practical and technical Git guide for developers who want to move beyond basic upload workflows. Learn Git configuration, staging, branching, remotes, recovery, and the internals that make Git powerful.",
+        "badge": "Notes",
+        "title": "Version Control with Git",
+        "description": "Git is a distributed version control system that has become ubiquitous in modern software development. Unlike centralised systems, Git is built upon an immutable, content-addressable object database, where the fundamental units of storage are snapshots of the project state, organised into a directed acyclic graph of commits. Branches are lightweight movable pointers to these commits, enabling parallel development and safe experimentation. A comprehensive understanding of Git’s internal model transforms it from a mere file‑upload utility into a sophisticated engineering workflow that underpins collaboration, code review, and history reconstruction.",
         "image": "https://git-scm.com/images/logos/downloads/Git-Logo-2Color.png",
         "link": "/blog/post.html?id=post4",
         "date": "2026-06-02",

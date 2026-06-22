@@ -52,9 +52,9 @@ footer {
 }
 
 .social-links a img {
-    width: 20px;
-    height: 20px;
-    filter: brightness(0) saturate(100%) invert(1); /* to make logo white*/
+    width: 25px;
+    height: 25px;
+    /* filter: brightness(100%) invert(1); /* to make logo white*/
     transition: width 0.2s ease, height 0.2s ease;
 }
 
