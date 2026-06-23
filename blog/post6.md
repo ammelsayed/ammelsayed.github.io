@@ -15,9 +15,10 @@ Press **Enter** all the way through to accept the default settings (you can opti
 - `id_rsa` — your private key 
 - `id_rsa.pub` — your public key 
 
+
 After running the command, a fingerprint is also generated (as below):
 
-```
+```bash
 The key fingerprint is:
 7a:ec:b2:1c:90:f5:2f:77:c5:bc:36:8b:0f:23:2e:76 user@workstation
 The key's randomart image is:
