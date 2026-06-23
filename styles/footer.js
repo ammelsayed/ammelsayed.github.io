@@ -5,8 +5,14 @@ class MyFooter extends HTMLElement {
             <footer>
                 <div class="inner-footer">
                     <div class="footer-info">
-                        <p><i class="fa-brands fa-creative-commons"></i><i class="fa-brands fa-creative-commons-by"></i> ${currentYear} <b>A.M.M. Elsayed</b></p>
-                        <p>Except where otherwise noted, content on this site is licensed under a Creative Commons Attribution 4.0 International license. Icons by Font Awesome.</p>
+                        <p> ${currentYear} <b>A.M.M. Elsayed</b></p>
+                        <p>
+                          <i class="fa-brands fa-creative-commons"></i>
+                          <i class="fa-brands fa-creative-commons-by"></i> 
+                          Except where otherwise <a href="/policies/#license">noted</a>, content
+                          on this site is licensed under a <a href="/licenses/by/4.0/">Creative Commons Attribution 4.0 International license</a>. Icons by
+                          <a href="https://fontawesome.com/" target="_blank">Font Awesome</a>.
+                        </p>
                     </div>
 
                     <div class="social-links"></div>
