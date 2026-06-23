@@ -23,6 +23,22 @@
             "link": "https://ammelsayed.tech"
         },
         "badge": "Notes",
+        "title": "Setup Process for Passwordless SSH in VSCode",
+        "description": "Typing your SSH password every time you connect to a remote server via VSCode's Remote‑SSH extension is tedious and interrupts your workflow. This guide walks you through a quick, three‑step process to set up public‑key authentication, allowing you to log in seamlessly without entering a password. The steps below assume a Windows 11 client and a Ubuntu server, but the approach works across all platforms.",
+        "image": "https://w7.pngwing.com/pngs/951/741/png-transparent-secure-shell-ssh-keygen-computer-servers-computer-network-computer-software-shell-text-computer-logo.png",
+        "link": "/blog/post.html?id=post6",
+        "date": "2026-06-23",
+        "meta": [
+            {"icon": "🗓️", "text": "June 2026"}
+        ]
+   },
+    {
+        "author": {
+            "name": "A.M.M. Elsayed",
+            "image": "/images/me.jpg",
+            "link": "https://ammelsayed.tech"
+        },
+        "badge": "Notes",
         "title": "Robust Management of Long‑Running Computational Processes: A Case Study with MadGraph",
         "description": "In high‑energy physics and beyond, computational workflows often rely on extensive event generators such as MadGraph5_aMC@NLO. These simulations may run for days, weeks or event months, consuming significant system resources. To ensure reproducibility, fault tolerance, and effective resource utilisation, it is imperative to launch such processes in a detached, non‑interactive manner while preserving the ability to monitor, log, and, if necessary, terminate them cleanly. This note discusses the practical aspects of process management in a Unix‑like environment, focusing on the use of nohup, background job control, process groups, and a self‑contained launcher script that encapsulates these mechanisms.",
         "image": "../images/linux-logo.png",
