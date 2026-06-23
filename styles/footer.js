@@ -9,7 +9,7 @@ class MyFooter extends HTMLElement {
                         <p>
                           <i class="fa-brands fa-creative-commons"></i>
                           <i class="fa-brands fa-creative-commons-by"></i> 
-                          Content on this site is licensed under a <a href="/licenses/by/4.0/">CC BY 4.0</a>. 
+                          Content on this site is licensed under a <a href="/licenses/by/4.0/">CC BY 4.0 International license</a>. 
                         </p>
                         <p>
                            Icons by <a href="https://fontawesome.com/" target="_blank">Font Awesome</a>.
