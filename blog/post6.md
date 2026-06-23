@@ -48,5 +48,15 @@ Make sure to replace `"ssh-rsa AAAAB3NzaC1yc2EAAA..."` with the actual public ke
 
 Close and reopen **VSCode**. Try connecting to your remote server via the **Remote-SSH** extension again. You should now be able to log in **without entering a password**!
 
+## Security Note
 
-> *This article is shared from  https://cloud.tencent.cn/developer/article/2544197.*
+The setup above works, but it has a risk. Your private key (`id_rsa`) is stored on your laptop without a passphrase. If someone breaks into your laptop, they can copy that key and log into your server without any password. That is a big problem. Here are two better and widely used approaches that fix this:
+
+1. **Passphrase + ssh-agent with a timeout** – Create your key with a passphrase. Then use `ssh-add -t 3600` to load the key into the agent for only one hour. After that, you need to enter the passphrase again. This way, your key is encrypted on disk, and even if your laptop is hacked, the key is not sitting in memory forever. 
+   - Tutorial: [Using SSH keys and SSH agent](https://www.ens-lyon.fr/PSMN/Documentation/connection/ssh_keys_and_agent.html)
+
+2. **Hardware security key (like YubiKey)** – Generate your key with `ssh-keygen -t ed25519-sk`. The private key never leaves the hardware device. Even if your laptop is fully compromised, the attacker cannot copy your key because it is physically locked inside the USB key.
+   - Tutorial: [SSH with Yubikey - Quick Start Guide](https://wiki.bwhpc.de/wiki/index.php?title=Registration/SSH/SSH-FIDO2-Quick-Start&oldid=15537)
+   - Official guide: [Securing SSH Authentication with FIDO2 Security Keys](https://developers.yubico.com/SSH/Securing_SSH_with_FIDO2.html)
+
+Use any of these if you care about security beyond basic passwordless login.
