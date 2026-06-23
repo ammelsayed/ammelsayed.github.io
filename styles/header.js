@@ -1,12 +1,20 @@
 
 // Removes "index.html" from the current URL path without reloading.
-
 (function stripIndex() {
   const { pathname, search, hash } = window.location;
   if (pathname.endsWith('index.html')) {
     const cleanPath = pathname.slice(0, -'index.html'.length);
     window.history.replaceState(null, '', cleanPath + search + hash);
   }
+})();
+
+// Inject Font Awesome script once per page (avoids duplicates)
+(function injectFontAwesome() {
+    if (document.querySelector('script[src*="kit.fontawesome.com"]')) return; // already loaded
+    const script = document.createElement('script');
+    script.src = 'https://kit.fontawesome.com/443e57cbff.js';
+    script.crossOrigin = 'anonymous';
+    document.head.appendChild(script);
 })();
 
 // Upload the headers 
