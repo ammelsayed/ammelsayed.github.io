@@ -5,7 +5,8 @@ class MyFooter extends HTMLElement {
             <footer>
                 <div class="inner-footer">
                     <div class="footer-info">
-                        <p>&copy; ${currentYear} <b>A.M.M. Elsayed</b></p>
+                        <p><i class="fa-brands fa-creative-commons"></i><i class="fa-brands fa-creative-commons-by"></i> ${currentYear} <b>A.M.M. Elsayed</b></p>
+                        <p>Except where otherwise noted, content on this site is licensed under a Creative Commons Attribution 4.0 International license. Icons by Font Awesome.</p>
                     </div>
 
                     <div class="social-links"></div>
