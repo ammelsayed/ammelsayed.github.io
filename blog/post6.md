@@ -1,6 +1,6 @@
-# Setup Process for Passwordless SSH in VSCode
+# Setup Process for Passwordless SSH
 
-Typing your SSH password every time you connect to a remote server via VSCode's Remote‑SSH extension is tedious and interrupts your workflow. This guide walks you through a quick, three‑step process to set up public‑key authentication, allowing you to log in seamlessly without entering a password. The steps below assume a Windows 11 client and a Ubuntu server, but the approach works across all platforms.
+Typing your SSH password every time you connect to a remote server is tedious and interrupts your workflow. This guide walks you through a quick, three‑step process to set up public‑key authentication, allowing you to log in seamlessly without entering a password, whether you are using VSCode's Remote‑SSH extension or connecting directly from your terminal (e.g., `ssh user@workstation`). The steps below assume a Windows 11 client and a Ubuntu server, but the approach works across all platforms.
 
 ## Step 1: Generate SSH Key Pair
 
@@ -15,6 +15,24 @@ Press **Enter** all the way through to accept the default settings (you can opti
 - `id_rsa` — your private key 
 - `id_rsa.pub` — your public key 
 
+After running the command, a fingerprint is also generated (as below):
+
+```
+The key fingerprint is:
+7a:ec:b2:1c:90:f5:2f:77:c5:bc:36:8b:0f:23:2e:76 user@workstation
+The key's randomart image is:
++--[ RSA 2048]----+
+|                 |
+|                 |
+|      .          |
+|     o .     o   |
+|    o   S     +  |
+|     . o .   . . |
+|      o + + + +  |
+|     ..+o+Eo = o |
+|      o+.o. ..o  |
++-----------------+
+```
 
 ## Step 2: Copy the Public Key
 
@@ -26,7 +44,6 @@ cat ~/.ssh/id_rsa.pub
 
 The output will show your entire public key. The content looks something like: `ssh-rsa AAAAB3NzaC1yc2EAAA...`. Select all of the displayed text and copy it to your clipboard. 
 
-
 ## Step 3: Add the Public Key to Your SSH Server
 
 Now switch over to your **Ubuntu terminal** on SSH. Run the following commands:
@@ -37,16 +54,13 @@ mkdir ~/.ssh
 
 # Append your public key to the authorized_keys file
 echo "ssh-rsa AAAAB3NzaC1yc2EAAA..." >> ~/.ssh/authorized_keys
-
-# Set proper permissions (optional but recommended)
-chmod 600 ~/.ssh/authorized_keys
 ```
 
 Make sure to replace `"ssh-rsa AAAAB3NzaC1yc2EAAA..."` with the actual public key you copied from Windows.
 
-## Step 4: Restart VSCode and Test
+## Step 4: Test Passwordless Login
 
-Close and reopen **VSCode**. Try connecting to your remote server via the **Remote-SSH** extension again. You should now be able to log in **without entering a password**!
+Open your terminal and try connecting with a command like `ssh user@workstation`, you should now be able to log in without entering a password. After that, close and reopen VSCode and connect via the Remote-SSH extension; you will also be able to log in without a password.
 
 ## Security Note
 
