@@ -18,6 +18,7 @@ class MyFooter extends HTMLElement {
                     <div class="social-links"></div>
                 </div>
             </footer>
+            <script src="https://kit.fontawesome.com/YOUR_KIT_CODE.js" crossorigin="anonymous"></script>
         `;
         this.loadSocialLinks();
     }
