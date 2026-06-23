@@ -1,0 +1,52 @@
+# Setup Process for Passwordless SSH in VSCode
+
+Typing your SSH password every time you connect to a remote server via VSCode's Remote‑SSH extension is tedious and interrupts your workflow. This guide walks you through a quick, three‑step process to set up public‑key authentication, allowing you to log in seamlessly without entering a password. The steps below assume a Windows 11 client and a Ubuntu server, but the approach works across all platforms.
+
+## Step 1: Generate SSH Key Pair
+
+Open **Command Prompt (CMD)** on your Windows machine and run the following command:
+
+```bash
+ssh-keygen -t rsa
+```
+
+Press **Enter** all the way through to accept the default settings (you can optionally set a passphrase for extra security, but for this guide, we'll keep it empty). Once complete, you'll find two files in the `C:\Users\YourUsername\.ssh` directory:
+
+- `id_rsa` — your private key 
+- `id_rsa.pub` — your public key 
+
+
+## Step 2: Copy the Public Key
+
+Run the following command to display the contents of your public key:
+
+```bash
+cat ~/.ssh/id_rsa.pub
+```
+
+The output will show your entire public key. The content looks something like: `ssh-rsa AAAAB3NzaC1yc2EAAA...`. Select all of the displayed text and copy it to your clipboard. 
+
+
+## Step 3: Add the Public Key to Your SSH Server
+
+Now switch over to your **Ubuntu terminal** on SSH. Run the following commands:
+
+```bash
+# Create the .ssh directory if it doesn't already exist
+mkdir ~/.ssh
+
+# Append your public key to the authorized_keys file
+echo "ssh-rsa AAAAB3NzaC1yc2EAAA..." >> ~/.ssh/authorized_keys
+
+# Set proper permissions (optional but recommended)
+chmod 600 ~/.ssh/authorized_keys
+```
+
+Make sure to replace `"ssh-rsa AAAAB3NzaC1yc2EAAA..."` with the actual public key you copied from Windows.
+
+## Step 4: Restart VSCode and Test
+
+Close and reopen **VSCode**. Try connecting to your remote server via the **Remote-SSH** extension again. You should now be able to log in **without entering a password**!
+
+
+> *This article is shared from  https://cloud.tencent.cn/developer/article/2544197.*
