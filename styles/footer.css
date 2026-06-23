@@ -55,12 +55,11 @@ footer {
     width: 30px;
     height: 30px;
     filter: brightness(0%) saturate(100%) invert(1); /* to make logo white*/
-    transition: width 0.1s ease, height 0.1s ease;
+    transition: transform 0.1s ease;
 }
 
 .social-links a img:hover {
-    width: 35px;
-    height: 35px;
+    transform: translateY(-2px);
 }
 
 @media screen and (max-width: 450px) {
@@ -75,8 +74,7 @@ footer {
     }
 
     .social-links a img:hover {
-        width: 25px;
-        height: 25px;
+        transform: translateY(-2px);
     }
 
     footer p {

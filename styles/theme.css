@@ -5,10 +5,11 @@
 
 :root {
     /* Dark Theme (Default) */
-    --primary-color: #8ab4f8;
-    --secondary-color: #4da3ff;
+    --primary-color: #ffffff;
+    --secondary-color: #ffffff;
+    --btn-text-color: #1a1a1a;
     --accent-color: #ffcc00; /* Gold/Yellow for highlights */
-    --background-color: #0f0f0f;
+    --background-color: #101010;
     --text-color: #e5e5e5;
     --text-muted: #a0a0a0;
     --white: #1a1a1a;
@@ -50,8 +51,9 @@
 
 /* Light Theme Variables */
 [data-theme='light'] {
-    --primary-color: #003366; /* Navy */
-    --secondary-color: #0055a4; /* Lighter Navy */
+    --primary-color: #1c1c1c; 
+    --secondary-color: #1c1c1c;
+    --btn-text-color: #ffffff;
     --background-color: #ffffff;
     --text-color: #1a1a1a;
     --text-muted: #666;
@@ -99,7 +101,7 @@ a:hover {
 }
 
 .card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-1px);
     box-shadow: 0 6px 12px var(--shadow-color);
 }
 
@@ -112,7 +114,7 @@ a:hover {
     height: 45px;
     border-radius: 50%;
     background: var(--primary-color);
-    color: white;
+    color: var(--btn-text-color);
     border: none;
     cursor: pointer;
     display: flex;
