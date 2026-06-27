@@ -14,6 +14,9 @@
     <!-- Markdown & Highlighting Styles -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  
+    <!-- Comments section -->
+    <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css" />
 
     <style>
         /* Truly Minimalist Professional Layout */
@@ -25,13 +28,23 @@
         }
 
         .blog-post-wrapper {
-            max-width: var(--container-max-width); /* Align with header max-width */
+            max-width: var(--container-max-width) ; /* Align with header max-width */
             margin: 0 auto;
             padding: var(--page-top-margin) 20px; /* Use global margin */
             display: flex;
             flex-direction: row;
             gap: 40px;
             position: relative;
+        }
+    
+        #waline {
+            max-width: var(--container-max-width) ; 
+            margin: 0 auto;
+            padding: var(--page-top-margin) 20px;
+            /* display: flex; */
+            /* flex-direction: row; */
+            /* gap: 40px; */
+            /* position: relative; */
         }
 
         .post-main-container {
@@ -272,6 +285,7 @@
             }
         }
     </style>
+
 </head>
 <body>
     <my-header></my-header>
@@ -291,6 +305,7 @@
                     <div id="post-meta" class="post-meta">
                         <!-- Populated by JS -->
                     </div>
+                    
                 </div>
 
                 <article id="post-content" class="blog-post-content">
@@ -299,6 +314,24 @@
             </div>
         </div>
     </main>
+
+    <!-- Comments section -->
+    <div id="waline"></div>
+    <script type="module">
+        import { init } from 'https://unpkg.com/@waline/client@v3/dist/waline.js';
+        init({
+        el: '#waline',
+        serverURL: 'https://commentsystem-amber.vercel.app/',
+        lang: 'en',
+        dark: document.documentElement.getAttribute('data-theme') === 'dark',
+        meta: ['nick'], // Default: ['nick','mail','link']
+        requiredMeta: [], // Default: []
+        noCopyright: true,
+        noRss: true,
+        turnstileKey: false, // captcha service provided by Cloudflare
+        pageview: true, // pageview statistics
+        });
+    </script>
 
     <script src="/styles/utils.js"></script>
     <my-footer></my-footer>
