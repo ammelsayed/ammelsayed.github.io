@@ -17,6 +17,7 @@
   
     <!-- Comments section -->
     <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css" />
+    <link rel="stylesheet" href="https://unpkg.com/katex@v0.16/dist/katex.min.css" />
 
     <style>
         /* Truly Minimalist Professional Layout */
@@ -38,6 +39,8 @@
         }
     
         #waline {
+            --waline-theme-color : var(--primary-color);
+            --waline-active-color : var(--secondary-color);
             max-width: var(--container-max-width) ; 
             margin: 0 auto;
             padding: var(--page-top-margin) 20px;
@@ -317,21 +320,6 @@
 
     <!-- Comments section -->
     <div id="waline"></div>
-    <script type="module">
-        import { init } from 'https://unpkg.com/@waline/client@v3/dist/waline.js';
-        init({
-        el: '#waline',
-        serverURL: 'https://commentsystem-amber.vercel.app/',
-        lang: 'en',
-        dark: document.documentElement.getAttribute('data-theme') === 'dark',
-        meta: ['nick'], // Default: ['nick','mail','link']
-        requiredMeta: [], // Default: []
-        noCopyright: true,
-        noRss: true,
-        turnstileKey: false, // captcha service provided by Cloudflare
-        pageview: true, // pageview statistics
-        });
-    </script>
 
     <script src="/styles/utils.js"></script>
     <my-footer></my-footer>
@@ -351,12 +339,17 @@
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
-            const postId = urlParams.get('id');
-
+            let postId = urlParams.get('id');
             if (!postId) {
                 document.getElementById('post-content').innerHTML = '<p>Error: No post ID provided.</p>';
                 return;
             }
+
+            // // Change the URL to clean format /blog/postId
+            // const cleanPath = `/blog/${postId}`;
+            // if (window.location.pathname !== cleanPath) {
+            //     window.history.replaceState(null, '', cleanPath);
+            // }
 
             try {
                 const [mdRes, jsonRes] = await Promise.all([
@@ -426,18 +419,55 @@
                 document.title = titleText + ' | Blog';
 
                 // Set Metadata
+                const metaEl = document.getElementById('post-meta');
                 if (postData) {
                     const dateMeta = postData.meta ? postData.meta.find(m => m.icon === '🗓️' || /^[A-Za-z]+ \d{4}$/.test(m.text)) : null;
                     const author = postData.author || {};
                     const badge = postData.badge || '';
                     
-                    document.getElementById('post-meta').innerHTML = `
+                    metaEl.innerHTML = `
                         ${author.image ? `<img src="${author.image}" alt="${author.name}">` : ''}
                         <span>By <a href="${author.link || '#'}" target="_blank">${author.name || 'Author'}</a></span>
                         ${dateMeta ? `<span class="divider">/</span> <span>${dateMeta.text}</span>` : ''}
                         ${badge ? `<span class="divider">/</span> <span class="badge">${badge}</span>` : ''}
+                        <span class="divider">/</span> Views : 
                     `;
                 }
+
+                //  ADD VIEW COUNT SPAN (unique path per post) ---
+                const viewSpan = document.createElement('span');
+                viewSpan.className = 'waline-pageview-count';
+                viewSpan.setAttribute('data-path', `/blog/post/${postId}`);
+                metaEl.appendChild(viewSpan);  // now it's part of the DOM
+
+                // initialise Waline
+                const { init } = await import('https://unpkg.com/@waline/client@v3/dist/waline.js');
+                const katex  = await import('https://unpkg.com/katex@0.16/dist/katex.mjs');
+                init({
+                    el: '#waline',
+                    serverURL: 'https://commentsystem-amber.vercel.app/',
+                    lang: 'en',
+                    dark: document.documentElement.getAttribute('data-theme') === 'dark',
+                    meta: ['nick'], // Default: ['nick','mail','link']
+                    requiredMeta: [], // Default: []
+                    noCopyright: true,
+                    noRss: true,
+                    turnstileKey: false, // captcha service provided by Cloudflare
+                    wordLimit:500,
+                    pageview: true, // pageview statistics
+                    path: `/blog/post/${postId}`,
+                    // reaction: true,
+                    // reaction: ['https://static.vecteezy.com/system/resources/previews/007/357/148/original/simple-heart-icon-on-white-background-free-vector.jpg'],
+                    // locale: {
+                    //     reactionTitle : "",
+                    //     reaction0 : "Like"
+                    // },
+                    texRenderer: (blockMode, tex) =>
+                    katex.renderToString(tex, {
+                        displayMode: blockMode,
+                        throwOnError: false,
+                    }),
+                });
 
                 // Math & Highlighting
                 Prism.highlightAllUnder(contentEl);
