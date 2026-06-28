@@ -31,7 +31,7 @@
         .blog-post-wrapper {
             max-width: var(--container-max-width) ; /* Align with header max-width */
             margin: 0 auto;
-            padding: var(--page-top-margin) 20px; /* Use global margin */
+            padding: var(--page-top-margin) 20px 10px 20px; /* Use global margin */
             display: flex;
             flex-direction: row;
             gap: 40px;
@@ -41,9 +41,9 @@
         #waline {
             --waline-theme-color : var(--primary-color);
             --waline-active-color : var(--secondary-color);
-            max-width: var(--container-max-width) ; 
+            max-width: var(--container-max-width); 
             margin: 0 auto;
-            padding: var(--page-top-margin) 20px;
+            padding: 10px 0px 100px 0px;
             /* display: flex; */
             /* flex-direction: row; */
             /* gap: 40px; */
@@ -271,17 +271,16 @@
                 padding: 40px 20px;
             }
             .toc-container {
-                width: 100%;
-                position: relative;
-                top: 0;
-                margin-bottom: 30px;
-                order: 0;
+                display: none;
             }
             .post-main-container {
                 max-width: 100%;
             }
             .post-header-section h1 {
                 font-size: 24px;
+            }
+            .post-meta {
+                display: None;
             }
             .blog-post-content {
                 font-size: 17px;
@@ -314,12 +313,13 @@
                 <article id="post-content" class="blog-post-content">
                     <p>Loading content...</p>
                 </article>
+
+                <!-- Comments section -->
+                <div id="waline"></div>
+
             </div>
         </div>
     </main>
-
-    <!-- Comments section -->
-    <div id="waline"></div>
 
     <script src="/styles/utils.js"></script>
     <my-footer></my-footer>
