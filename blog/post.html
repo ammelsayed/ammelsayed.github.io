@@ -19,6 +19,15 @@
     <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css" />
     <link rel="stylesheet" href="https://unpkg.com/katex@v0.16/dist/katex.min.css" />
 
+    <!-- sharing system 1 -->
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yeez-tech/sharing-component/dist/share-button.css">
+    <script src="https://cdn.jsdelivr.net/npm/@yeez-tech/sharing-component/dist/share_media.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@yeez-tech/sharing-component/dist/share-button.js"></script> -->
+
+    <!-- sharing system 2 -->
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+    <script src="https://cdn.bootcdn.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+
     <style>
         /* Truly Minimalist Professional Layout */
         body {
@@ -314,6 +323,15 @@
                     <p>Loading content...</p>
                 </article>
 
+                <!-- sharing system 1 -->
+                <!-- <button class="share-button" id="shareBtn">分享</button> -->
+
+                <!-- sharing system 3 -->
+                <div class="social-share" 
+                    data-sites="wechat,qq,weibo,facebook,twitter,linkedin"
+                    data-wechat-qrcode-title="微信扫一扫：分享"> Share this article: 
+                </div>
+
                 <!-- Comments section -->
                 <div id="waline"></div>
 
@@ -468,6 +486,39 @@
                         throwOnError: false,
                     }),
                 });
+
+                // // ---------- SHARING COMPONENT 1 ----------
+                // ShareButtonComponent.init({
+                //     instanceId: '',  // empty = uses "shareBtn" as the ID
+                //     shareTitle: "Check this out",
+                //     shareMedia: ['qq', 'qzone', 'weibo', 'wechat', 'link'],  // check if these strings work
+                //     showPromo: false,
+                //     qrCodeUrl: window.location.href,  // auto-generates QR for WeChat
+                //     debug: false,
+                // });
+
+                // ---------- 动态更新分享配置 ----------
+                const shareContainer = document.querySelector('.social-share');
+                if (shareContainer) {
+                    // 获取文章信息
+                    const postTitle = document.getElementById('post-title')?.innerText || 'Blog Post';
+                    const postUrl = window.location.href;
+                    const firstPara = document.querySelector('.blog-post-content p');
+                    const desc = firstPara ? firstPara.innerText.slice(0, 120) : 'Read this post';
+                    const firstImg = document.querySelector('.blog-post-content img');
+                    const imgUrl = firstImg ? firstImg.src : '';
+
+                    // 设置分享数据
+                    shareContainer.setAttribute('data-url', postUrl);
+                    shareContainer.setAttribute('data-title', postTitle);
+                    shareContainer.setAttribute('data-description', desc);
+                    if (imgUrl) {
+                        shareContainer.setAttribute('data-image', imgUrl);
+                    }
+
+                    // 重新初始化以应用新数据
+                    socialShare('.social-share');
+                }
 
                 // Math & Highlighting
                 Prism.highlightAllUnder(contentEl);
