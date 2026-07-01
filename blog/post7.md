@@ -129,13 +129,6 @@ Usually when we write some code to split a mother `.hepmc` file into $N$ `.hepmc
 ```bash
 $ find . -maxdepth 4 -type f -name "*.hepmc"
 ```
-> [!TIP] 
->  The following command:
-> ```bash
-> find . -maxdepth 4 -type f -name "*.root" -exec realpath {} \; | awk '{print "  - " $0}'
-> ```
-> is often very useful when you are building a yaml file for `.root` files directories of some processes.
-
 where maxdepth decides how deep you want to search for the `.hepmc` files in the specified directory `.` given for this example. If all the `.hepmc` are already present in one directory then you can either remove `-maxdepth 4` or set it to `1`. And if they embedded deeper in-between different directories and files then you can adjust the maxdepth accordingly. This command is often very useful for outputs from MadGraph5, where the `.hepmc` files are usually placed in directories such as `/vvv/Events/run_01/tag_1_pythia8_events.hepmc`. This command will print the relative path to the directory, to print the full path one can use
 ```bash
 $ find . -maxdepth 4 -type f -name "*.hepmc" -exec realpath {} \;
@@ -267,3 +260,10 @@ Delphes jobs:  Idle: 0,  Running: 1,  Completed: 0 [ current time: 19h58m34s ]
 Delphes jobs:  Idle: 0,  Running: 0,  Completed: 1 [ 1h 16m ]
 Delphes jobs:  Idle: 0,  Running: 0,  Completed: 1 [ 1h 16m ]
 ```
+
+> [!TIP] 
+>  The following command:
+> ```bash
+> find . -maxdepth 4 -type f -name "*.root" -exec realpath {} \; | awk '{print "  - " $0}'
+> ```
+> is often very useful when you are building a yaml file for `.root` files directories of some processes.
