@@ -129,7 +129,8 @@ Usually when we write some code to split a mother `.hepmc` file into $N$ `.hepmc
 ```bash
 $ find . -maxdepth 4 -type f -name "*.hepmc"
 ```
-> *Note* : The following command:
+> [!TIP] 
+>  The following command:
 > ```bash
 > find . -maxdepth 4 -type f -name "*.root" -exec realpath {} \; | awk '{print "  - " $0}'
 > ```

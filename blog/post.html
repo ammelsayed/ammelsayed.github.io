@@ -4,12 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blog Post</title>
+    
+    <!-- Open Graph for social sharing -->
+    <meta property="og:title" content="Blog Post" id="og-title">
+    <meta property="og:description" content="Blog Post" id="og-description">
+    <meta property="og:url" content="">
+    <meta property="og:type" content="article">
+    <meta property="og:image" content="">
+    
     <link rel="icon" href="/images/tap-icon.png">
     
     <!-- Global Theme Styles -->
     <link rel="stylesheet" href="/styles/theme.css">
     <link rel="stylesheet" href="/styles/header.css">
     <link rel="stylesheet" href="/styles/footer.css">
+    <link rel="stylesheet" href="/styles/blog-post.css">
 
     <!-- Markdown & Highlighting Styles -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
@@ -19,284 +28,8 @@
     <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css" />
     <link rel="stylesheet" href="https://unpkg.com/katex@v0.16/dist/katex.min.css" />
 
-    <!-- sharing system 1 -->
-    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yeez-tech/sharing-component/dist/share-button.css">
-    <script src="https://cdn.jsdelivr.net/npm/@yeez-tech/sharing-component/dist/share_media.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@yeez-tech/sharing-component/dist/share-button.js"></script> -->
-
-    <!-- sharing system 2 -->
-    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/social-share.js/1.0.16/css/share.min.css">
-    <script src="https://cdn.bootcdn.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
-
-    <style>
-        /* Truly Minimalist Professional Layout */
-        body {
-            background-color: #ffffff;
-            color: #222;
-            margin: 0;
-            padding: 0;
-        }
-
-        .blog-post-wrapper {
-            max-width: var(--container-max-width) ; /* Align with header max-width */
-            margin: 0 auto;
-            padding: var(--page-top-margin) 20px 10px 20px; /* Use global margin */
-            display: flex;
-            flex-direction: row;
-            gap: 40px;
-            position: relative;
-        }
-    
-        #waline {
-            --waline-theme-color : var(--primary-color);
-            --waline-active-color : var(--secondary-color);
-            max-width: var(--container-max-width); 
-            margin: 0 auto;
-            padding: 10px 0px 100px 0px;
-            /* display: flex; */
-            /* flex-direction: row; */
-            /* gap: 40px; */
-            /* position: relative; */
-        }
-
-        .post-main-container {
-            flex: 1;
-            min-width: 0;
-            /* No max-width here, it will be constrained by the wrapper and sidebar */
-            margin-top: 0;
-        }
-
-        /* Post Header */
-        .post-header-section {
-            margin-top: 0; 
-            margin-bottom: 40px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 30px;
-            background: transparent !important;
-            height: auto !important;
-        }
-
-        .post-header-section h1 {
-            font-family: var(--font-heading);
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--text-color); /* Use theme variable */
-            margin: 0 0 16px 0;
-            line-height: 1.3;
-            letter-spacing: -0.01em;
-        }
-
-        /* Meta Information */
-        .post-meta {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 14px;
-            color: var(--text-muted); /* Use theme variable */
-        }
-
-        .post-meta img {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            object-fit: cover;
-            vertical-align: middle;
-            border: 1px solid var(--border-color);
-        }
-
-        .post-meta a {
-            color: var(--text-color); /* Use theme variable */
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .post-meta .badge {
-            background: var(--inline-code-bg); /* Use theme variable */
-            color: var(--primary-color);
-            padding: 2px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .post-meta .divider {
-            color: var(--text-muted);
-        }
-
-        /* Main Content Typography */
-        .blog-post-content {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            font-size: 18px;
-            line-height: 1.8;
-            color: var(--text-color); /* Use theme variable */
-        }
-
-        /* Ensure the first H1 in markdown is hidden since we use our own header */
-        .blog-post-content h1:first-child {
-            display: none !important;
-        }
-
-        .blog-post-content h2 {
-            font-family: var(--font-heading);
-            font-size: 24px;
-            margin: 40px 0 16px 0;
-            color: var(--text-color); /* Use theme variable */
-        }
-
-        .blog-post-content h3 {
-            font-family: var(--font-heading);
-            font-size: 20px;
-            margin: 32px 0 12px 0;
-            color: var(--text-color); /* Use theme variable */
-        }
-
-        .blog-post-content p {
-            margin-bottom: 24px;
-        }
-
-        /* Code Blocks */
-        .blog-post-content pre {
-            background: var(--code-block-bg) !important;
-            color: var(--code-block-text) !important;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 32px 0;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-        }
-
-        .blog-post-content code[class*="language-"] {
-            font-size: 14.5px;
-            line-height: 1.6;
-            white-space: pre-wrap !important;
-            word-break: break-word !important;
-            background: transparent !important;
-            color: inherit !important;
-        }
-
-        /* Inline Code */
-        .blog-post-content :not(pre) > code {
-            background: var(--inline-code-bg); /* Use theme variable */
-            padding: 2px 5px;
-            border-radius: 4px;
-            font-size: 0.9em;
-            color: #c41e3a;
-        }
-
-        /* Table of Contents */
-        .toc-container {
-            width: 280px;
-            height: fit-content;
-            position: sticky;
-            top: var(--page-top-margin); /* Matches the padding of the wrapper for perfect alignment */
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 10px var(--shadow-color);
-            align-self: flex-start;
-            order: 2; /* Move to right in flex row */
-        }
-
-        .toc-container h3 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 18px;
-            border-bottom: 1px solid var(--primary-color);
-            color: var(--primary-color);
-            padding-bottom: 10px;
-        }
-
-        .toc-container ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .toc-container li {
-            margin-bottom: 8px;
-        }
-
-        .toc-container li.h3 {
-            margin-left: 20px;
-            font-size: 0.95em;
-        }
-
-        .toc-container a {
-            color: var(--secondary-color);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .toc-container a:hover {
-            color: var(--primary-color);
-            text-decoration: underline;
-        }
-
-        /* Copy Button */
-        .copy-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #eee;
-            padding: 4px 10px;
-            font-size: 11px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .copy-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .copy-btn.copied {
-            background: var(--secondary-color);
-            border-color: transparent;
-        }
-
-        /* Images */
-        .blog-post-content img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 6px;
-            margin: 40px auto;
-            display: block;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        /* Math */
-        .katex-display {
-            margin: 32px 0 !important;
-            overflow-x: auto;
-        }
-
-        @media (max-width: 1000px) {
-            .blog-post-wrapper {
-                flex-direction: column;
-                padding: 40px 20px;
-            }
-            .toc-container {
-                display: none;
-            }
-            .post-main-container {
-                max-width: 100%;
-            }
-            .post-header-section h1 {
-                font-size: 24px;
-            }
-            .post-meta {
-                display: None;
-            }
-            .blog-post-content {
-                font-size: 17px;
-            }
-        }
-    </style>
-
+    <!-- Overtrue Share.js - professional sharing library with WeChat/QQ support -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/css/share.min.css">
 </head>
 <body>
     <my-header></my-header>
@@ -323,16 +56,11 @@
                     <p>Loading content...</p>
                 </article>
 
-                <!-- sharing system 1 -->
-                <!-- <button class="share-button" id="shareBtn">分享</button> -->
-
-                <!-- sharing system 3 -->
-                <div class="social-share" 
-                    data-sites="wechat,qq,weibo,facebook,twitter,linkedin"
-                    data-wechat-qrcode-title="微信扫一扫：分享"> Share this article: 
+                <div style="border-top: 1px solid var(--border-color);">
+                    <h3 style="font-size: 18px; margin-bottom: 15px;"> Share this article:</h3>
+                    <div class="social-share" id="social-share-container"></div>
                 </div>
 
-                <!-- Comments section -->
                 <div id="waline"></div>
 
             </div>
@@ -343,8 +71,8 @@
     <my-footer></my-footer>
     <script type="module" src="/styles/footer.js"></script>
 
-    <!-- Dependencies -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Dependencies - Professional Markdown & Syntax Highlighting -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@14.1.2/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-clike.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
@@ -353,6 +81,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    
+    <!-- Overtrue Share.js - professional sharing library -->
+    <script src="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/js/social-share.min.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
@@ -363,12 +94,6 @@
                 return;
             }
 
-            // // Change the URL to clean format /blog/postId
-            // const cleanPath = `/blog/${postId}`;
-            // if (window.location.pathname !== cleanPath) {
-            //     window.history.replaceState(null, '', cleanPath);
-            // }
-
             try {
                 const [mdRes, jsonRes] = await Promise.all([
                     fetch(`/blog/${postId}.md`),
@@ -376,15 +101,15 @@
                 ]);
 
                 if (!mdRes.ok) throw new Error('Post not found');
-                const markdown = await mdRes.text();
+                let markdown = await mdRes.text();
                 const blogs = await jsonRes.json();
                 const postData = blogs.find(b => b.link.includes(`id=${postId}`));
 
-                // Markdown parsing
-                const renderer = new marked.Renderer();
+                // Initialize Marked with GFM
                 marked.setOptions({
-                    renderer: renderer,
-                    highlight: (code, lang) => {
+                    gfm: true,
+                    breaks: true,
+                    highlight: function(code, lang) {
                         if (Prism.languages[lang]) {
                             return Prism.highlight(code, Prism.languages[lang], lang);
                         }
@@ -395,6 +120,31 @@
 
                 const contentEl = document.getElementById('post-content');
                 contentEl.innerHTML = marked.parse(markdown);
+
+                // Process GitHub-style Alerts - FIXED for proper spacing!
+                processGitHubAlerts(contentEl);
+                
+                // Wrap code blocks in a wrapper for fixed copy button
+                document.querySelectorAll('pre').forEach(pre => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'code-block-wrapper';
+                    pre.parentNode.insertBefore(wrapper, pre);
+                    wrapper.appendChild(pre);
+
+                    const btn = document.createElement('button');
+                    btn.className = 'copy-btn';
+                    btn.innerText = 'Copy';
+                    wrapper.appendChild(btn);
+                    btn.addEventListener('click', async () => {
+                        await navigator.clipboard.writeText(pre.querySelector('code').innerText);
+                        btn.innerText = 'Copied';
+                        btn.classList.add('copied');
+                        setTimeout(() => { btn.innerText = 'Copy'; btn.classList.remove('copied'); }, 2000);
+                    });
+                });
+
+                // Ensure Prism.js highlights all code blocks
+                Prism.highlightAllUnder(contentEl);
 
                 // Generate Table of Contents
                 const tocContainer = document.getElementById('toc-container');
@@ -419,14 +169,13 @@
                     tocContainer.style.display = 'block';
                 }
 
-                // Force theme background on content container if in dark mode
+                // Force theme background
                 const updatePostTheme = () => {
                     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
                     document.body.style.backgroundColor = 'var(--background-color)';
                 };
                 updatePostTheme();
                 
-                // Watch for theme changes to update background immediately
                 const observer = new MutationObserver(updatePostTheme);
                 observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
@@ -435,6 +184,23 @@
                 const titleText = h1InContent ? h1InContent.innerText : 'Blog Post';
                 document.getElementById('post-title').innerText = titleText;
                 document.title = titleText + ' | Blog';
+
+                // Update Open Graph for sharing
+                document.getElementById('og-title').content = titleText;
+                
+                // Get first paragraph for description
+                const firstPara = contentEl.querySelector('p');
+                const desc = firstPara ? firstPara.innerText.slice(0, 200) : 'Read this blog post';
+                document.getElementById('og-description').content = desc;
+                document.querySelector('meta[property="og:url"]').content = window.location.href;
+
+                // Get first image for sharing
+                const firstImg = contentEl.querySelector('img');
+                let imageUrl = '';
+                if (firstImg) {
+                    imageUrl = firstImg.src;
+                    document.querySelector('meta[property="og:image"]').content = imageUrl;
+                }
 
                 // Set Metadata
                 const metaEl = document.getElementById('post-meta');
@@ -448,38 +214,30 @@
                         <span>By <a href="${author.link || '#'}" target="_blank">${author.name || 'Author'}</a></span>
                         ${dateMeta ? `<span class="divider">/</span> <span>${dateMeta.text}</span>` : ''}
                         ${badge ? `<span class="divider">/</span> <span class="badge">${badge}</span>` : ''}
-                        <span class="divider">/</span> Views : 
+                        <span class="divider">/</span> Views: 
                     `;
                 }
 
-                //  ADD VIEW COUNT SPAN (unique path per post) ---
                 const viewSpan = document.createElement('span');
                 viewSpan.className = 'waline-pageview-count';
                 viewSpan.setAttribute('data-path', `/blog/post/${postId}`);
-                metaEl.appendChild(viewSpan);  // now it's part of the DOM
+                metaEl.appendChild(viewSpan);
 
-                // initialise Waline
                 const { init } = await import('https://unpkg.com/@waline/client@v3/dist/waline.js');
-                const katex  = await import('https://unpkg.com/katex@0.16/dist/katex.mjs');
+                const katex  = await import('https://unpkg.com/katex@v0.16/dist/katex.mjs');
                 init({
                     el: '#waline',
                     serverURL: 'https://commentsystem-amber.vercel.app/',
                     lang: 'en',
                     dark: document.documentElement.getAttribute('data-theme') === 'dark',
-                    meta: ['nick'], // Default: ['nick','mail','link']
-                    requiredMeta: [], // Default: []
+                    meta: ['nick'],
+                    requiredMeta: [],
                     noCopyright: true,
                     noRss: true,
-                    turnstileKey: false, // captcha service provided by Cloudflare
+                    turnstileKey: false,
                     wordLimit:300,
-                    pageview: true, // pageview statistics
+                    pageview: true,
                     path: `/blog/post/${postId}`,
-                    // reaction: true,
-                    // reaction: ['https://static.vecteezy.com/system/resources/previews/007/357/148/original/simple-heart-icon-on-white-background-free-vector.jpg'],
-                    // locale: {
-                    //     reactionTitle : "",
-                    //     reaction0 : "Like"
-                    // },
                     texRenderer: (blockMode, tex) =>
                     katex.renderToString(tex, {
                         displayMode: blockMode,
@@ -487,41 +245,16 @@
                     }),
                 });
 
-                // // ---------- SHARING COMPONENT 1 ----------
-                // ShareButtonComponent.init({
-                //     instanceId: '',  // empty = uses "shareBtn" as the ID
-                //     shareTitle: "Check this out",
-                //     shareMedia: ['qq', 'qzone', 'weibo', 'wechat', 'link'],  // check if these strings work
-                //     showPromo: false,
-                //     qrCodeUrl: window.location.href,  // auto-generates QR for WeChat
-                //     debug: false,
-                // });
+                // Initialize Overtrue Share.js
+                socialShare('#social-share-container', {
+                    url: window.location.href,
+                    title: titleText,
+                    description: desc,
+                    image: imageUrl,
+                    sites: ['wechat', 'qq', 'weibo', 'facebook', 'twitter', 'linkedin'],
+                    wechatQrcodeTitle: "WeChat Scan to Share"
+                });
 
-                // ---------- 动态更新分享配置 ----------
-                const shareContainer = document.querySelector('.social-share');
-                if (shareContainer) {
-                    // 获取文章信息
-                    const postTitle = document.getElementById('post-title')?.innerText || 'Blog Post';
-                    const postUrl = window.location.href;
-                    const firstPara = document.querySelector('.blog-post-content p');
-                    const desc = firstPara ? firstPara.innerText.slice(0, 120) : 'Read this post';
-                    const firstImg = document.querySelector('.blog-post-content img');
-                    const imgUrl = firstImg ? firstImg.src : '';
-
-                    // 设置分享数据
-                    shareContainer.setAttribute('data-url', postUrl);
-                    shareContainer.setAttribute('data-title', postTitle);
-                    shareContainer.setAttribute('data-description', desc);
-                    if (imgUrl) {
-                        shareContainer.setAttribute('data-image', imgUrl);
-                    }
-
-                    // 重新初始化以应用新数据
-                    socialShare('.social-share');
-                }
-
-                // Math & Highlighting
-                Prism.highlightAllUnder(contentEl);
                 if (window.renderMathInElement) {
                     renderMathInElement(contentEl, {
                         delimiters: [
@@ -532,25 +265,50 @@
                     });
                 }
 
-                // Copy Buttons
-                document.querySelectorAll('pre').forEach(pre => {
-                    const btn = document.createElement('button');
-                    btn.className = 'copy-btn';
-                    btn.innerText = 'Copy';
-                    pre.appendChild(btn);
-                    btn.addEventListener('click', async () => {
-                        await navigator.clipboard.writeText(pre.querySelector('code').innerText);
-                        btn.innerText = 'Copied';
-                        btn.classList.add('copied');
-                        setTimeout(() => { btn.innerText = 'Copy'; btn.classList.remove('copied'); }, 2000);
-                    });
-                });
-
             } catch (error) {
                 console.error('Error:', error);
                 document.getElementById('post-content').innerHTML = `<p>Error loading post: ${error.message}</p>`;
             }
         });
+
+        function processGitHubAlerts(container) {
+            container.querySelectorAll('blockquote').forEach(blockquote => {
+                let alertType = null;
+                
+                // Find the alert type - look for [!TYPE] anywhere in the blockquote
+                let alertFound = false;
+                
+                // Check all child nodes (text and p)
+                for (let child of blockquote.childNodes) {
+                    if (alertFound) break;
+                    
+                    if (child.nodeType === Node.TEXT_NODE) {
+                        const text = child.textContent;
+                        const match = text.match(/\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i);
+                        if (match) {
+                            alertType = match[1].toLowerCase();
+                            // Replace the [!TYPE] with the proper styled title
+                            child.textContent = text.replace(/\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/i, '');
+                            alertFound = true;
+                        }
+                    } else if (child.tagName === 'P') {
+                        const html = child.innerHTML;
+                        const match = html.match(/\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i);
+                        if (match) {
+                            alertType = match[1].toLowerCase();
+                            // Clean up the p tag
+                            child.innerHTML = html.replace(/\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/i, '');
+                            alertFound = true;
+                        }
+                    }
+                }
+                
+                if (alertType) {
+                    blockquote.classList.add('markdown-alert');
+                    blockquote.classList.add(`markdown-alert-${alertType}`);
+                }
+            });
+        }
     </script>
 </body>
 </html>
