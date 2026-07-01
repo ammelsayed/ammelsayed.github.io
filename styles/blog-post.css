@@ -441,13 +441,13 @@ body {
     overflow-x: auto;
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 1024px) {
     .blog-post-wrapper {
         flex-direction: column;
         padding: 40px 20px;
     }
     .toc-container {
-        display: none;
+        display: none !important;
     }
     .post-main-container {
         max-width: 100%;

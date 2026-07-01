@@ -15,15 +15,17 @@ Accelerator Physics - Nuclear and Particle Physics - Experimental Physics - Mont
 **Languages:**
 Elsayed is native in Arabic, English, Chinese, with a working knowledge of Russian. His diverse language skills complement his international research collaborations and enhance his ability to engage with global scientific communities.
 
----
-
 # Education
 
-- **Sep 2023 - Present**
-  **Master of Science in Nuclear and Particle Physics**
-  [University of Science and Technology of China](https://en.ustc.edu.cn/), Hefei, China
+- **Sep 2023 - Present** | 
+  *Master of Science in Nuclear and Particle Physics*
+  - [University of Science and Technology of China](https://en.ustc.edu.cn/), Hefei, China
 
-- **Sep 2019 - July 2023**
-  **Bachelor of Science in Applied Physics**
-  [Sichuan University of Science and Engineering](https://www.suse.edu.cn/), Yibin, China
-
+- **Sep 2019 - July 2023** | 
+  *Bachelor of Science in Applied Physics*
+   - [Sichuan University of Science and Engineering](https://www.suse.edu.cn/), Yibin, China
+  
+# Contact References
+  - Prof. Yusheng Wu (Email: wuyusheng@ustc.edu.cn)
+  - Prof. M.E. Medhat (Email: medhatme@ymail.com)
+  - Prof. Jie Liut (Email: liususe@163.com)

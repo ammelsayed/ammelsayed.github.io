@@ -150,6 +150,10 @@
                 const tocContainer = document.getElementById('toc-container');
                 const tocContent = document.getElementById('toc-content');
                 const headings = contentEl.querySelectorAll('h2, h3');
+                const updateTocVisibility = () => {
+                    const shouldShowToc = window.innerWidth > 1024 && headings.length > 0;
+                    tocContainer.style.display = shouldShowToc ? 'block' : 'none';
+                };
                 
                 if (headings.length > 0) {
                     const tocList = document.createElement('ul');
@@ -166,8 +170,10 @@
                         tocList.appendChild(li);
                     });
                     tocContent.appendChild(tocList);
-                    tocContainer.style.display = 'block';
                 }
+
+                updateTocVisibility();
+                window.addEventListener('resize', updateTocVisibility);
 
                 // Force theme background
                 const updatePostTheme = () => {
