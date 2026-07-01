@@ -170,22 +170,27 @@ body {
 
 .blog-post-content blockquote.markdown-alert-note {
     border-left: .25em solid #0969da !important;
+    background-color: #0969da1c !important;
 }
 
 .blog-post-content blockquote.markdown-alert-tip {
     border-left: .25em solid #1a7f37 !important;
+    background-color: #1a7f371c !important;
 }
 
 .blog-post-content blockquote.markdown-alert-important {
     border-left: .25em solid #8250df !important;
+    background-color: #8250df1c !important;
 }
 
 .blog-post-content blockquote.markdown-alert-warning {
     border-left: .25em solid #9a6700 !important;
+    background-color: #9a67001c !important;
 }
 
 .blog-post-content blockquote.markdown-alert-caution {
     border-left: .25em solid #cf222e !important;
+    background-color: #cf222e1c !important;
 }
 
 .blog-post-content blockquote.markdown-alert p:first-of-type::before {
@@ -235,6 +240,11 @@ body {
     margin-bottom: 16px;
 }
 
+.code-block-wrapper:hover .copy-btn {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 .blog-post-content pre {
     margin: 0;
     padding: 16px;
@@ -268,6 +278,9 @@ body {
     cursor: pointer;
     transition: all 0.2s;
     z-index: 10;
+    opacity: 0;
+    pointer-events: none;          /* prevent accidental clicks while hidden */
+    transition: opacity 0.5s ease; /* smooth fade-in */
 }
 
 .copy-btn:hover {
