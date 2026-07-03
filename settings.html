@@ -358,6 +358,7 @@
     </main>
 
     <my-footer></my-footer>
+    <script src="/styles/utils.js"></script>
     <script type="module" src="/styles/footer.js"></script>
 
     <!-- Dialog -->
@@ -385,10 +386,10 @@
 
         const configs = {
             about: { title: 'Settings: About Me', type: 'markdown', file: '/about/about.md' },
-            publications: { title: 'Settings: Publications', type: 'json', file: '/data/publications.json', fields: ['badge', 'title', 'description', 'link', 'image', 'date', 'pinned'] },
-            projects: { title: 'Settings: Projects', type: 'json', file: '/data/projects.json', fields: ['badge', 'title', 'description', 'link', 'image', 'date'] },
-            blog: { title: 'Settings: Blog', type: 'blog', file: '/data/blogs.json', fields: ['badge', 'title', 'description', 'image', 'link', 'date', 'pinned'] },
-            events: { title: 'Settings: Events', type: 'json', file: '/data/events.json', fields: ['badge', 'title', 'description', 'image', 'date', 'pinned'] }
+            publications: { title: 'Settings: Publications', type: 'yaml', file: '/data/publications.yaml', fields: ['badge', 'title', 'description', 'link', 'image', 'date', 'pinned'] },
+            projects: { title: 'Settings: Projects', type: 'yaml', file: '/data/projects.yaml', fields: ['badge', 'title', 'description', 'link', 'image', 'date'] },
+            blog: { title: 'Settings: Blog', type: 'yaml', file: '/data/blogs.yaml', fields: ['badge', 'title', 'description', 'image', 'link', 'date', 'pinned'] },
+            events: { title: 'Settings: Events', type: 'yaml', file: '/data/events.yaml', fields: ['badge', 'title', 'description', 'image', 'date', 'pinned'] }
         };
 
         document.querySelectorAll('.sidebar-item').forEach(item => {
@@ -414,7 +415,8 @@
                     const text = await response.text();
                     renderMarkdownEditor(text);
                 } else {
-                    sectionData = await response.json();
+                    const text = await response.text();
+                    sectionData = await window.loadStructuredData(config.file + '?t=' + Date.now());
                     renderJSONList();
                 }
             } catch (err) {
@@ -594,7 +596,7 @@
         
         async function saveJSON() { 
             const content = JSON.stringify(sectionData, null, 4);
-            const fileName = currentSection + '.json';
+            const fileName = currentSection + '.yaml';
             await directSave(content, fileName, '/data/' + fileName);
         }
         
@@ -611,7 +613,7 @@
                         suggestedName: suggestedName,
                         types: [{
                             description: 'Text Files',
-                            accept: { 'text/plain': ['.md', '.json'] },
+                            accept: { 'text/plain': ['.md', '.json', '.yaml', '.yml'] },
                         }],
                     });
                     const writable = await handle.createWritable();
