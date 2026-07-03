@@ -38,6 +38,7 @@
         "image": "/images/image.png",
         "link": "https://ammelsayed.github.io/EventViz/",
         "date": "2026-06-02",
+        "pinned": true,
         "meta": [
             {"icon": "📊", "text": "Interactive browser-based 3D visualizer for Les Houches Event (LHE) and HepMC files."}
         ]    }
