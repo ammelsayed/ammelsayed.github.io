@@ -90,10 +90,10 @@
 <script type="module">
     async function loadLatest() {
         const sections = [
-            { name: 'Publication', url: '/data/publications.json', page: '/publications/' },
-            { name: 'Project', url: '/data/projects.json', page: '/projects/' },
-            { name: 'Blog', url: '/data/blogs.json', page: '/blog/' },
-            { name: 'Event', url: '/data/events.json', page: '/events/' }
+            { name: 'Publication', url: '/data/publications.yaml', page: '/publications/' },
+            { name: 'Project', url: '/data/projects.yaml', page: '/projects/' },
+            { name: 'Blog', url: '/data/blogs.yaml', page: '/blog/' },
+            { name: 'Event', url: '/data/events.yaml', page: '/events/' }
         ];
 
         const container = document.getElementById('latest-content');
@@ -106,8 +106,7 @@
 
         for (const section of sections) {
             try {
-                const response = await fetch(section.url);
-                const data = await response.json();
+                const data = await window.loadStructuredData(section.url);
                 
                 // Handle Pinned items
                 const pinnedItems = data.filter(item => item.pinned === true);

@@ -2,6 +2,41 @@
  * Shared utility for rendering list of cards with search and highlighting functionality.
  * Supports a unified content schema for easy scaling across different sections.
  */
+async function ensureYamlParser() {
+    if (window.jsyaml) return;
+
+    await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js';
+        script.async = true;
+        script.onload = resolve;
+        script.onerror = () => reject(new Error('Unable to load YAML parser'));
+        document.head.appendChild(script);
+    });
+}
+
+async function loadStructuredData(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+    const text = await response.text();
+    const cleanUrl = url.split('?')[0];
+    const ext = cleanUrl.split('.').pop()?.toLowerCase();
+
+    if (ext === 'json') {
+        return JSON.parse(text);
+    }
+
+    if (ext === 'yaml' || ext === 'yml') {
+        await ensureYamlParser();
+        return window.jsyaml.load(text);
+    }
+
+    throw new Error(`Unsupported data format: ${ext || 'unknown'}`);
+}
+
+window.loadStructuredData = loadStructuredData;
+
 class CardRenderer {
     constructor(options) {
         this.dataUrl = options.dataUrl;
@@ -20,9 +55,7 @@ class CardRenderer {
 
     async init() {
         try {
-            const response = await fetch(this.dataUrl);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            this.allData = await response.json();
+            this.allData = await loadStructuredData(this.dataUrl);
             
             // Sort by date if available (latest first)
             this.allData.sort((a, b) => {

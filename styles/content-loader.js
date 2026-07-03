@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (path.includes('/blog')) {
         config = {
-            dataUrl: '/data/blogs.json',
+            dataUrl: '/data/blogs.yaml',
             listElementId: 'content-list',
             countElementId: 'content-count',
             searchInputSelector: '.search-input',
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     } else if (path.includes('/projects')) {
         config = {
-            dataUrl: '/data/projects.json',
+            dataUrl: '/data/projects.yaml',
             listElementId: 'content-list',
             countElementId: 'content-count',
             searchInputSelector: '.search-input',
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     } else if (path.includes('/events')) {
         config = {
-            dataUrl: '/data/events.json',
+            dataUrl: '/data/events.yaml',
             listElementId: 'content-list',
             countElementId: 'content-count',
             searchInputSelector: '.search-input',
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     } else if (path.includes('/publications')) {
         config = {
-            dataUrl: '/data/publications.json',
+            dataUrl: '/data/publications.yaml',
             listElementId: 'content-list',
             countElementId: 'content-count',
             searchInputSelector: '.search-input',
