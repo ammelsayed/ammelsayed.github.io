@@ -137,13 +137,33 @@
         }
     }
 
+    function formatDateText(item) {
+        if (item.meta && Array.isArray(item.meta)) {
+            const calendarMeta = item.meta.find(m => m.icon === '🗓️');
+            if (calendarMeta?.text) {
+                return calendarMeta.text;
+            }
+        }
+
+        if (item.date) {
+            const parsedDate = new Date(item.date);
+            if (!Number.isNaN(parsedDate.getTime())) {
+                return parsedDate.toLocaleDateString('en-US', {
+                    month: 'long',
+                    year: 'numeric'
+                });
+            }
+        }
+
+        return '';
+    }
+
     function createCard(item, section, typeLabel) {
         const card = document.createElement('div');
         card.className = 'latest-card';
         card.onclick = () => window.location.href = item.link || section.page;
         
-        // Remove emoji from dateText if present
-        let dateText = (item.meta && Array.isArray(item.meta)) ? (item.meta.find(m => m.icon === '🗓️')?.text || '') : '';
+        const dateText = formatDateText(item);
         
         card.innerHTML = `
             <div class="latest-card-header">
