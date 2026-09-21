@@ -1,0 +1,69 @@
+backend:
+  name: github
+  repo: ammelsayed/ammelsayed.github.io
+  branch: main
+  base_url: https://YOUR-OAUTH-PROXY.example.com
+  squash_merges: true
+
+publish_mode: editorial_workflow
+
+media_folder: "images"
+public_folder: "/images"
+
+collections:
+  - name: blog
+    label: Blog posts
+    folder: blog
+    create: true
+    extension: md
+    format: frontmatter
+    slug: "{{fields.id}}"
+    identifier_field: id
+    summary: "{{title}} — {{date}}"
+    fields:
+      - label: Post ID
+        name: id
+        widget: string
+        hint: "Use a short unique ID such as post8. It becomes the Markdown filename."
+      - label: Author
+        name: author
+        widget: object
+        fields:
+          - label: Name
+            name: name
+            widget: string
+          - label: Image
+            name: image
+            widget: image
+            required: false
+          - label: Link
+            name: link
+            widget: string
+            required: false
+      - label: Badge
+        name: badge
+        widget: string
+        required: false
+      - label: Title
+        name: title
+        widget: string
+      - label: Description
+        name: description
+        widget: text
+      - label: Image
+        name: image
+        widget: image
+        required: false
+      - label: Date
+        name: date
+        widget: datetime
+        format: "YYYY-MM-DD"
+        time_format: false
+      - label: Pinned
+        name: pinned
+        widget: boolean
+        default: false
+        required: false
+      - label: Article
+        name: body
+        widget: markdown

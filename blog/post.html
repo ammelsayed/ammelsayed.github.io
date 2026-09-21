@@ -206,13 +206,14 @@
                 const metaEl = document.getElementById('post-meta');
                 if (postData) {
                     const dateMeta = postData.meta ? postData.meta.find(m => m.icon === '🗓️' || /^[A-Za-z]+ \d{4}$/.test(m.text)) : null;
+                    const dateText = dateMeta ? dateMeta.text : (postData.date || '');
                     const author = postData.author || {};
                     const badge = postData.badge || '';
                     
                     metaEl.innerHTML = `
                         ${author.image ? `<img src="${author.image}" alt="${author.name}">` : ''}
                         <span>By <a href="${author.link || '#'}" target="_blank">${author.name || 'Author'}</a></span>
-                        ${dateMeta ? `<span class="divider">/</span> <span>${dateMeta.text}</span>` : ''}
+                        ${dateText ? `<span class="divider">/</span> <span>${dateText}</span>` : ''}
                         ${badge ? `<span class="divider">/</span> <span class="badge">${badge}</span>` : ''}
                         <span class="divider">/</span> Views: 
                     `;
