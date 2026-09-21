@@ -1,3 +1,29 @@
+---
+author:
+  name: A.M.M. Elsayed
+  image: /images/me.jpg
+  link: https://ammelsayed.tech
+badge: Notes
+title: 'Robust Management of Long-Running Computational Processes: A Case Study with
+  MadGraph'
+description: In high-energy physics and beyond, computational workflows often rely
+  on extensive event generators such as MadGraph5_aMC@NLO. These simulations may run
+  for days, weeks or event months, consuming significant system resources. To ensure
+  reproducibility, fault tolerance, and effective resource utilisation, it is imperative
+  to launch such processes in a detached, non-interactive manner while preserving
+  the ability to monitor, log, and, if necessary, terminate them cleanly. This note
+  discusses the practical aspects of process management in a Unix-like environment,
+  focusing on the use of nohup, background job control, process groups, and a self-contained
+  launcher script that encapsulates these mechanisms.
+image: /images/linux-logo.png
+date: '2026-06-22'
+meta:
+- icon: 🗓️
+  text: June 2026
+id: post5
+link: /blog/post.html?id=post5
+---
+
 # Robust Management of Long‑Running Computational Processes: A Case Study with MadGraph
 
 In high‑energy physics and beyond, computational workflows often rely on extensive event generators such as MadGraph5_aMC@NLO. These simulations may run for days, weeks or event months, consuming significant system resources. To ensure reproducibility, fault tolerance, and effective resource utilisation, it is imperative to launch such processes in a detached, non‑interactive manner while preserving the ability to monitor, log, and, if necessary, terminate them cleanly. This note discusses the practical aspects of process management in a Unix‑like environment, focusing on the use of `nohup`, background job control, process groups, and a self‑contained launcher script that encapsulates these mechanisms.

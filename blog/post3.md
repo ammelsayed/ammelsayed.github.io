@@ -1,3 +1,23 @@
+---
+author:
+  name: A.M.M. Elsayed
+  image: /images/me.jpg
+  link: https://ammelsayed.tech
+badge: Installation Guide
+title: CERN ROOT Installation on Windows 11 and Ubuntu 22.04
+description: I wrote this because I found it challenging to successfully install and
+  use ROOT on windows. After I successfully installed ROOT on my Windows 11 OS, I
+  re-examined by steps to arrive at the most efficient way to install ROOT, so I wrote
+  this document hoping it can help others facing same problem.
+image: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTlrOs-GHJp70f5mArzQYzqbVkON7FAWF9vmA&s
+date: '2025-04-01'
+meta:
+- icon: 🗓️
+  text: April 2025
+id: post3
+link: /blog/post.html?id=post3
+---
+
 # CERN ROOT Installation on Windows 11 and Ubuntu 22.04
 
 I wrote this because I found it challenging to successfully install and use ROOT on windows. After I successfully installed ROOT on my Windows 11 OS, I re-examined by steps to arrive at the most efficient way to install ROOT, so I wrote this document hoping it can help others facing same problem.

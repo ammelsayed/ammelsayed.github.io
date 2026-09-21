@@ -1,3 +1,27 @@
+---
+author:
+  name: A.M.M. Elsayed
+  image: /images/me.jpg
+  link: https://ammelsayed.tech
+badge: Tutorial
+title: Instructions for Drawing Feynman Diagrams Using Asymptote (Vector Graphics
+  Language)
+description: Feynman diagrams are a powerful way to visualize particle interactions
+  in physics, and the Asymptote language, with its feynman package, provides an elegant
+  tool to create them. This guide will walk you through the process of drawing a Feynman
+  diagram for the process using Asymptote. One can adapt these steps for other diagrams
+  by adjusting points, propagators, labels, and vertices as needed. More code examples
+  will be provided at the end of this document for references.
+image: /images/ggHaa.png
+date: '2025-05-01'
+pinned: true
+meta:
+- icon: 🗓️
+  text: May 2025
+id: post1
+link: /blog/post.html?id=post1
+---
+
 # Instructions for Drawing Feynman Diagrams Using Asymptote (Vector Graphics Language) 
 
 Feynman diagrams are a powerful way to visualize particle interactions in physics, and the Asymptote language, with its feynman package, provides an elegant tool to create them. This guide will walk you through the process of drawing a Feynman diagram for the process $q\bar{q} \to Z \to \mu^+\mu^-$ using Asymptote. One can adapt these steps for other diagrams by adjusting points, propagators, labels, and vertices as needed. More code examples will be provided at the end of this document for references.
