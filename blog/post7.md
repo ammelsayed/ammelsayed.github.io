@@ -1,3 +1,20 @@
+---
+author:
+  name: A.M.M. Elsayed
+  image: /images/me.jpg
+  link: https://ammelsayed.tech
+badge: Notes
+title: Parralization
+description: To be added later
+image: /images/linux-logo.png
+date: '2026-06-28'
+meta:
+- icon: 🗓️
+  text: June 2026
+id: post7
+link: /blog/post.html?id=post7
+---
+
 # Parallelization
 
 ## Workers

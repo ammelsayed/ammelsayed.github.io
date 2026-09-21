@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (path.includes('/blog')) {
         config = {
-            dataUrl: '/data/blogs.yaml',
+            dataLoader: () => loadBlogPosts(),
             listElementId: 'content-list',
             countElementId: 'content-count',
             searchInputSelector: '.search-input',

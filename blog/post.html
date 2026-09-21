@@ -95,14 +95,9 @@
             }
 
             try {
-                const [mdRes, blogs] = await Promise.all([
-                    fetch(`/blog/${postId}.md`),
-                    window.loadStructuredData('/data/blogs.yaml')
-                ]);
-
+                const mdRes = await fetch(`/blog/${encodeURIComponent(postId)}.md?t=${Date.now()}`);
                 if (!mdRes.ok) throw new Error('Post not found');
-                let markdown = await mdRes.text();
-                const postData = blogs.find(b => b.link.includes(`id=${postId}`));
+                const { data: postData, content: markdown } = await window.parseFrontMatter(await mdRes.text());
 
                 // Initialize Marked with GFM
                 marked.setOptions({

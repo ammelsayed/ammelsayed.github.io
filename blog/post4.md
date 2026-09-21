@@ -1,3 +1,27 @@
+---
+author:
+  name: A.M.M. Elsayed
+  image: /images/me.jpg
+  link: https://ammelsayed.tech
+badge: Notes
+title: Version Control with Git
+description: Git is a distributed version control system that has become ubiquitous
+  in modern software development. Unlike centralised systems, Git is built upon an
+  immutable, content-addressable object database, where the fundamental units of storage
+  are snapshots of the project state, organised into a directed acyclic graph of commits.
+  Branches are lightweight movable pointers to these commits, enabling parallel development
+  and safe experimentation. A comprehensive understanding of Git’s internal model
+  transforms it from a mere file-upload utility into a sophisticated engineering workflow
+  that underpins collaboration, code review, and history reconstruction.
+image: https://git-scm.com/images/logos/downloads/Git-Logo-2Color.png
+date: '2026-06-02'
+meta:
+- icon: 🗓️
+  text: June 2026
+id: post4
+link: /blog/post.html?id=post4
+---
+
 # Version Control with Git
 
 Git is a distributed version control system that has become ubiquitous in modern software development. Unlike centralised systems, Git is built upon an immutable, content-addressable object database, where the fundamental units of storage are snapshots of the project state, organised into a directed acyclic graph of commits. Branches are lightweight movable pointers to these commits, enabling parallel development and safe experimentation. A comprehensive understanding of Git’s internal model transforms it from a mere file‑upload utility into a sophisticated engineering workflow that underpins collaboration, code review, and history reconstruction.

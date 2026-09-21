@@ -35,11 +35,25 @@ async function loadStructuredData(url) {
     throw new Error(`Unsupported data format: ${ext || 'unknown'}`);
 }
 
+async function parseFrontMatter(text) {
+    const match = text.match(/^---\s*\n([\s\S]*?)\n---\s*(?:\n|$)([\s\S]*)$/);
+    if (!match) return { data: {}, content: text };
+    await ensureYamlParser();
+    return { data: window.jsyaml.load(match[1]) || {}, content: match[2] };
+}
+
+async function loadBlogPosts() {
+    return loadStructuredData('/data/blogs.generated.json');
+}
+
 window.loadStructuredData = loadStructuredData;
+window.loadBlogPosts = loadBlogPosts;
+window.parseFrontMatter = parseFrontMatter;
 
 class CardRenderer {
     constructor(options) {
         this.dataUrl = options.dataUrl;
+        this.dataLoader = options.dataLoader || (() => loadStructuredData(this.dataUrl));
         this.listElementId = options.listElementId;
         this.countElementId = options.countElementId;
         this.searchInputSelector = options.searchInputSelector;
@@ -55,7 +69,7 @@ class CardRenderer {
 
     async init() {
         try {
-            this.allData = await loadStructuredData(this.dataUrl);
+            this.allData = await this.dataLoader();
             
             // Sort by date if available (latest first)
             this.allData.sort((a, b) => {
@@ -226,4 +240,3 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
-
