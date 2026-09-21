@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Generate blog index
+        run: ruby scripts/build-blog-index.rb
       - name: Prepare static artifact
         run: |
           mkdir _site

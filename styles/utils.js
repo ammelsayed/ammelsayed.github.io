@@ -43,19 +43,7 @@ async function parseFrontMatter(text) {
 }
 
 async function loadBlogPosts() {
-    const response = await fetch('https://api.github.com/repos/ammelsayed/ammelsayed.github.io/contents/blog?ref=main');
-    if (!response.ok) throw new Error(`Unable to list blog posts (HTTP ${response.status})`);
-    const files = await response.json();
-    const posts = await Promise.all(files
-        .filter(file => file.type === 'file' && file.name.toLowerCase().endsWith('.md'))
-        .map(async file => {
-            const postResponse = await fetch(`/blog/${encodeURIComponent(file.name)}?t=${Date.now()}`);
-            if (!postResponse.ok) throw new Error(`Unable to load ${file.name}`);
-            const { data } = await parseFrontMatter(await postResponse.text());
-            const id = file.name.replace(/\.md$/i, '');
-            return { ...data, id, link: `/blog/post.html?id=${encodeURIComponent(id)}` };
-        }));
-    return posts;
+    return loadStructuredData('/data/blogs.generated.json');
 }
 
 window.loadStructuredData = loadStructuredData;
@@ -252,4 +240,3 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
-
