@@ -2,7 +2,7 @@ backend:
   name: github
   repo: ammelsayed/ammelsayed.github.io
   branch: main
-  base_url: https://YOUR-OAUTH-PROXY.example.com
+  base_url: https://decap-proxy.ahmedquanta.workers.dev
   squash_merges: true
 
 publish_mode: editorial_workflow
