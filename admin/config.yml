@@ -3,6 +3,7 @@ backend:
   repo: ammelsayed/ammelsayed.github.io
   branch: main
   base_url: https://decap-proxy.ahmedquanta.workers.dev
+  auth_endpoint: /auth
   squash_merges: true
 
 publish_mode: editorial_workflow
