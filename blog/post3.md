@@ -14,6 +14,7 @@ date: '2025-04-01'
 meta:
 - icon: 🗓️
   text: April 2025
+show: no
 id: post3
 link: /blog/post.html?id=post3
 ---

@@ -11,6 +11,7 @@ date: 1999-9-09
 meta:
 - icon: 🗓️
   text: Sep 1999
+show: no
 id: post2
 link: /blog/post.html?id=post2
 ---

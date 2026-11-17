@@ -11,6 +11,7 @@ date: '2026-06-28'
 meta:
 - icon: 🗓️
   text: June 2026
+show: no
 id: post7
 link: /blog/post.html?id=post7
 ---
