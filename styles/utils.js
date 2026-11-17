@@ -42,7 +42,22 @@ async function parseFrontMatter(text) {
     return { data: window.jsyaml.load(match[1]) || {}, content: match[2] };
 }
 
-const BLOG_MANIFEST_URL = '/blog/index.json';
+const BLOG_LISTING_URL = 'https://api.github.com/repos/ammelsayed/ammelsayed.github.io/contents/blog';
+
+// Static hosting can't list a directory, so ask GitHub which .md files are there.
+// shortcut: the unauthenticated GitHub API allows 60 requests/hour per IP; if that
+// ever bites, add a token-free cache in localStorage or commit a generated list.
+async function listBlogPostIds() {
+    const response = await fetch(BLOG_LISTING_URL, {
+        headers: { Accept: 'application/vnd.github+json' }
+    });
+    if (!response.ok) throw new Error(`GitHub API ${response.status}`);
+
+    const files = await response.json();
+    return files
+        .filter((file) => file.type === 'file' && file.name.endsWith('.md'))
+        .map((file) => file.name.slice(0, -3));
+}
 
 // `show` hides a post when it is false, or the strings "false"/"no".
 // YAML 1.1 reads bare `no` as boolean false; js-yaml follows YAML 1.2 and keeps
@@ -61,7 +76,7 @@ function blogDate(value) {
 }
 
 async function loadBlogPosts() {
-    const ids = await loadStructuredData(BLOG_MANIFEST_URL);
+    const ids = await listBlogPostIds();
 
     const posts = await Promise.all(ids.map(async (id) => {
         try {
