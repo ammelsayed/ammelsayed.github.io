@@ -42,8 +42,46 @@ async function parseFrontMatter(text) {
     return { data: window.jsyaml.load(match[1]) || {}, content: match[2] };
 }
 
+const BLOG_MANIFEST_URL = '/blog/index.json';
+
+// `show` hides a post when it is false, or the strings "false"/"no".
+// YAML 1.1 reads bare `no` as boolean false; js-yaml follows YAML 1.2 and keeps
+// it a string, so both spellings are accepted here.
+function isBlogHidden(data) {
+    if (!('show' in data)) return false;
+    if (data.show === false) return true;
+    return ['false', 'no'].includes(String(data.show).trim().toLowerCase());
+}
+
+// Front matter dates come back as Date objects when unquoted, strings when quoted.
+function blogDate(value) {
+    if (!value) return '';
+    if (value instanceof Date) return value.toISOString().slice(0, 10);
+    return String(value);
+}
+
 async function loadBlogPosts() {
-    return loadStructuredData('/data/blogs.generated.json');
+    const ids = await loadStructuredData(BLOG_MANIFEST_URL);
+
+    const posts = await Promise.all(ids.map(async (id) => {
+        try {
+            const response = await fetch(`/blog/${encodeURIComponent(id)}.md`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const { data } = await window.parseFrontMatter(await response.text());
+            if (isBlogHidden(data)) return null;
+
+            const post = { ...data, id, link: `/blog/post.html?id=${id}` };
+            post.date = blogDate(post.date);
+            if (!post.meta && post.date) post.meta = [{ icon: '🗓️', text: post.date }];
+            return post;
+        } catch (error) {
+            console.warn(`Skipping blog post "${id}":`, error);
+            return null;
+        }
+    }));
+
+    return posts.filter(Boolean);
 }
 
 window.loadStructuredData = loadStructuredData;
