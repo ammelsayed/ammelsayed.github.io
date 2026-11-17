@@ -16,7 +16,7 @@ posts = Dir.glob(File.join(BLOG_DIR, '*.md')).sort.filter_map do |path|
 
   begin
     data = YAML.safe_load(match[1], permitted_classes: [Date], aliases: false) || {}
-    next if data['show'] == false # show: false keeps a post out of the index; absent means visible
+    next if data['show'].to_s.downcase == 'false' # show: false keeps a post out of the index; absent means visible
     id = File.basename(path, '.md')
     data['id'] = id
     data['link'] = "/blog/post.html?id=#{id}"
