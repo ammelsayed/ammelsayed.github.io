@@ -177,7 +177,6 @@
         // Guard against a retry starting a second render while an earlier attempt
         // is still waiting for the same libraries.
         let booted = false;
-        let attempts = 0;
         let requiredFailed = false;
 
         // A refused request never defines its global, so polling would wait for
@@ -200,7 +199,15 @@
 
         ['marked', 'js-yaml'].forEach(name => {
             const script = document.querySelector(`script[data-vendor="${name}"]`);
-            if (script) script.addEventListener('error', () => reportRequiredFailure(script.src));
+            if (!script) return;
+            script.addEventListener('error', () => reportRequiredFailure(script.src));
+            // However late a script arrives, it is still used: this is what keeps a
+            // very slow library from stranding the reader on that message.
+            script.addEventListener('load', () => {
+                if (booted) return;
+                requiredFailed = false;
+                startPost();
+            });
         });
 
         // KaTeX is requested here rather than in the document's deferred queue: a
@@ -228,25 +235,18 @@
             const rendererReady = await whenAvailable(libsReady);
 
             if (!rendererReady) {
-                const contentEl = document.getElementById('post-content');
+                // A refusal has already been reported by its own `error` listener.
                 if (requiredFailed) return;
-                attempts += 1;
-                if (attempts >= 3) {
-                    // Slow is recoverable, refused is not. After three waits say so
-                    // and stop: nothing is rescheduled, so no timer keeps running and
-                    // no message keeps changing under the reader.
-                    contentEl.textContent = 'The article could not be loaded because a required script failed. ';
-                    const reload = document.createElement('a');
-                    reload.href = window.location.href;
-                    reload.textContent = 'Reload the page';
-                    contentEl.appendChild(reload);
-                    return;
-                }
-                contentEl.textContent = 'Still loading the libraries this page needs...';
-                // A plain timer, not `retryUntil`: that helper only runs its callback
-                // once readiness is true, which is exactly what cannot happen when
-                // the script itself failed.
-                setTimeout(startPost, 5000);
+                const contentEl = document.getElementById('post-content');
+                // Slow is not failed: say what is happening, keep a reload at hand,
+                // and schedule nothing. The `load` listener on the required scripts
+                // renders the article whenever they finally arrive, so there is no
+                // number of attempts after which a late library is ignored.
+                contentEl.textContent = 'Still loading the libraries this page needs... ';
+                const reload = document.createElement('a');
+                reload.href = window.location.href;
+                reload.textContent = 'Reload';
+                contentEl.appendChild(reload);
                 return;
             }
 
@@ -572,12 +572,19 @@
                 });
 
                 // Waline and the KaTeX module for comment maths are loaded only here,
-                // after the article is on screen. No deadline: a module that arrives
-                // late still initialises the section when it arrives, whereas a
-                // deadline would abandon the import and leave comments dead for the
-                // rest of the visit.
+                // after the article is on screen. No race and no abandonment: a note
+                // appears if the request is slow, and the section initialises whenever
+                // the module actually arrives, however late.
+                const placeholder = document.getElementById('waline');
+                const walineNote = setTimeout(() => {
+                    if (placeholder && !placeholder.childElementCount) {
+                        placeholder.textContent = 'Comments are taking a long time to load...';
+                    }
+                }, 20000);
+
                 import('https://unpkg.com/@waline/client@v3/dist/waline.js')
                     .then(async ({ init }) => {
+                        clearTimeout(walineNote);
                         const katex = await import('https://unpkg.com/katex@v0.16/dist/katex.mjs');
                         init({
                             el: '#waline',
@@ -599,7 +606,10 @@
                             }),
                         });
                     })
-                    .catch(error => console.error('Comment section unavailable:', error));
+                    .catch(error => {
+                        clearTimeout(walineNote);
+                        console.error('Comment section unavailable:', error);
+                    });
 
             } catch (error) {
                 console.error('Error:', error);
