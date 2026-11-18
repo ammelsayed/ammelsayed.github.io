@@ -171,12 +171,27 @@
         // complete without either.
         const loadScript = (src, onLoad, onError) => {
             const script = document.createElement('script');
-            script.src = src;
-            script.onload = onLoad || (() => {});
-            script.onerror = () => {
+            let settled = false;
+            const fail = () => {
+                if (settled) return;
+                settled = true;
                 console.warn('Script failed to load:', src);
                 if (onError) onError();
             };
+            // A request that neither loads nor fails is what a stalled CDN looks like.
+            // Ten seconds, then it counts as failed so the caller can fail over.
+            const timer = setTimeout(fail, 10000);
+            script.onload = () => {
+                if (settled) return;
+                settled = true;
+                clearTimeout(timer);
+                if (onLoad) onLoad();
+            };
+            script.onerror = () => {
+                clearTimeout(timer);
+                fail();
+            };
+            script.src = src;
             document.head.appendChild(script);
         };
         // KaTeX comes from a CDN, so it gets a second host: a refused or timed-out
@@ -256,7 +271,11 @@
                     try {
                         data = window.jsyaml.load(match[1]) || {};
                     } catch (error) {
-                        console.warn('Front matter is not valid YAML:', error);
+                        // Author error, not a reader problem. Leaving the block in the
+                        // body makes it visible instead of quietly dropping the
+                        // metadata and showing a post with no title, date or author.
+                        console.error('Front matter is not valid YAML:', error);
+                        return { data: {}, content: text };
                     }
                     return { data, content: match[2] };
                 };
@@ -492,14 +511,23 @@
                 // callback, so a slow or very late library is still used and neither
                 // holds up the render or the comments section.
                 const shareReady = () => typeof window.socialShare === 'function';
-                const showShare = () => socialShare('#social-share-container', {
-                    url: window.location.href,
-                    title: titleText,
-                    description: desc,
-                    image: imageUrl,
-                    sites: ['wechat', 'qq', 'weibo', 'facebook', 'twitter', 'linkedin'],
-                    wechatQrcodeTitle: "WeChat Scan to Share"
-                });
+                const showShare = () => {
+                    // The bundle defines `socialShare` (checked by executing it in
+                    // test_share.js); this only keeps a truncated file from throwing
+                    // inside a load callback, where nobody would see it.
+                    if (typeof socialShare !== 'function') {
+                        console.warn('The share bundle did not define socialShare; buttons stay hidden.');
+                        return;
+                    }
+                    socialShare('#social-share-container', {
+                        url: window.location.href,
+                        title: titleText,
+                        description: desc,
+                        image: imageUrl,
+                        sites: ['wechat', 'qq', 'weibo', 'facebook', 'twitter', 'linkedin'],
+                        wechatQrcodeTitle: "WeChat Scan to Share"
+                    });
+                };
                 // The share bundle is requested on demand and applied in its own
                 // `load` callback, so a slow or very late bundle is still used and
                 // nothing sits in the deferred queue in front of Prism.
