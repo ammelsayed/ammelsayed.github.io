@@ -90,7 +90,57 @@ function appendHighlighted(target, text, term) {
 // to innerHTML, and text is highlighted after parsing so a search term can never
 // land inside a tag or an attribute.
 const RICH_TEXT_TAGS = new Set(['A', 'B', 'STRONG', 'EM', 'I', 'BR', 'SPAN', 'CODE', 'U', 'SMALL', 'SUP', 'SUB']);
-const SAFE_URL = /^(https?:|mailto:|#|\/)/i;
+// Only absolute http(s), mailto, in-page anchors and root-relative paths. A
+// protocol-relative "//host" is rejected: it would take the visitor to another
+// host on the page's own scheme.
+const SAFE_URL = /^(?:https?:|mailto:|#|\/(?!\/))/i;
+
+// Any card link (author, DOI) goes through this before it is assigned, so a
+// javascript: or data: URL in the data can never become a clickable link.
+function safeHref(value, fallback) {
+    const url = typeof value === 'string' ? value.trim() : '';
+    return SAFE_URL.test(url) ? url : fallback;
+}
+
+// A block element outside the allow-list is reduced to its text, with a space at
+// its boundaries so <p>First</p><p>Second</p> does not read as "FirstSecond".
+const BLOCK_TAGS = new Set(['P', 'DIV', 'LI', 'UL', 'OL', 'BLOCKQUOTE', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'TABLE', 'TR', 'SECTION', 'ARTICLE']);
+
+function separateWords(target) {
+    const last = target.lastChild;
+    if (!last) return;
+    const text = last.nodeType === Node.TEXT_NODE ? last.nodeValue : last.textContent;
+    if (text && !/\s$/.test(text)) target.appendChild(document.createTextNode(' '));
+}
+
+// Card images are assigned their url only once they are in the document and near
+// the viewport: a detached <img src> starts downloading immediately, and
+// loading="lazy" only applies to an element the browser has laid out.
+let cardImageObserver = null;
+
+function loadCardImage(image) {
+    const src = image.getAttribute('data-src');
+    if (!src) return;
+    image.removeAttribute('data-src');
+    image.src = src;
+}
+
+function observeCardImage(image) {
+    if (!('IntersectionObserver' in window)) {
+        loadCardImage(image);
+        return;
+    }
+    if (!cardImageObserver) {
+        cardImageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                observer.unobserve(entry.target);
+                loadCardImage(entry.target);
+            });
+        }, { rootMargin: '200px 0px' });
+    }
+    cardImageObserver.observe(image);
+}
 
 function copySanitizedChildren(source, target, term) {
     source.childNodes.forEach(child => {
@@ -103,21 +153,34 @@ function copySanitizedChildren(source, target, term) {
         const tag = child.tagName.toUpperCase();
         if (!RICH_TEXT_TAGS.has(tag)) {
             // Unknown wrapper: keep its text, drop the element itself.
+            const isBlock = BLOCK_TAGS.has(tag);
+            if (isBlock) separateWords(target);
             copySanitizedChildren(child, target, term);
+            if (isBlock) separateWords(target);
+            return;
+        }
+
+        if (tag === 'A') {
+            const href = child.getAttribute('href') || '';
+            if (!SAFE_URL.test(href)) {
+                // Unusable link: keep the label, drop the anchor.
+                copySanitizedChildren(child, target, term);
+                return;
+            }
+            const link = document.createElement('a');
+            link.setAttribute('href', href);
+            const targetAttr = child.getAttribute('target');
+            if (targetAttr) link.setAttribute('target', targetAttr);
+            // An authored rel is only added to: noopener is always present, so a
+            // new tab can never reach back into this page through window.opener.
+            const relAttr = (child.getAttribute('rel') || '').trim();
+            link.setAttribute('rel', /noopener/i.test(relAttr) ? relAttr : `${relAttr} noopener noreferrer`.trim());
+            copySanitizedChildren(child, link, term);
+            target.appendChild(link);
             return;
         }
 
         const el = document.createElement(tag.toLowerCase());
-        if (tag === 'A') {
-            const href = child.getAttribute('href') || '';
-            if (!SAFE_URL.test(href)) return;
-            el.setAttribute('href', href);
-            const rel = child.getAttribute('rel');
-            el.setAttribute('rel', rel || 'noopener');
-            const targetAttr = child.getAttribute('target');
-            if (targetAttr) el.setAttribute('target', targetAttr);
-        }
-
         copySanitizedChildren(child, el, term);
         target.appendChild(el);
     });
@@ -294,7 +357,7 @@ class CardRenderer {
             const nameEm = document.createElement('em');
             nameEm.appendChild(document.createTextNode(' By '));
             const nameLink = document.createElement('a');
-            nameLink.href = item.author.link || '#';
+            nameLink.href = safeHref(item.author.link, '#');
             nameLink.target = '_blank';
             nameLink.rel = 'noopener';
             appendHighlighted(nameLink, item.author.name, term);
@@ -337,18 +400,18 @@ class CardRenderer {
             doiP.appendChild(doiLabel);
             doiP.appendChild(document.createTextNode(' '));
             const doiLink = document.createElement('a');
-            doiLink.href = item.link;
+            doiLink.href = safeHref(item.link, '#');
             doiLink.target = '_blank';
-            doiLink.rel = 'noopener';
+            doiLink.rel = 'noopener noreferrer';
             appendHighlighted(doiLink, item.link, term);
             doiP.appendChild(doiLink);
             content.appendChild(doiP);
         }
 
-        // The card image sits below the fold of a list page: defer it, and let
-        // the intrinsic dimensions reserve its space when the data provides them.
-        // Every hint is set before `src`, because assigning `src` is what starts
-        // the request: on a detached element `loading="lazy"` is not honoured yet.
+        // The card image sits below the fold of a list page: it gets no `src` at
+        // all until the card is in the document and the image approaches the
+        // viewport (see observeCardImage). The hints and the intrinsic size are
+        // attached first, so nothing moves when the picture finally arrives.
         if (item.image) {
             const figure = document.createElement('img');
             figure.className = 'publication-image';
@@ -358,8 +421,9 @@ class CardRenderer {
                 figure.width = item.image_width;
                 figure.height = item.image_height;
             }
-            figure.src = item.image;
+            figure.dataset.src = item.image;
             card.appendChild(figure);
+            observeCardImage(figure);
         }
 
         if (item.link) {
