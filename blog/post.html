@@ -20,16 +20,26 @@
     <link rel="stylesheet" href="/styles/footer.css">
     <link rel="stylesheet" href="/styles/blog-post.css">
 
-    <!-- Markdown & Highlighting Styles -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-  
-    <!-- Comments section -->
-    <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css" />
-    <link rel="stylesheet" href="https://unpkg.com/katex@v0.16/dist/katex.min.css" />
+    <!-- Markdown & Highlighting Styles (self-hosted, see /vendor). These three
+         style optional features - code colours, comments, share buttons - and
+         none of them is needed for the first paint, so they are fetched as print
+         CSS and promoted once they land. They are same-origin now, but a slow
+         request still should not hold the article text back. -->
+    <link rel="stylesheet" href="/vendor/prism-tomorrow.min.css" media="print"
+          onload="this.media='all'" onerror="this.media='all';console.warn('Code theme failed to load')">
+
+    <!-- Comments section (styles only; the client itself loads on demand) -->
+    <link rel="stylesheet" href="/vendor/waline.css" media="print"
+          onload="this.media='all'" onerror="this.media='all';console.warn('Comment styles failed to load')">
 
     <!-- Overtrue Share.js - professional sharing library with WeChat/QQ support -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/css/share.min.css">
+    <link rel="stylesheet" href="/vendor/social-share/share.min.css" media="print"
+          onload="this.media='all'" onerror="this.media='all';console.warn('Share styles failed to load')">
+
+    <!-- KaTeX styles are not requested here. Its webfont pack is too large to
+         vendor, so the stylesheet is fetched from the same CDN as the KaTeX
+         JavaScript, at the moment a post turns out to have formulas. Posts
+         without maths, and every other page, never ask for it. -->
 </head>
 <body>
     <my-header></my-header>
@@ -71,19 +81,24 @@
     <my-footer></my-footer>
     <script type="module" src="/styles/footer.js"></script>
 
-    <!-- Dependencies - Professional Markdown & Syntax Highlighting -->
-    <script src="https://cdn.jsdelivr.net/npm/marked@14.1.2/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-clike.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
-    
-    <!-- Overtrue Share.js - professional sharing library -->
-    <script src="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/js/social-share.min.js"></script>
+    <!-- Deferred scripts execute in document order, so this queue carries the
+         article's hard dependencies and nothing optional: marked and js-yaml
+         first (the body cannot be split or rendered without them), then Prism with
+         its grammars, in dependency order. KaTeX and the share bundle are
+         cross-origin or cosmetic, so they are requested on demand in the page
+         script: one stalled request there can no longer hold back the queue. -->
+    <!-- `onerror` is set on the tag itself, not by the inline script below, because a
+         refused request can dispatch its error event before that script runs. The
+         attribute records it; the script reads the record and reports it. -->
+    <script defer data-vendor="marked" src="/vendor/marked.min.js" onerror="this.dataset.failed='1'"></script>
+    <script defer data-vendor="js-yaml" src="/vendor/js-yaml.min.js" onerror="this.dataset.failed='1'"></script>
+    <script defer data-vendor="prism" src="/vendor/prism.min.js"></script>
+    <script defer data-vendor="prism" src="/vendor/prism-clike.min.js"></script>
+    <script defer data-vendor="prism" src="/vendor/prism-javascript.min.js"></script>
+    <script defer data-vendor="prism" src="/vendor/prism-python.min.js"></script>
+    <script defer data-vendor="prism" src="/vendor/prism-bash.min.js"></script>
+    <script defer data-vendor="prism" src="/vendor/prism-c.min.js"></script>
+    <script defer data-vendor="prism" src="/vendor/prism-cpp.min.js"></script>
 
     <script>
         function formatPostDate(value) {
@@ -94,7 +109,196 @@
             return String(value);
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
+        // Both libraries are required and both are same-origin, declared before
+        // anything optional. Waiting for them here means `splitFrontMatter` always
+        // has a real YAML parser, so no fallback parser and no second wait.
+        const libsReady = () => window.marked
+            && typeof window.marked.parse === 'function'
+            && window.jsyaml
+            && typeof window.jsyaml.load === 'function';
+
+        // Guard against a second render once one has started.
+        let booted = false;
+
+        // Failures are tracked per file: one script failing is not undone by another
+        // script loading, so the message keeps naming the file that is missing.
+        const failedRequired = new Set();
+        const requiredFile = (src) => String(src || '').split('/').pop() || 'a required script';
+
+        const reportRequiredFailure = (src) => {
+            if (booted) return;
+            const file = requiredFile(src);
+            failedRequired.add(file);
+            const contentEl = document.getElementById('post-content');
+            if (!contentEl) return;
+            // Name the file that failed: "a required script" tells the visitor
+            // nothing, and the console already has the request.
+            contentEl.textContent = `The article could not be loaded: ${file} failed to load. `;
+            const reload = document.createElement('a');
+            reload.href = window.location.href;
+            reload.textContent = 'Reload the page';
+            contentEl.appendChild(reload);
+        };
+
+        // A 200 response that is not the library leaves the page with nothing to
+        // render, so each required script is checked for the method the page calls,
+        // not just for a truthy global.
+        const REQUIRED_APIS = {
+            'marked': () => window.marked && typeof window.marked.parse === 'function',
+            'js-yaml': () => window.jsyaml && typeof window.jsyaml.load === 'function'
+        };
+        ['marked', 'js-yaml'].forEach(name => {
+            const script = document.querySelector(`script[data-vendor="${name}"]`);
+            if (!script) return;
+            // A refusal that happened before this script ran is recorded on the tag
+            // by its own `onerror`; anything later comes through the listener.
+            if (script.dataset.failed) reportRequiredFailure(script.src);
+            script.addEventListener('error', () => reportRequiredFailure(script.src));
+            // However late a script arrives it is still used, and the article is
+            // rendered then - there is no attempt count that can drop it. A file that
+            // failed stays failed until it is genuinely delivered.
+            script.addEventListener('load', () => {
+                delete script.dataset.failed;
+                // The method has to be there before the record is cleared: a file that
+                // loaded but cannot be called would otherwise leave the page waiting.
+                if (!REQUIRED_APIS[name]()) {
+                    reportRequiredFailure(script.src);
+                    return;
+                }
+                failedRequired.delete(requiredFile(script.src));
+                if (booted || failedRequired.size) return;
+                startPost();
+            });
+        });
+
+        // KaTeX is requested here rather than in the document's deferred queue: a
+        // stalled CDN request in that queue would hold back Prism and everything
+        // behind it. Core first, its auto-render extension second, and the page is
+        // complete without either.
+        const loadScript = (src, onLoad, onError) => {
+            const script = document.createElement('script');
+            let loaded = false;
+            let failedOver = false;
+            // A request that neither loads nor fails is what a stalled CDN looks like:
+            // after ten seconds the caller may fail over. A late `load` is still
+            // honoured, so a slow request is never wasted.
+            const timer = setTimeout(() => {
+                if (loaded || failedOver) return;
+                failedOver = true;
+                console.warn('Script is slow, trying the fallback:', src);
+                if (onError) onError();
+            }, 10000);
+            script.onload = () => {
+                if (loaded) return;
+                loaded = true;
+                clearTimeout(timer);
+                if (onLoad) onLoad();
+            };
+            script.onerror = () => {
+                clearTimeout(timer);
+                if (failedOver || loaded) return;
+                failedOver = true;
+                console.warn('Script failed to load:', src);
+                if (onError) onError();
+            };
+            script.src = src;
+            document.head.appendChild(script);
+        };
+        // KaTeX comes from a CDN, so it gets a second host: a refused or timed-out
+        // request on one is retried on the other, once. The stylesheet follows the
+        // host that delivered the core script, so styles and glyphs come from one
+        // place and only when a post needs them.
+        const KATEX_HOSTS = [
+            'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/',
+            'https://unpkg.com/katex@0.16.8/dist/'
+        ];
+        const addKatexStyles = (base) => {
+            const existing = document.querySelector('link[data-katex-styles]');
+            if (existing) return;
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.setAttribute('data-katex-styles', '1');
+            link.href = `${base}katex.min.css`;
+            // Styles are cosmetic: if the host refuses, the other host is tried once, and
+            // if that also fails the formulas still typeset, just without KaTeX's own
+            // styling - the console line says so.
+            link.onerror = () => {
+                const fallback = KATEX_HOSTS[KATEX_HOSTS.indexOf(base) + 1];
+                link.remove();
+                if (fallback) addKatexStyles(fallback);
+                else console.warn('KaTeX styles could not be loaded; math is shown unstyled.');
+            };
+            document.head.appendChild(link);
+        };
+        const loadKatex = (onReady, onFail) => {
+            if (typeof window.renderMathInElement === 'function' && window.katex) {
+                onReady();
+                return;
+            }
+            if (loadKatex.started) return;
+            loadKatex.started = true;
+
+            // A stalled request that fails over and then arrives would otherwise
+            // typeset twice; the pass runs once, whichever host delivers first. A
+            // failure notice, however, is withdrawn if a late host succeeds.
+            let typesetDone = false;
+            let gaveUp = false;
+            const finish = () => {
+                if (typesetDone) return;
+                typesetDone = true;
+                onReady();
+            };
+            const giveUp = () => {
+                if (typesetDone || gaveUp) return;
+                gaveUp = true;
+                if (onFail) onFail();
+            };
+            const nextHost = (base) => {
+                const index = KATEX_HOSTS.indexOf(base);
+                return KATEX_HOSTS[index + 1];
+            };
+            const extension = (base) => loadScript(`${base}contrib/auto-render.min.js`, finish, () => {
+                const fallback = nextHost(base);
+                if (fallback) extension(fallback);
+                else giveUp();
+            });
+            const core = (base) => loadScript(`${base}katex.min.js`, () => {
+                addKatexStyles(base);
+                extension(base);
+            }, () => {
+                const fallback = nextHost(base);
+                if (fallback) core(fallback);
+                else giveUp();
+            });
+            if (window.katex) {
+                addKatexStyles(KATEX_HOSTS[0]);
+                extension(KATEX_HOSTS[0]);
+            }
+            else core(KATEX_HOSTS[0]);
+        };
+
+        // If nothing has arrived after fifteen seconds, say so. Nothing polls: the
+        // `load` listeners above render the article whenever a slow script lands, and
+        // the `error` listeners report a refusal as it happens.
+        setTimeout(() => {
+            const contentEl = document.getElementById('post-content');
+            if (booted || !contentEl || failedRequired.size) return;
+            contentEl.textContent = 'Still loading the libraries this page needs... ';
+            const reload = document.createElement('a');
+            reload.href = window.location.href;
+            reload.textContent = 'Reload';
+            contentEl.appendChild(reload);
+        }, 15000);
+
+        async function startPost() {
+            // Nothing here waits: if the required files are not in yet, the load
+            // listener calls again when they are.
+            if (!libsReady()) return;
+
+            // Only the first call through renders, so the post is fetched and wired once.
+            if (booted) return;
+            booted = true;
+
             const urlParams = new URLSearchParams(window.location.search);
             let postId = urlParams.get('id');
             if (!postId) {
@@ -105,14 +309,38 @@
             try {
                 const mdRes = await fetch(`/blog/${encodeURIComponent(postId)}.md?t=${Date.now()}`);
                 if (!mdRes.ok) throw new Error('Post not found');
-                const { data: postData, content: markdown } = await window.parseFrontMatter(await mdRes.text());
+                const raw = await mdRes.text();
+                // Front matter is split here rather than by `parseFrontMatter`, whose
+                // `ensureYamlParser` injects a jsDelivr script - the one dependency
+                // this change exists to remove. `libsReady` has already established
+                // the local parser, so there is no second wait and no fallback parser:
+                // the delimiter is line-anchored and whitespace-tolerant, then
+                // js-yaml does the rest.
+                const splitFrontMatter = (text) => {
+                    const match = text.match(/^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)([\s\S]*)$/);
+                    if (!match) return { data: {}, content: text };
+                    let data = {};
+                    try {
+                        data = window.jsyaml.load(match[1]) || {};
+                    } catch (error) {
+                        // Author error, not a reader problem. Leaving the block in the
+                        // body makes it visible instead of quietly dropping the
+                        // metadata and showing a post with no title, date or author.
+                        console.error('Front matter is not valid YAML:', error);
+                        return { data: {}, content: text };
+                    }
+                    return { data, content: match[2] };
+                };
+                const frontMatter = splitFrontMatter(raw);
+                const postData = frontMatter.data || {};
+                const markdown = frontMatter.content || '';
 
                 // Initialize Marked with GFM
                 marked.setOptions({
                     gfm: true,
                     breaks: true,
                     highlight: function(code, lang) {
-                        if (Prism.languages[lang]) {
+                        if (window.Prism && Prism.languages[lang]) {
                             return Prism.highlight(code, Prism.languages[lang], lang);
                         }
                         return code;
@@ -238,8 +466,12 @@
                     });
                 });
 
-                // Ensure Prism.js highlights all code blocks
-                Prism.highlightAllUnder(contentEl);
+                // The grammar that just landed may bring the first code block into
+                // reach, and `scheduleHighlight` coalesces the burst; this pass covers
+                // the case where Prism finished before the article was rendered.
+                if (window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
+                    highlightCode();
+                }
 
                 // Generate Table of Contents
                 const tocContainer = document.getElementById('toc-container');
@@ -327,53 +559,198 @@
                 viewSpan.setAttribute('data-path', `/blog/post/${postId}`);
                 metaEl.appendChild(viewSpan);
 
-                const { init } = await import('https://unpkg.com/@waline/client@v3/dist/waline.js');
-                const katex  = await import('https://unpkg.com/katex@v0.16/dist/katex.mjs');
-                init({
-                    el: '#waline',
-                    serverURL: 'https://commentsystem-amber.vercel.app/',
-                    lang: 'en',
-                    dark: document.documentElement.getAttribute('data-theme') === 'dark',
-                    meta: ['nick'],
-                    requiredMeta: [],
-                    noCopyright: true,
-                    noRss: true,
-                    turnstileKey: false,
-                    wordLimit:300,
-                    pageview: true,
-                    path: `/blog/post/${postId}`,
-                    texRenderer: (blockMode, tex) =>
-                    katex.renderToString(tex, {
-                        displayMode: blockMode,
-                        throwOnError: false,
-                    }),
+                // Cosmetic extras: each is applied from its own library's `load`
+                // callback, so a slow or very late library is still used and neither
+                // holds up the render or the comments section.
+                const shareReady = () => typeof window.socialShare === 'function';
+                const showShare = () => {
+                    // The bundle defines `socialShare` (checked by executing it in
+                    // test_share.js); this only keeps a truncated file from throwing
+                    // inside a load callback, where nobody would see it.
+                    if (typeof socialShare !== 'function') {
+                        console.warn('The share bundle did not define socialShare; buttons stay hidden.');
+                        return;
+                    }
+                    // A bundle that failed over and then arrived leaves the "unavailable"
+                    // line behind; clear it before the buttons are built.
+                    const box = document.getElementById('social-share-container');
+                    if (box) box.textContent = '';
+                    socialShare('#social-share-container', {
+                        url: window.location.href,
+                        title: titleText,
+                        description: desc,
+                        image: imageUrl,
+                        sites: ['wechat', 'qq', 'weibo', 'facebook', 'twitter', 'linkedin'],
+                        wechatQrcodeTitle: "WeChat Scan to Share"
+                    });
+                };
+                // The share bundle is requested on demand and applied in its own
+                // `load` callback, so a slow or very late bundle is still used and
+                // nothing sits in the deferred queue in front of Prism. If it never
+                // arrives, the space says so instead of staying blank.
+                loadScript('/vendor/social-share/social-share.min.js', showShare, () => {
+                    const box = document.getElementById('social-share-container');
+                    if (box) box.textContent = 'Sharing is unavailable right now.';
                 });
 
-                // Initialize Overtrue Share.js
-                socialShare('#social-share-container', {
-                    url: window.location.href,
-                    title: titleText,
-                    description: desc,
-                    image: imageUrl,
-                    sites: ['wechat', 'qq', 'weibo', 'facebook', 'twitter', 'linkedin'],
-                    wechatQrcodeTitle: "WeChat Scan to Share"
-                });
-
-                if (window.renderMathInElement) {
-                    renderMathInElement(contentEl, {
-                        delimiters: [
-                            {left: '$$', right: '$$', display: true},
-                            {left: '$', right: '$', display: false}
-                        ],
-                        throwOnError: false
+                // KaTeX ships as two scripts: the core (which defines window.katex)
+                // and the auto-render extension. `loadKatex` chains them and calls
+                // back once both are in, which is also the only moment a pass can run.
+                // Posts without formulas never request it at all, and neither the
+                // download nor a failure notice appears for them.
+                const MATH_PATTERN = /\$\$[\s\S]+?\$\$|\$[^$\n]+?\$/;
+                // Only text outside code blocks is a formula candidate: a shell snippet
+                // or a regex in a code block is not something KaTeX should be asked to
+                // download for. The nodetext is joined before the test, because display
+                // maths puts its opening and closing `$$` in different nodes.
+                const hasMath = (el) => {
+                    if (!el) return false;
+                    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+                    const parts = [];
+                    let node;
+                    while ((node = walker.nextNode())) {
+                        const parent = node.parentNode;
+                        if (parent && parent.closest && parent.closest('pre, code')) continue;
+                        parts.push(node.nodeValue || '');
+                    }
+                    return MATH_PATTERN.test(parts.join(''));
+                };
+                const MATH_DELIMITERS = [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ];
+                const typeset = () => {
+                    // A host that arrives after the notice was shown still wins: the
+                    // notice comes down and the formulas are typeset.
+                    const notice = contentEl.querySelector('.math-unavailable');
+                    if (notice) notice.remove();
+                    try {
+                        renderMathInElement(contentEl, {
+                            delimiters: MATH_DELIMITERS,
+                            throwOnError: false
+                        });
+                    } catch (error) {
+                        // Formulas are decoration: a failure is reported here and the
+                        // article keeps its source text, with one line saying why.
+                        console.warn('Math rendering failed:', error);
+                        if (!contentEl.querySelector('.math-unavailable')) {
+                            const note = document.createElement('p');
+                            note.className = 'math-unavailable';
+                            note.textContent = 'Math could not be rendered on this page.';
+                            contentEl.appendChild(note);
+                        }
+                    }
+                };
+                if (hasMath(contentEl)) {
+                    loadKatex(typeset, () => {
+                        // Both hosts refused: say so once, at the end of the article, so a
+                        // reader is not left wondering about the raw $...$ text.
+                        const note = document.createElement('p');
+                        note.className = 'math-unavailable';
+                        note.textContent = 'Math could not be rendered on this page.';
+                        contentEl.appendChild(note);
                     });
                 }
+
+                // Waline and the KaTeX module for comment maths are loaded only here,
+                // after the article is on screen. The note ends the loading state by
+                // itself, and a late module that finally arrives still initialises the
+                // section - nothing is cancelled or abandoned.
+                const placeholder = document.getElementById('waline');
+                const walineNote = setTimeout(() => {
+                    if (placeholder && !placeholder.childElementCount) {
+                        placeholder.textContent = 'Comments are taking a long time to load...';
+                    }
+                }, 20000);
+                const walineLate = setTimeout(() => {
+                    if (placeholder && !placeholder.childElementCount) {
+                        placeholder.textContent = 'Comments could not be loaded. The rest of this post is unaffected.';
+                    }
+                }, 45000);
+
+                (async () => {
+                    try {
+                        const { init } = await import('https://unpkg.com/@waline/client@v3/dist/waline.js');
+                        init({
+                            el: '#waline',
+                            serverURL: 'https://commentsystem-amber.vercel.app/',
+                            lang: 'en',
+                            dark: document.documentElement.getAttribute('data-theme') === 'dark',
+                            meta: ['nick'],
+                            requiredMeta: [],
+                            noCopyright: true,
+                            noRss: true,
+                            turnstileKey: false,
+                            wordLimit:300,
+                            pageview: true,
+                            path: `/blog/post/${postId}`,
+                            // Comment formulas use the KaTeX this page already has, if
+                            // the article loaded it; there is no separate request and no
+                            // second copy of the library. A post whose comments contain
+                            // maths but whose article does not shows the source.
+                            texRenderer: (blockMode, tex) => (
+                                window.katex && typeof window.katex.renderToString === 'function'
+                            )
+                                ? window.katex.renderToString(tex, {
+                                    displayMode: blockMode,
+                                    throwOnError: false,
+                                })
+                                : tex,
+                        });
+                        clearTimeout(walineNote);
+                        clearTimeout(walineLate);
+                    } catch (error) {
+                        clearTimeout(walineNote);
+                        clearTimeout(walineLate);
+                        if (placeholder) {
+                            placeholder.textContent = 'The comment section could not be loaded. You can still read and share this post.';
+                        }
+                        console.error('Comment section unavailable:', error);
+                    }
+                })();
 
             } catch (error) {
                 console.error('Error:', error);
                 document.getElementById('post-content').innerHTML = `<p>Error loading post: ${error.message}</p>`;
             }
-        });
+        }
+
+        // Prism core and its grammars arrive as separate deferred scripts, and a
+        // grammar is only useful once it is registered. The `load` listener lives
+        // out here, before the article is fetched, so a grammar cannot finish
+        // loading in the gap between the fetch and the first pass. Seven scripts
+        // land within a few milliseconds of each other, so the pass is coalesced:
+        // one highlight per burst instead of one per script.
+        // prism-cpp builds on prism-c, which is loaded before it.
+        let highlightTimer = 0;
+        const highlightCode = () => {
+            // A scheduled pass and an immediate one must not both run: cancel the
+            // pending timer first, so the article is processed once.
+            if (highlightTimer) {
+                clearTimeout(highlightTimer);
+                highlightTimer = 0;
+            }
+            const contentEl = document.getElementById('post-content');
+            if (contentEl && window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
+                Prism.highlightAllUnder(contentEl);
+            }
+        };
+        const scheduleHighlight = () => {
+            if (highlightTimer) return;
+            highlightTimer = setTimeout(() => {
+                highlightTimer = 0;
+                highlightCode();
+            }, 150);
+        };
+
+        document.addEventListener('load', event => {
+            const target = event.target;
+            if (target && target.tagName === 'SCRIPT' && /\/vendor\/prism[-.]/.test(target.src || '')) {
+                scheduleHighlight();
+            }
+        }, true);
+
+        startPost();
 
         function processGitHubAlerts(container) {
             container.querySelectorAll('blockquote').forEach(blockquote => {
