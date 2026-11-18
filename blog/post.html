@@ -96,15 +96,14 @@
     <script type="module" src="/styles/footer.js"></script>
 
     <!-- Deferred scripts execute in document order, so the order here is the
-         dependency order: the two the article cannot start without, then KaTeX
-         (core before its auto-render extension), then the share bundle, and Prism
-         last. Nothing waits on Prism, so a slow grammar cannot delay math or
-         sharing. -->
+         dependency order, and only same-origin files are in it: marked and js-yaml
+         (the article cannot start without them), then the share bundle, then Prism
+         with its grammars. KaTeX is the one cross-origin dependency left and is
+         requested on demand further down, because a stalled CDN request inside this
+         queue would hold back every script behind it. -->
     <script defer data-vendor="marked" src="/vendor/marked.min.js"></script>
     <script defer data-vendor="js-yaml" src="/vendor/js-yaml.min.js"></script>
     <script defer data-vendor="social-share" src="/vendor/social-share/social-share.min.js"></script>
-    <script defer data-vendor="katex" src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-    <script defer data-vendor="katex-auto-render" src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
     <script defer data-vendor="prism" src="/vendor/prism.min.js"></script>
     <script defer data-vendor="prism" src="/vendor/prism-clike.min.js"></script>
     <script defer data-vendor="prism" src="/vendor/prism-javascript.min.js"></script>
@@ -180,6 +179,49 @@
         // is still waiting for the same libraries.
         let booted = false;
         let attempts = 0;
+        let requiredFailed = false;
+
+        // A refused request never defines its global, so polling would wait for
+        // something that is not coming. The browser reports the failure at once, so
+        // the page says so at once instead of spending three waits on it.
+        const reportRequiredFailure = (src) => {
+            if (requiredFailed) return;
+            requiredFailed = true;
+            const contentEl = document.getElementById('post-content');
+            if (!contentEl || booted) return;
+            // Name the file that failed: "a required script" tells the visitor
+            // nothing, and the console already has the request.
+            const file = String(src || '').split('/').pop() || 'a required script';
+            contentEl.textContent = `The article could not be loaded: ${file} failed to load. `;
+            const reload = document.createElement('a');
+            reload.href = window.location.href;
+            reload.textContent = 'Reload the page';
+            contentEl.appendChild(reload);
+        };
+
+        ['marked', 'js-yaml'].forEach(name => {
+            const script = document.querySelector(`script[data-vendor="${name}"]`);
+            if (script) script.addEventListener('error', () => reportRequiredFailure(script.src));
+        });
+
+        // KaTeX is requested here rather than in the document's deferred queue: a
+        // stalled CDN request in that queue would hold back Prism and everything
+        // behind it. Core first, its auto-render extension second, and the page is
+        // complete without either.
+        const loadScript = (src, onLoad) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = onLoad || (() => {});
+            script.onerror = () => console.warn('KaTeX part failed to load:', src);
+            document.head.appendChild(script);
+        };
+        const loadKatex = () => {
+            if (window.katex || loadKatex.started) return;
+            loadKatex.started = true;
+            loadScript('https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js', () => {
+                loadScript('https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js');
+            });
+        };
 
         async function startPost() {
             // The wait is checked rather than left to throw, so a slow library shows
@@ -188,6 +230,7 @@
 
             if (!rendererReady) {
                 const contentEl = document.getElementById('post-content');
+                if (requiredFailed) return;
                 attempts += 1;
                 if (attempts >= 3) {
                     // Slow is recoverable, refused is not. After three waits say so
@@ -516,6 +559,7 @@
                         console.warn('Math rendering failed:', error);
                     }
                 };
+                loadKatex();
                 whenAvailable(mathReady).then(ready => {
                     if (!ready) {
                         retryUntil(mathReady, typeset);
