@@ -444,6 +444,10 @@ class CardRenderer {
                 card.appendChild(figure);
                 observeCardImage(figure);
             } else {
+                // No dimensions, so nothing tells us how tall the box will be: the
+                // browser's own lazy loading defers the request instead, and the
+                // card is never resized after insertion.
+                figure.setAttribute('loading', 'lazy');
                 figure.src = item.image;
                 card.appendChild(figure);
             }

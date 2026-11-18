@@ -147,7 +147,17 @@
                     'CAPTION', 'DETAILS', 'SUMMARY', 'DEL', 'INS', 'KBD'
                 ]);
                 const DROPPED_ATTRS = new Set(['srcset', 'sizes', 'style', 'poster', 'autoplay', 'loop', 'controls', 'formaction', 'action', 'background', 'ping']);
-                const SAFE_ATTR_URL = /^(?:https?:|mailto:|#|\/(?!\/)|\.{1,2}\/)/i;
+
+                // A url is kept if it is http(s), mailto, an anchor, or relative. A
+                // backslash is refused (the browser folds it into a slash, turning
+                // "/\host" into a protocol-relative url) and so is "//host" and any
+                // other scheme, javascript: and data: included.
+                function safeAttrUrl(value) {
+                    const url = String(value || '').trim();
+                    if (!url || url.includes('\\') || url.startsWith('//')) return false;
+                    if (/^(?:https?:|mailto:|#)/i.test(url)) return true;
+                    return !/^[a-z][a-z0-9+.-]*:/i.test(url);
+                }
 
                 function sanitizeTree(root) {
                     root.querySelectorAll('*').forEach(node => {
@@ -159,15 +169,24 @@
                             const name = attr.name.toLowerCase();
                             if (name.startsWith('on') || DROPPED_ATTRS.has(name)) {
                                 node.removeAttribute(attr.name);
-                            } else if (name === 'href' || name === 'src' || name === 'xlink:href') {
-                                const value = attr.value.trim();
-                                if (value.includes('\\') || !SAFE_ATTR_URL.test(value)) node.removeAttribute(attr.name);
+                                return;
+                            }
+                            if (name === 'src' && node.tagName.toUpperCase() === 'IMG') {
+                                // The url is moved here, in the tree, not in the html
+                                // string: an example that merely mentions src= keeps
+                                // its text, and one attribute at a time is handled.
+                                if (safeAttrUrl(attr.value)) node.setAttribute('data-src', attr.value.trim());
+                                node.removeAttribute('src');
+                                return;
+                            }
+                            if (name === 'href' || name === 'src' || name === 'xlink:href') {
+                                if (!safeAttrUrl(attr.value)) node.removeAttribute(attr.name);
                             }
                         });
                     });
                 }
 
-                const html = marked.parse(markdown).replace(/\ssrc=/gi, ' data-src=');
+                const html = marked.parse(markdown);
                 const parsed = new DOMParser().parseFromString(html, 'text/html');
                 sanitizeTree(parsed.body);
 
@@ -187,10 +206,13 @@
                 // no request can start from parsing.
                 contentEl.querySelectorAll('img[data-src]').forEach(img => {
                     const src = img.getAttribute('data-src');
-                    if (!src) return;
-                    if (img.getAttribute('width') && img.getAttribute('height')) {
-                        img.setAttribute('loading', 'lazy');
+                    // The attribute was already checked in the tree, and is checked
+                    // again here: promotion is the last moment before a request.
+                    if (!src || !safeAttrUrl(src)) {
+                        img.removeAttribute('data-src');
+                        return;
                     }
+                    img.setAttribute('loading', 'lazy');
                     img.removeAttribute('data-src');
                     img.src = src;
                 });

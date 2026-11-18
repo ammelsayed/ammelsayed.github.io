@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     } else if (path.includes('/projects')) {
         config = {
-            dataUrl: '/data/projects.yaml',
+            dataUrl: '/data/projects.json',
             listElementId: 'content-list',
             countElementId: 'content-count',
             searchInputSelector: '.search-input',
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     } else if (path.includes('/events')) {
         config = {
-            dataUrl: '/data/events.yaml',
+            dataUrl: '/data/events.json',
             listElementId: 'content-list',
             countElementId: 'content-count',
             searchInputSelector: '.search-input',
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     } else if (path.includes('/publications')) {
         config = {
-            dataUrl: '/data/publications.yaml',
+            dataUrl: '/data/publications.json',
             listElementId: 'content-list',
             countElementId: 'content-count',
             searchInputSelector: '.search-input',
