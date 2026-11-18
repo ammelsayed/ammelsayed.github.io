@@ -123,6 +123,13 @@
                 const contentEl = document.getElementById('post-content');
                 contentEl.innerHTML = marked.parse(markdown);
 
+                // Post images sit below the first screen: let the browser defer
+                // them instead of competing with the text for bandwidth.
+                contentEl.querySelectorAll('img').forEach(img => {
+                    img.loading = 'lazy';
+                    img.decoding = 'async';
+                });
+
                 // Process GitHub-style Alerts - FIXED for proper spacing!
                 processGitHubAlerts(contentEl);
                 

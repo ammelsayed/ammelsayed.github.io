@@ -179,7 +179,7 @@ class CardRenderer {
         if (item.author) {
             authorHtml = `
                 <div class="author_information">
-                    ${item.author.image ? `<img src="${item.author.image}" class="author_image">` : ''}
+                    ${item.author.image ? `<img src="${item.author.image}" class="author_image" decoding="async">` : ''}
                     <div class="AuthorName_and_Date">
                         <em> By <a href="${item.author.link || '#'}" target="_blank" rel="noopener">${highlight(item.author.name, term)}</a></em>
                     </div>
@@ -197,7 +197,7 @@ class CardRenderer {
                 <p class="abstract">${hDesc}</p>
                 ${item.link && item.link.includes('doi.org') ? `<p id="doi-link"><b>DOI:</b> <a href="${item.link}" target="_blank">${highlight(item.link, term)}</a></p>` : ''}
             </div>
-            ${item.image ? `<img src="${item.image}" class="publication-image">` : ''}
+            ${item.image ? `<img src="${item.image}" class="publication-image" loading="lazy" decoding="async">` : ''}
         `;
 
         if (item.link) {
