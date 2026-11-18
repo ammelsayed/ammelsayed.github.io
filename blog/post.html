@@ -586,8 +586,14 @@
                         });
                     } catch (error) {
                         // Formulas are decoration: a failure is reported here and the
-                        // article is left with its source text, not an error page.
+                        // article keeps its source text, with one line saying why.
                         console.warn('Math rendering failed:', error);
+                        if (!contentEl.querySelector('.math-unavailable')) {
+                            const note = document.createElement('p');
+                            note.className = 'math-unavailable';
+                            note.textContent = 'Math could not be rendered on this page.';
+                            contentEl.appendChild(note);
+                        }
                     }
                 };
                 loadKatex(typeset, () => {
@@ -613,7 +619,14 @@
                 (async () => {
                     try {
                         const { init } = await import('https://unpkg.com/@waline/client@v3/dist/waline.js');
-                        const katex = await import('https://unpkg.com/katex@v0.16/dist/katex.mjs');
+                        // Maths inside comments is optional: if that module fails, the
+                        // section still initialises and shows formula source as text.
+                        let katex = null;
+                        try {
+                            katex = await import('https://unpkg.com/katex@v0.16/dist/katex.mjs');
+                        } catch (error) {
+                            console.warn('Comment maths unavailable:', error);
+                        }
                         init({
                             el: '#waline',
                             serverURL: 'https://commentsystem-amber.vercel.app/',
@@ -627,11 +640,12 @@
                             wordLimit:300,
                             pageview: true,
                             path: `/blog/post/${postId}`,
-                            texRenderer: (blockMode, tex) =>
-                            katex.renderToString(tex, {
-                                displayMode: blockMode,
-                                throwOnError: false,
-                            }),
+                            texRenderer: katex
+                                ? (blockMode, tex) => katex.renderToString(tex, {
+                                    displayMode: blockMode,
+                                    throwOnError: false,
+                                })
+                                : (blockMode, tex) => tex,
                         });
                         clearTimeout(walineNote);
                     } catch (error) {
