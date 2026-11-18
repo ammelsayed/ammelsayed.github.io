@@ -606,27 +606,31 @@
                 });
 
                 // Waline and the KaTeX module for comment maths are loaded only here,
-                // after the article is on screen. No race and no abandonment: the note
-                // stays up until the section really initialises, and a failure says so
-                // rather than leaving an empty box.
+                // after the article is on screen. The note ends the loading state by
+                // itself, and a late module that finally arrives still initialises the
+                // section - nothing is cancelled or abandoned.
                 const placeholder = document.getElementById('waline');
                 const walineNote = setTimeout(() => {
                     if (placeholder && !placeholder.childElementCount) {
                         placeholder.textContent = 'Comments are taking a long time to load...';
                     }
                 }, 20000);
+                const walineLate = setTimeout(() => {
+                    if (placeholder && !placeholder.childElementCount) {
+                        placeholder.textContent = 'Comments could not be loaded. The rest of this post is unaffected.';
+                    }
+                }, 45000);
+
+                // Comment maths never gates the section: the module loads alongside
+                // Waline and is used if it is there when a comment needs it.
+                let commentKatex = null;
+                import('https://unpkg.com/katex@v0.16/dist/katex.mjs')
+                    .then(module => { commentKatex = module; })
+                    .catch(error => console.warn('Comment maths unavailable:', error));
 
                 (async () => {
                     try {
                         const { init } = await import('https://unpkg.com/@waline/client@v3/dist/waline.js');
-                        // Maths inside comments is optional: if that module fails, the
-                        // section still initialises and shows formula source as text.
-                        let katex = null;
-                        try {
-                            katex = await import('https://unpkg.com/katex@v0.16/dist/katex.mjs');
-                        } catch (error) {
-                            console.warn('Comment maths unavailable:', error);
-                        }
                         init({
                             el: '#waline',
                             serverURL: 'https://commentsystem-amber.vercel.app/',
@@ -640,16 +644,19 @@
                             wordLimit:300,
                             pageview: true,
                             path: `/blog/post/${postId}`,
-                            texRenderer: katex
-                                ? (blockMode, tex) => katex.renderToString(tex, {
+                            texRenderer: (blockMode, tex) => (commentKatex
+                                && typeof commentKatex.renderToString === 'function')
+                                ? commentKatex.renderToString(tex, {
                                     displayMode: blockMode,
                                     throwOnError: false,
                                 })
-                                : (blockMode, tex) => tex,
+                                : tex,
                         });
                         clearTimeout(walineNote);
+                        clearTimeout(walineLate);
                     } catch (error) {
                         clearTimeout(walineNote);
+                        clearTimeout(walineLate);
                         if (placeholder) {
                             placeholder.textContent = 'The comment section could not be loaded. You can still read and share this post.';
                         }
