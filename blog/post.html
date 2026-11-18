@@ -120,9 +120,102 @@
                     langPrefix: 'language-'
                 });
 
+                // Post images sit below the first screen. DOMParser returns an
+                // inert document: an <img> there never starts a request, whereas
+                // the children of a detached <div> begin loading the moment they
+                // get a src. Decorate them there, then import the nodes, which is
+                // the first moment they are visible to the loader at all: the url
+                // travels in data-src and is promoted only after insertion, so the
+                // hints are already on the element when the request can start.
                 const contentEl = document.getElementById('post-content');
-                contentEl.innerHTML = marked.parse(markdown);
+                // Image urls leave the html before any parser sees it: they are
+                // carried in data-src, so not even the parse can start a request.
+                // Raw HTML in Markdown is written by post authors on a static site,
+                // so anything executable in it would run with the visitor's own
+                // session: only the tags below survive, event handlers and
+                // resource-bearing attributes (srcset, style, poster) are removed,
+                // and every url must be http(s), mailto, an anchor or relative.
+                // Keeping SVG, video/audio or srcset "just in case" is how the
+                // exotic escapes appear (an SVG <animate> rewriting an href, a
+                // srcset entry that never went through the check), so they go.
+                const ALLOWED_TAGS = new Set([
+                    'P', 'BR', 'DIV', 'SPAN', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
+                    'UL', 'OL', 'LI', 'DL', 'DT', 'DD', 'STRONG', 'B', 'EM', 'I',
+                    'U', 'S', 'SMALL', 'SUP', 'SUB', 'MARK', 'CITE', 'ABBR', 'TIME',
+                    'CODE', 'PRE', 'BLOCKQUOTE', 'HR', 'A', 'IMG', 'FIGURE',
+                    'FIGCAPTION', 'TABLE', 'THEAD', 'TBODY', 'TR', 'TD', 'TH',
+                    'CAPTION', 'DETAILS', 'SUMMARY', 'DEL', 'INS', 'KBD'
+                ]);
+                const DROPPED_ATTRS = new Set(['srcset', 'sizes', 'style', 'poster', 'autoplay', 'loop', 'controls', 'formaction', 'action', 'background', 'ping']);
 
+                // A url is kept if it is http(s), mailto, an anchor, or relative. A
+                // backslash is refused (the browser folds it into a slash, turning
+                // "/\host" into a protocol-relative url) and so is "//host" and any
+                // other scheme, javascript: and data: included.
+                function safeAttrUrl(value) {
+                    const url = String(value || '').trim();
+                    if (!url || url.includes('\\') || url.startsWith('//')) return false;
+                    if (/^(?:https?:|mailto:|#)/i.test(url)) return true;
+                    return !/^[a-z][a-z0-9+.-]*:/i.test(url);
+                }
+
+                function sanitizeTree(root) {
+                    root.querySelectorAll('*').forEach(node => {
+                        if (!ALLOWED_TAGS.has(node.tagName.toUpperCase())) {
+                            node.remove();
+                            return;
+                        }
+                        Array.from(node.attributes).forEach(attr => {
+                            const name = attr.name.toLowerCase();
+                            if (name.startsWith('on') || DROPPED_ATTRS.has(name)) {
+                                node.removeAttribute(attr.name);
+                                return;
+                            }
+                            if (name === 'src' && node.tagName.toUpperCase() === 'IMG') {
+                                // The url is moved here, in the tree, not in the html
+                                // string: an example that merely mentions src= keeps
+                                // its text, and one attribute at a time is handled.
+                                if (safeAttrUrl(attr.value)) node.setAttribute('data-src', attr.value.trim());
+                                node.removeAttribute('src');
+                                return;
+                            }
+                            if (name === 'href' || name === 'src' || name === 'xlink:href') {
+                                if (!safeAttrUrl(attr.value)) node.removeAttribute(attr.name);
+                            }
+                        });
+                    });
+                }
+
+                const html = marked.parse(markdown);
+                const parsed = new DOMParser().parseFromString(html, 'text/html');
+                sanitizeTree(parsed.body);
+
+                parsed.querySelectorAll('img').forEach(img => {
+                    img.setAttribute('decoding', 'async');
+                });
+
+                contentEl.replaceChildren(
+                    ...Array.from(parsed.body.childNodes, node => document.importNode(node, true))
+                );
+
+                // An image whose size the markup declares keeps a reserved box, so it
+                // gets the lazy hint and nothing can move when it arrives. One without
+                // dimensions is not deferred at all: a deferred unsized image is what
+                // makes a reader's position jump, so it loads the way it did before
+                // this change. The urls are handed over only here, after insertion, so
+                // no request can start from parsing.
+                contentEl.querySelectorAll('img[data-src]').forEach(img => {
+                    const src = img.getAttribute('data-src');
+                    // The attribute was already checked in the tree, and is checked
+                    // again here: promotion is the last moment before a request.
+                    if (!src || !safeAttrUrl(src)) {
+                        img.removeAttribute('data-src');
+                        return;
+                    }
+                    img.setAttribute('loading', 'lazy');
+                    img.removeAttribute('data-src');
+                    img.src = src;
+                });
                 // Process GitHub-style Alerts - FIXED for proper spacing!
                 processGitHubAlerts(contentEl);
                 
@@ -206,7 +299,9 @@
                 const firstImg = contentEl.querySelector('img');
                 let imageUrl = '';
                 if (firstImg) {
-                    imageUrl = firstImg.src;
+                    // The url may still be in data-src before the promotion loop
+                    // has run; either way the share metadata gets a real url.
+                    imageUrl = firstImg.getAttribute('data-src') || firstImg.src;
                     document.querySelector('meta[property="og:image"]').content = imageUrl;
                 }
 
