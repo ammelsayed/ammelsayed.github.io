@@ -140,6 +140,9 @@
             contentEl.appendChild(reload);
         };
 
+        // A 200 response that is not the library leaves the page with nothing to
+        // render, so each required script is checked for its global once it loads.
+        const REQUIRED_GLOBALS = { marked: 'marked', 'js-yaml': 'jsyaml' };
         ['marked', 'js-yaml'].forEach(name => {
             const script = document.querySelector(`script[data-vendor="${name}"]`);
             if (!script) return;
@@ -153,6 +156,10 @@
             script.addEventListener('load', () => {
                 delete script.dataset.failed;
                 failedRequired.delete(requiredFile(script.src));
+                if (!window[REQUIRED_GLOBALS[name]]) {
+                    reportRequiredFailure(script.src);
+                    return;
+                }
                 if (booted || failedRequired.size) return;
                 startPost();
             });
@@ -200,14 +207,21 @@
             'https://unpkg.com/katex@0.16.8/dist/'
         ];
         const addKatexStyles = (base) => {
-            if (document.querySelector('link[data-katex-styles]')) return;
+            const existing = document.querySelector('link[data-katex-styles]');
+            if (existing) return;
             const link = document.createElement('link');
             link.rel = 'stylesheet';
             link.setAttribute('data-katex-styles', '1');
             link.href = `${base}katex.min.css`;
-            // Styles are cosmetic: if this fails the formulas still typeset, and the
-            // console says why they look plain.
-            link.onerror = () => console.warn('KaTeX styles could not be loaded; math is shown unstyled.');
+            // Styles are cosmetic: if the host refuses, the other host is tried once, and
+            // if that also fails the formulas still typeset, just without KaTeX's own
+            // styling - the console line says so.
+            link.onerror = () => {
+                const fallback = KATEX_HOSTS[KATEX_HOSTS.indexOf(base) + 1];
+                link.remove();
+                if (fallback) addKatexStyles(fallback);
+                else console.warn('KaTeX styles could not be loaded; math is shown unstyled.');
+            };
             document.head.appendChild(link);
         };
         const loadKatex = (onReady, onFail) => {
@@ -662,6 +676,18 @@
                             wordLimit:300,
                             pageview: true,
                             path: `/blog/post/${postId}`,
+                            // Comment formulas use the KaTeX this page already has, if
+                            // the article loaded it; there is no separate request and no
+                            // second copy of the library. A post whose comments contain
+                            // maths but whose article does not shows the source.
+                            texRenderer: (blockMode, tex) => (
+                                window.katex && typeof window.katex.renderToString === 'function'
+                            )
+                                ? window.katex.renderToString(tex, {
+                                    displayMode: blockMode,
+                                    throwOnError: false,
+                                })
+                                : tex,
                         });
                         clearTimeout(walineNote);
                         clearTimeout(walineLate);
