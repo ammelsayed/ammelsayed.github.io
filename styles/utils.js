@@ -197,7 +197,7 @@ class CardRenderer {
                 <p class="abstract">${hDesc}</p>
                 ${item.link && item.link.includes('doi.org') ? `<p id="doi-link"><b>DOI:</b> <a href="${item.link}" target="_blank">${highlight(item.link, term)}</a></p>` : ''}
             </div>
-            ${item.image ? `<img src="${item.image}" class="publication-image" loading="lazy" decoding="async">` : ''}
+            ${item.image ? `<img src="${item.image}" class="publication-image" loading="lazy" decoding="async"${item.image_width && item.image_height ? ` width="${item.image_width}" height="${item.image_height}"` : ''}>` : ''}
         `;
 
         if (item.link) {

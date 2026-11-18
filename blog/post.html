@@ -120,15 +120,18 @@
                     langPrefix: 'language-'
                 });
 
+                // Post images sit below the first screen. Decorate the parsed
+                // markup while it is still detached from the document, so the
+                // browser cannot start an eager fetch for an image before
+                // loading="lazy" is in place.
                 const contentEl = document.getElementById('post-content');
-                contentEl.innerHTML = marked.parse(markdown);
-
-                // Post images sit below the first screen: let the browser defer
-                // them instead of competing with the text for bandwidth.
-                contentEl.querySelectorAll('img').forEach(img => {
+                const parsed = document.createElement('div');
+                parsed.innerHTML = marked.parse(markdown);
+                parsed.querySelectorAll('img').forEach(img => {
                     img.loading = 'lazy';
                     img.decoding = 'async';
                 });
+                contentEl.replaceChildren(...parsed.childNodes);
 
                 // Process GitHub-style Alerts - FIXED for proper spacing!
                 processGitHubAlerts(contentEl);
