@@ -208,7 +208,7 @@
             'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/',
             'https://unpkg.com/katex@0.16.8/dist/'
         ];
-        const loadKatex = (onReady) => {
+        const loadKatex = (onReady, onFail) => {
             if (typeof window.renderMathInElement === 'function' && window.katex) {
                 onReady();
                 return;
@@ -218,23 +218,30 @@
 
             // A stalled request that fails over and then arrives would otherwise
             // typeset twice; the pass runs once, whichever host delivers first.
-            let typeset = false;
-            const once = () => {
-                if (typeset) return;
-                typeset = true;
+            let done = false;
+            const finish = () => {
+                if (done) return;
+                done = true;
                 onReady();
+            };
+            const giveUp = () => {
+                if (done) return;
+                done = true;
+                if (onFail) onFail();
             };
             const nextHost = (base) => {
                 const index = KATEX_HOSTS.indexOf(base);
                 return KATEX_HOSTS[index + 1];
             };
-            const extension = (base) => loadScript(`${base}contrib/auto-render.min.js`, once, () => {
+            const extension = (base) => loadScript(`${base}contrib/auto-render.min.js`, finish, () => {
                 const fallback = nextHost(base);
                 if (fallback) extension(fallback);
+                else giveUp();
             });
             const core = (base) => loadScript(`${base}katex.min.js`, () => extension(base), () => {
                 const fallback = nextHost(base);
                 if (fallback) core(fallback);
+                else giveUp();
             });
             if (window.katex) extension(KATEX_HOSTS[0]);
             else core(KATEX_HOSTS[0]);
@@ -545,8 +552,12 @@
                 };
                 // The share bundle is requested on demand and applied in its own
                 // `load` callback, so a slow or very late bundle is still used and
-                // nothing sits in the deferred queue in front of Prism.
-                loadScript('/vendor/social-share/social-share.min.js', showShare);
+                // nothing sits in the deferred queue in front of Prism. If it never
+                // arrives, the space says so instead of staying blank.
+                loadScript('/vendor/social-share/social-share.min.js', showShare, () => {
+                    const box = document.getElementById('social-share-container');
+                    if (box) box.textContent = 'Sharing is unavailable right now.';
+                });
 
                 // KaTeX ships as two scripts: the core (which defines window.katex)
                 // and the auto-render extension. `loadKatex` chains them and calls
@@ -566,7 +577,14 @@
                         console.warn('Math rendering failed:', error);
                     }
                 };
-                loadKatex(typeset);
+                loadKatex(typeset, () => {
+                    // Both hosts refused: say so once, at the end of the article, so a
+                    // reader is not left wondering about the raw $...$ text.
+                    const note = document.createElement('p');
+                    note.className = 'math-unavailable';
+                    note.textContent = 'Math could not be rendered on this page.';
+                    contentEl.appendChild(note);
+                });
 
                 // Waline and the KaTeX module for comment maths are loaded only here,
                 // after the article is on screen. No race and no abandonment: the note
@@ -627,6 +645,12 @@
         // prism-cpp builds on prism-c, which is loaded before it.
         let highlightTimer = 0;
         const highlightCode = () => {
+            // A scheduled pass and an immediate one must not both run: cancel the
+            // pending timer first, so the article is processed once.
+            if (highlightTimer) {
+                clearTimeout(highlightTimer);
+                highlightTimer = 0;
+            }
             const contentEl = document.getElementById('post-content');
             if (contentEl && window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
                 Prism.highlightAllUnder(contentEl);
