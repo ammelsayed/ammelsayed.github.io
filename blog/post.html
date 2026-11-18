@@ -550,6 +550,10 @@
                         console.warn('The share bundle did not define socialShare; buttons stay hidden.');
                         return;
                     }
+                    // A bundle that failed over and then arrived leaves the "unavailable"
+                    // line behind; clear it before the buttons are built.
+                    const box = document.getElementById('social-share-container');
+                    if (box) box.textContent = '';
                     socialShare('#social-share-container', {
                         url: window.location.href,
                         title: titleText,
@@ -571,6 +575,14 @@
                 // KaTeX ships as two scripts: the core (which defines window.katex)
                 // and the auto-render extension. `loadKatex` chains them and calls
                 // back once both are in, which is also the only moment a pass can run.
+                // Posts without formulas never request it at all, and neither the
+                // download nor a failure notice appears for them.
+                const MATH_PATTERN = /\$\$[\s\S]+?\$\$|\$[^$\n]+?\$/;
+                const hasMath = (el) => !!el && MATH_PATTERN.test(el.textContent || '');
+                const MATH_DELIMITERS = [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ];
                 const typeset = () => {
                     // A host that arrives after the notice was shown still wins: the
                     // notice comes down and the formulas are typeset.
@@ -578,10 +590,7 @@
                     if (notice) notice.remove();
                     try {
                         renderMathInElement(contentEl, {
-                            delimiters: [
-                                {left: '$$', right: '$$', display: true},
-                                {left: '$', right: '$', display: false}
-                            ],
+                            delimiters: MATH_DELIMITERS,
                             throwOnError: false
                         });
                     } catch (error) {
@@ -596,14 +605,16 @@
                         }
                     }
                 };
-                loadKatex(typeset, () => {
-                    // Both hosts refused: say so once, at the end of the article, so a
-                    // reader is not left wondering about the raw $...$ text.
-                    const note = document.createElement('p');
-                    note.className = 'math-unavailable';
-                    note.textContent = 'Math could not be rendered on this page.';
-                    contentEl.appendChild(note);
-                });
+                if (hasMath(contentEl)) {
+                    loadKatex(typeset, () => {
+                        // Both hosts refused: say so once, at the end of the article, so a
+                        // reader is not left wondering about the raw $...$ text.
+                        const note = document.createElement('p');
+                        note.className = 'math-unavailable';
+                        note.textContent = 'Math could not be rendered on this page.';
+                        contentEl.appendChild(note);
+                    });
+                }
 
                 // Waline and the KaTeX module for comment maths are loaded only here,
                 // after the article is on screen. The note ends the loading state by
@@ -622,10 +633,23 @@
                 }, 45000);
 
                 // Comment maths never gates the section: the module loads alongside
-                // Waline and is used if it is there when a comment needs it.
+                // Waline and is used if it is there when a comment needs it. A comment
+                // that lands first shows its source; once the module arrives, the same
+                // extension the article uses typesets what is already on screen.
                 let commentKatex = null;
                 import('https://unpkg.com/katex@v0.16/dist/katex.mjs')
-                    .then(module => { commentKatex = module; })
+                    .then(module => {
+                        commentKatex = module;
+                        if (!hasMath(placeholder)) return;
+                        loadKatex(() => {
+                            if (typeof window.renderMathInElement === 'function') {
+                                renderMathInElement(placeholder, {
+                                    delimiters: MATH_DELIMITERS,
+                                    throwOnError: false
+                                });
+                            }
+                        });
+                    })
                     .catch(error => console.warn('Comment maths unavailable:', error));
 
                 (async () => {
