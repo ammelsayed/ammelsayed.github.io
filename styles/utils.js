@@ -50,6 +50,80 @@ window.loadStructuredData = loadStructuredData;
 window.loadBlogPosts = loadBlogPosts;
 window.parseFrontMatter = parseFrontMatter;
 
+// Text whose matches are wrapped in <span class="highlight">. It is built as
+// nodes rather than as a string, so neither the search term nor the content is
+// ever parsed as markup.
+function appendHighlighted(target, text, term) {
+    const value = text == null ? '' : String(text);
+    const needle = term ? String(term) : '';
+
+    if (!needle) {
+        target.appendChild(document.createTextNode(value));
+        return;
+    }
+
+    const lowerValue = value.toLowerCase();
+    const lowerNeedle = needle.toLowerCase();
+    let from = 0;
+    let at = lowerValue.indexOf(lowerNeedle);
+
+    while (at !== -1) {
+        if (at > from) target.appendChild(document.createTextNode(value.slice(from, at)));
+        const mark = document.createElement('span');
+        mark.className = 'highlight';
+        mark.textContent = value.slice(at, at + needle.length);
+        target.appendChild(mark);
+        from = at + needle.length;
+        at = lowerValue.indexOf(lowerNeedle, from);
+    }
+
+    if (from < value.length) target.appendChild(document.createTextNode(value.slice(from)));
+}
+
+// Descriptions in data/*.yaml are authored HTML (press links, bold labels).
+// They are parsed and copied through a small allow-list instead of being handed
+// to innerHTML, and text is highlighted after parsing so a search term can never
+// land inside a tag or an attribute.
+const RICH_TEXT_TAGS = new Set(['A', 'B', 'STRONG', 'EM', 'I', 'BR', 'SPAN', 'CODE', 'U', 'SMALL', 'SUP', 'SUB']);
+const SAFE_URL = /^(https?:|mailto:|#|\/)/i;
+
+function copySanitizedChildren(source, target, term) {
+    source.childNodes.forEach(child => {
+        if (child.nodeType === Node.TEXT_NODE) {
+            appendHighlighted(target, child.nodeValue, term);
+            return;
+        }
+        if (child.nodeType !== Node.ELEMENT_NODE) return;
+
+        const tag = child.tagName.toUpperCase();
+        if (!RICH_TEXT_TAGS.has(tag)) {
+            // Unknown wrapper: keep its text, drop the element itself.
+            copySanitizedChildren(child, target, term);
+            return;
+        }
+
+        const el = document.createElement(tag.toLowerCase());
+        if (tag === 'A') {
+            const href = child.getAttribute('href') || '';
+            if (!SAFE_URL.test(href)) return;
+            el.setAttribute('href', href);
+            const rel = child.getAttribute('rel');
+            el.setAttribute('rel', rel || 'noopener');
+            const targetAttr = child.getAttribute('target');
+            if (targetAttr) el.setAttribute('target', targetAttr);
+        }
+
+        copySanitizedChildren(child, el, term);
+        target.appendChild(el);
+    });
+}
+
+function appendRichText(target, html, term) {
+    if (html == null || html === '') return;
+    const parsed = new DOMParser().parseFromString(String(html), 'text/html');
+    copySanitizedChildren(parsed.body, target, term);
+}
+
 class CardRenderer {
     constructor(options) {
         this.dataUrl = options.dataUrl;
@@ -83,14 +157,29 @@ class CardRenderer {
         } catch (error) {
             console.error(`Error loading data from ${this.dataUrl}:`, error);
             const listEl = document.getElementById(this.listElementId);
-            if (listEl) listEl.innerHTML = `<p style="color:red">Failed to load content: ${error.message}</p>`;
+            if (listEl) {
+                const errorP = document.createElement('p');
+                errorP.style.color = 'red';
+                errorP.textContent = `Failed to load content: ${error.message}`;
+                listEl.replaceChildren(errorP);
+            }
         }
     }
 
     updateCounts(current, total) {
         const countEl = document.getElementById(this.countElementId);
         if (countEl) {
-            countEl.innerHTML = `<i>Showing <b>${current}</b> out of <b>${total}</b> ${this.itemTypeLabel}(s).</i>`;
+            const summary = document.createElement('i');
+            summary.appendChild(document.createTextNode('Showing '));
+            const currentB = document.createElement('b');
+            currentB.textContent = current;
+            summary.appendChild(currentB);
+            summary.appendChild(document.createTextNode(' out of '));
+            const totalB = document.createElement('b');
+            totalB.textContent = total;
+            summary.appendChild(totalB);
+            summary.appendChild(document.createTextNode(` ${this.itemTypeLabel}(s).`));
+            countEl.replaceChildren(summary);
         }
     }
 
@@ -98,7 +187,7 @@ class CardRenderer {
         const listEl = document.getElementById(this.listElementId);
         if (!listEl) return;
 
-        listEl.innerHTML = '';
+        listEl.replaceChildren();
         this.updateCounts(data.length, this.allData.length);
 
         data.forEach(item => {
@@ -157,48 +246,114 @@ class CardRenderer {
     /**
      * Default rendering logic for the Unified Content Schema.
      */
-    defaultRenderCard(item, term, highlight) {
+    defaultRenderCard(item, term) {
         const card = document.createElement('div');
         card.className = 'publication'; // Using existing class for styling consistency
         if (item.link) card.style.cursor = 'pointer';
 
-        const hTitle = highlight(item.title, term);
-        const hDesc = highlight(item.description, term);
-        const hBadge = item.badge ? highlight(item.badge, term) : '';
-        
-        // Handle meta fields
-        let metaHtml = '';
-        if (item.meta && Array.isArray(item.meta)) {
-            metaHtml = item.meta.map(m => `
-                <span>${m.icon || ''} <em>${highlight(m.text, term)}</em></span>
-            `).join(' ');
+        const content = document.createElement('div');
+        content.className = 'content';
+        card.appendChild(content);
+
+        if (item.badge) {
+            const badgeP = document.createElement('p');
+            badgeP.className = 'badge-container';
+            const badgeEm = document.createElement('em');
+            const badgeB = document.createElement('b');
+            appendHighlighted(badgeB, item.badge, term);
+            badgeEm.appendChild(badgeB);
+            badgeP.appendChild(badgeEm);
+            content.appendChild(badgeP);
         }
 
-        // Handle author info (for blogs)
-        let authorHtml = '';
+        const titleEl = document.createElement('h2');
+        appendHighlighted(titleEl, item.title, term);
+        content.appendChild(titleEl);
+
+        // Author info (for blogs)
         if (item.author) {
-            authorHtml = `
-                <div class="author_information">
-                    ${item.author.image ? `<img src="${item.author.image}" class="author_image" decoding="async">` : ''}
-                    <div class="AuthorName_and_Date">
-                        <em> By <a href="${item.author.link || '#'}" target="_blank" rel="noopener">${highlight(item.author.name, term)}</a></em>
-                    </div>
-                </div>
-            `;
+            const authorBox = document.createElement('div');
+            authorBox.className = 'author_information';
+
+            if (item.author.image) {
+                const avatar = document.createElement('img');
+                avatar.src = item.author.image;
+                avatar.className = 'author_image';
+                avatar.setAttribute('decoding', 'async');
+                avatar.alt = item.author.name || '';
+                authorBox.appendChild(avatar);
+            }
+
+            const nameBox = document.createElement('div');
+            nameBox.className = 'AuthorName_and_Date';
+            const nameEm = document.createElement('em');
+            nameEm.appendChild(document.createTextNode(' By '));
+            const nameLink = document.createElement('a');
+            nameLink.href = item.author.link || '#';
+            nameLink.target = '_blank';
+            nameLink.rel = 'noopener';
+            appendHighlighted(nameLink, item.author.name, term);
+            nameEm.appendChild(nameLink);
+            nameBox.appendChild(nameEm);
+            authorBox.appendChild(nameBox);
+            content.appendChild(authorBox);
         }
 
-        card.innerHTML = `
-            <div class="content">
-                ${hBadge ? `<p class="badge-container"><em><b>${hBadge}</b></em></p>` : ''}
-                <h2>${hTitle}</h2>
-                ${authorHtml}
-                ${metaHtml ? `<p>${metaHtml}</p>` : ''}
-                <hr style="margin: 10px 0; border: none; border-top: 1px solid var(--border-color);">
-                <p class="abstract">${hDesc}</p>
-                ${item.link && item.link.includes('doi.org') ? `<p id="doi-link"><b>DOI:</b> <a href="${item.link}" target="_blank">${highlight(item.link, term)}</a></p>` : ''}
-            </div>
-            ${item.image ? `<img src="${item.image}" class="publication-image" loading="lazy" decoding="async"${item.image_width && item.image_height ? ` width="${item.image_width}" height="${item.image_height}"` : ''}>` : ''}
-        `;
+        if (item.meta && Array.isArray(item.meta) && item.meta.length > 0) {
+            const metaP = document.createElement('p');
+            item.meta.forEach((entry, index) => {
+                const span = document.createElement('span');
+                if (entry.icon) span.appendChild(document.createTextNode(`${entry.icon} `));
+                const metaEm = document.createElement('em');
+                appendHighlighted(metaEm, entry.text, term);
+                span.appendChild(metaEm);
+                if (index > 0) metaP.appendChild(document.createTextNode(' '));
+                metaP.appendChild(span);
+            });
+            content.appendChild(metaP);
+        }
+
+        const divider = document.createElement('hr');
+        divider.style.margin = '10px 0';
+        divider.style.border = 'none';
+        divider.style.borderTop = '1px solid var(--border-color)';
+        content.appendChild(divider);
+
+        const abstractP = document.createElement('p');
+        abstractP.className = 'abstract';
+        appendRichText(abstractP, item.description, term);
+        content.appendChild(abstractP);
+
+        if (item.link && item.link.includes('doi.org')) {
+            const doiP = document.createElement('p');
+            doiP.id = 'doi-link';
+            const doiLabel = document.createElement('b');
+            doiLabel.textContent = 'DOI:';
+            doiP.appendChild(doiLabel);
+            doiP.appendChild(document.createTextNode(' '));
+            const doiLink = document.createElement('a');
+            doiLink.href = item.link;
+            doiLink.target = '_blank';
+            doiLink.rel = 'noopener';
+            appendHighlighted(doiLink, item.link, term);
+            doiP.appendChild(doiLink);
+            content.appendChild(doiP);
+        }
+
+        // The card image sits below the fold of a list page: defer it, and let
+        // the intrinsic dimensions reserve its space when the data provides them.
+        if (item.image) {
+            const figure = document.createElement('img');
+            figure.src = item.image;
+            figure.className = 'publication-image';
+            figure.setAttribute('loading', 'lazy');
+            figure.setAttribute('decoding', 'async');
+            if (item.image_width && item.image_height) {
+                figure.width = item.image_width;
+                figure.height = item.image_height;
+            }
+            card.appendChild(figure);
+        }
 
         if (item.link) {
             card.addEventListener('dblclick', () => {
