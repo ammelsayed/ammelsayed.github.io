@@ -8,15 +8,6 @@
   }
 })();
 
-// Inject Font Awesome script once per page (avoids duplicates)
-(function injectFontAwesome() {
-    if (document.querySelector('script[src*="kit.fontawesome.com"]')) return; // already loaded
-    const script = document.createElement('script');
-    script.src = 'https://kit.fontawesome.com/443e57cbff.js';
-    script.crossOrigin = 'anonymous';
-    document.head.appendChild(script);
-})();
-
 // Upload the headers 
 class MyHeader extends HTMLElement {
     connectedCallback() {
