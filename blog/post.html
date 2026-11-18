@@ -20,23 +20,39 @@
     <link rel="stylesheet" href="/styles/footer.css">
     <link rel="stylesheet" href="/styles/blog-post.css">
 
-    <!-- Markdown & Highlighting Styles (self-hosted, see /vendor) -->
-    <link rel="stylesheet" href="/vendor/prism-tomorrow.min.css">
+    <!-- Markdown & Highlighting Styles (self-hosted, see /vendor). These three
+         style optional features - code colours, comments, share buttons - and
+         none of them is needed for the first paint, so they are fetched as print
+         CSS and promoted once they land. They are same-origin now, but a slow
+         request still should not hold the article text back. -->
+    <link rel="stylesheet" href="/vendor/prism-tomorrow.min.css" media="print" onload="this.media='all'">
 
     <!-- Comments section (styles only; the client itself loads on demand) -->
-    <link rel="stylesheet" href="/vendor/waline.css">
+    <link rel="stylesheet" href="/vendor/waline.css" media="print" onload="this.media='all'">
 
     <!-- Overtrue Share.js - professional sharing library with WeChat/QQ support -->
-    <link rel="stylesheet" href="/vendor/social-share/share.min.css">
+    <link rel="stylesheet" href="/vendor/social-share/share.min.css" media="print" onload="this.media='all'">
 
     <!-- KaTeX styles. Its webfont pack is too large to vendor, so KaTeX stays
          on jsDelivr; only one copy is loaded now. It is also no longer
          render-blocking: loaded as print CSS and promoted to screen once it
          arrives, so a slow CDN cannot hold back the first paint. The formulas
          are typeset later anyway, and the noscript copy covers no-JS readers. -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+    <link rel="stylesheet" id="katex-css" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
           media="print" onload="this.media='all'"
           onerror="this.onerror=null;this.href='https://unpkg.com/katex@0.16.8/dist/katex.min.css';this.media='all'">
+    <script>
+        // A request that stalls fires neither `load` nor `error`, so the print
+        // stylesheet would never be promoted and formulas would render unstyled.
+        // After five seconds the fallback host is used instead; the primary href
+        // is gone by then, so a late answer cannot override it.
+        setTimeout(function () {
+            var link = document.getElementById('katex-css');
+            if (!link || link.media === 'all') return;
+            link.href = 'https://unpkg.com/katex@0.16.8/dist/katex.min.css';
+            link.media = 'all';
+        }, 5000);
+    </script>
     <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"></noscript>
 </head>
 <body>
@@ -83,8 +99,8 @@
          execute in document order, so the same-origin ones are declared before
          the two KaTeX scripts from jsDelivr: a slow CDN can no longer hold back
          the share buttons or the syntax highlighting behind it. -->
-    <script defer src="/vendor/marked.min.js"></script>
-    <script defer src="/vendor/js-yaml.min.js"></script>
+    <script defer data-vendor="marked" src="/vendor/marked.min.js"></script>
+    <script defer data-vendor="js-yaml" src="/vendor/js-yaml.min.js"></script>
     <script defer src="/vendor/prism.min.js"></script>
     <script defer src="/vendor/prism-clike.min.js"></script>
     <script defer src="/vendor/prism-javascript.min.js"></script>
@@ -151,46 +167,69 @@
             }, everyMs);
         }
 
-        // `parseFrontMatter` brings its own yaml parser: `js-yaml` is vendored and
-        // deferred here, but if that copy fails to load the module still has its own
-        // fallback, so the article must not be gated on `jsyaml` being present.
-        const libsReady = () => window.marked && typeof window.parseFrontMatter === 'function';
+        // marked is the only thing the article cannot do without: the front matter
+        // split in `splitFrontMatter` needs no CDN, and every other feature waits on
+        // its own library further down.
+        const libsReady = () => window.marked && typeof window.marked.parse === 'function';
 
-        // The vendored `js-yaml` is a deferred script too, so it is given a short
-        // chance to arrive before the front matter is parsed: otherwise
-        // `parseFrontMatter` pulls the same library from jsDelivr mid-render, which
-        // is the round trip this change removes. A miss is not fatal - the module
-        // carries its own fallback - so the wait is best effort and short.
+        // The vendored `js-yaml` is a deferred script too, so give it a moment: with
+        // it there, metadata (title, date, share text) is complete; without it, the
+        // `key: value` fallback still fills the common fields. Never fatal.
         const settleYaml = () => whenAvailable(() => window.jsyaml, 3000);
+
+        // A failed request is not the same thing as a slow one: a 404 or a dropped
+        // connection leaves the global undefined for ever. Re-appending the script
+        // with a different query forces a fresh request instead of a cached failure.
+        const retryScripts = (names) => {
+            names.forEach(name => {
+                const stale = document.querySelector(`script[data-vendor="${name}"]`);
+                if (!stale) return;
+                const fresh = stale.cloneNode();
+                fresh.src = `${stale.src.split('?')[0]}?retry=${Date.now()}`;
+                fresh.dataset.vendor = name;
+                document.head.appendChild(fresh);
+            });
+        };
 
         // Guard against a retry starting a second render while an earlier attempt
         // is still waiting for the same libraries.
         let booted = false;
+        let attempts = 0;
 
         async function startPost() {
-            // marked renders the article, js-yaml parses its front matter, and
-            // parseFrontMatter comes from the module that owns both. Without these
-            // there is nothing to show, so the wait is checked rather than leaving
-            // the render to throw - and it stays recoverable: a library that lands
-            // after the first wait is still used, so the article is delayed rather
-            // than lost.
+            // marked renders the article; without it there is nothing to show. The
+            // wait is checked rather than left to throw, and it stays recoverable: a
+            // library that lands after the first wait is still used, so the article
+            // is delayed rather than lost.
             const rendererReady = await whenAvailable(libsReady);
 
             if (!rendererReady) {
                 const contentEl = document.getElementById('post-content');
-                contentEl.textContent = 'Still loading the libraries this page needs...';
+                attempts += 1;
+                if (attempts === 2) {
+                    // One cache-busting refetch of the scripts that must exist.
+                    retryScripts(['marked', 'js-yaml']);
+                    contentEl.textContent = 'Reconnecting to the renderer...';
+                } else if (attempts >= 4) {
+                    // Slow is recoverable; refused is not. Say so instead of leaving
+                    // the visitor with a loading line that never changes.
+                    contentEl.textContent = 'The article could not be loaded because a required script failed. ';
+                    const reload = document.createElement('a');
+                    reload.href = window.location.href;
+                    reload.textContent = 'Reload the page';
+                    contentEl.appendChild(reload);
+                } else {
+                    contentEl.textContent = 'Still loading the libraries this page needs...';
+                }
                 retryUntil(libsReady, startPost);
                 return;
             }
 
-            // Each retry starts its own attempt, so several can be waiting on the
-            // same libraries at once. Only the first one through renders: the rest
-            // return here instead of fetching the post again and re-running the
-            // whole initialisation.
+            // Several attempts can be waiting on the same libraries at once; only
+            // the first one through renders, so the post is fetched and wired once.
             if (booted) return;
             booted = true;
 
-            await settleYaml();
             const urlParams = new URLSearchParams(window.location.search);
             let postId = urlParams.get('id');
             if (!postId) {
@@ -202,30 +241,39 @@
                 const mdRes = await fetch(`/blog/${encodeURIComponent(postId)}.md?t=${Date.now()}`);
                 if (!mdRes.ok) throw new Error('Post not found');
                 const raw = await mdRes.text();
+                // Give the vendored yaml a moment now that the body is in hand, so
+                // the wait overlaps the fetch rather than delaying it.
+                await settleYaml();
                 // The front matter is metadata; the body is the article. If its
                 // parser has to be fetched from the CDN and that request stalls, the
                 // article is shown with default metadata instead of never shown: the
                 // wait is bounded and its failure handled here, not left pending.
-                let frontMatter;
-                try {
-                    const parsePromise = window.parseFrontMatter(raw);
-                    // The deadline usually wins this race, and the losing promise
-                    // still gets a handler so a late rejection is never reported as
-                    // an unhandled one.
-                    parsePromise.catch(() => {});
-                    frontMatter = await Promise.race([
-                        parsePromise,
-                        new Promise((resolve, reject) => {
-                            setTimeout(() => reject(new Error('front matter parser timed out')), 8000);
-                        })
-                    ]);
-                } catch (error) {
-                    console.warn('Front matter unavailable, showing the body only:', error);
-                    // Only a line that is exactly `---` closes the block, so a `---`
-                    // inside a metadata value cannot cut it short; when no closing
-                    // line exists the text is left as it is.
-                    frontMatter = { data: {}, content: raw.replace(/^---\r?\n[\s\S]*?\n---(?:\r?\n|$)/, '') };
-                }
+                // Front matter is split here, not by `parseFrontMatter`: that helper
+                // calls `ensureYamlParser`, whose failure path is an injected CDN
+                // script - the one dependency this change is meant to remove, and
+                // the reason a timeout could previously blank the article. The
+                // delimiter is line-anchored and whitespace-tolerant; if no parser
+                // has arrived, the simple `key: value` pairs still fill the title
+                // and date, so metadata degrades instead of the article.
+                const splitFrontMatter = (text) => {
+                    const match = text.match(/^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)([\s\S]*)$/);
+                    if (!match) return { data: {}, content: text };
+                    let data = {};
+                    if (window.jsyaml && typeof window.jsyaml.load === 'function') {
+                        try {
+                            data = window.jsyaml.load(match[1]) || {};
+                        } catch (error) {
+                            console.warn('Front matter is not valid YAML:', error);
+                        }
+                    } else {
+                        match[1].split(/\r?\n/).forEach(line => {
+                            const pair = line.match(/^([A-Za-z0-9_-]+):[ \t]*(.*)$/);
+                            if (pair) data[pair[1]] = pair[2].replace(/^['"]|['"]$/g, '');
+                        });
+                    }
+                    return { data, content: match[2] };
+                };
+                const frontMatter = splitFrontMatter(raw);
                 const postData = frontMatter.data || {};
                 const markdown = frontMatter.content || '';
 
