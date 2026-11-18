@@ -90,10 +90,10 @@
 <script type="module">
     async function loadLatest() {
         const sections = [
-            { name: 'Publication', url: '/data/publications.yaml', page: '/publications/' },
-            { name: 'Project', url: '/data/projects.yaml', page: '/projects/' },
+            { name: 'Publication', url: '/data/publications.json', page: '/publications/' },
+            { name: 'Project', url: '/data/projects.json', page: '/projects/' },
             { name: 'Blog', loader: () => window.loadBlogPosts(), page: '/blog/' },
-            { name: 'Event', url: '/data/events.yaml', page: '/events/' }
+            { name: 'Event', url: '/data/events.json', page: '/events/' }
         ];
 
         const container = document.getElementById('latest-content');
@@ -104,30 +104,38 @@
         pinnedContainer.innerHTML = '';
         let hasPinned = false;
 
-        for (const section of sections) {
+        // Fetch all four feeds in parallel instead of one after another.
+        const results = await Promise.all(sections.map(async (section) => {
             try {
                 const data = await (section.loader ? section.loader() : window.loadStructuredData(section.url));
-                
-                // Handle Pinned items
-                const pinnedItems = data.filter(item => item.pinned === true);
-                if (pinnedItems.length > 0) {
-                    hasPinned = true;
-                    pinnedItems.forEach(item => {
-                        const card = createCard(item, section, 'Pinned');
-                        pinnedContainer.appendChild(card);
-                    });
-                }
-
-                // Sort by date (latest first) for Latest Updates
-                data.sort((a, b) => new Date(b.date) - new Date(a.date));
-                
-                const latest = data[0];
-                if (latest) {
-                    const card = createCard(latest, section, 'Latest');
-                    container.appendChild(card);
-                }
+                return { section, data };
             } catch (error) {
                 console.error(`Error loading ${section.name}:`, error);
+                return null;
+            }
+        }));
+
+        for (const result of results) {
+            if (!result) continue;
+            const { section, data } = result;
+
+            // Handle Pinned items
+            const pinnedItems = data.filter(item => item.pinned === true);
+            if (pinnedItems.length > 0) {
+                hasPinned = true;
+                pinnedItems.forEach(item => {
+                    const card = createCard(item, section, 'Pinned');
+                    pinnedContainer.appendChild(card);
+                });
+            }
+
+            // Sort by date (latest first) for Latest Updates
+            data.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            const latest = data[0];
+            if (latest) {
+                const card = createCard(latest, section, 'Latest');
+                container.appendChild(card);
             }
         }
 
