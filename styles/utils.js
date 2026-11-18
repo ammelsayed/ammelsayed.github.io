@@ -2,9 +2,6 @@
  * Shared utility for rendering list of cards with search and highlighting functionality.
  * Supports a unified content schema for easy scaling across different sections.
  */
-// Only front matter for individual blog posts still needs a YAML parser.
-// List data (publications/projects/events) is pre-converted to JSON at build
-// time by scripts/build-content-json.rb, so those pages never download one.
 async function ensureYamlParser() {
     if (window.jsyaml) return;
 
@@ -28,6 +25,11 @@ async function loadStructuredData(url) {
 
     if (ext === 'json') {
         return JSON.parse(text);
+    }
+
+    if (ext === 'yaml' || ext === 'yml') {
+        await ensureYamlParser();
+        return window.jsyaml.load(text);
     }
 
     throw new Error(`Unsupported data format: ${ext || 'unknown'}`);

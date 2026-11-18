@@ -104,44 +104,40 @@
         pinnedContainer.innerHTML = '';
         let hasPinned = false;
 
-        // Fetch all four feeds in parallel instead of one after another.
-        const results = await Promise.all(sections.map(async (section) => {
-            try {
-                const data = await (section.loader ? section.loader() : window.loadStructuredData(section.url));
-                return { section, data };
-            } catch (error) {
+        // Every feed is fetched and rendered on its own: a slow one (the blog
+        // index has to fetch a generated file, the others are plain JSON) no
+        // longer holds back the cards that are already available, and one
+        // failing feed cannot empty the section.
+        sections.forEach(section => {
+            const pending = section.loader ? section.loader() : window.loadStructuredData(section.url);
+
+            Promise.resolve(pending).then(data => {
+                // A list can contain an empty entry; drop anything that is not
+                // an object so one bad line cannot break the whole render.
+                const items = Array.isArray(data)
+                    ? data.filter(item => item && typeof item === 'object')
+                    : [];
+                if (items.length === 0) return;
+
+                // Handle Pinned items
+                const pinnedItems = items.filter(item => item.pinned === true);
+                if (pinnedItems.length > 0) {
+                    hasPinned = true;
+                    pinnedItems.forEach(item => {
+                        const card = createCard(item, section, 'Pinned');
+                        pinnedContainer.appendChild(card);
+                    });
+                    pinnedSection.style.display = 'block';
+                }
+
+                // Latest entry by date, without sorting the shared array
+                const latest = items.reduce((best, item) =>
+                    new Date(item.date) > new Date(best.date) ? item : best);
+                container.appendChild(createCard(latest, section, 'Latest'));
+            }).catch(error => {
                 console.error(`Error loading ${section.name}:`, error);
-                return null;
-            }
-        }));
-
-        for (const result of results) {
-            if (!result) continue;
-            const { section, data } = result;
-
-            // Handle Pinned items
-            const pinnedItems = data.filter(item => item.pinned === true);
-            if (pinnedItems.length > 0) {
-                hasPinned = true;
-                pinnedItems.forEach(item => {
-                    const card = createCard(item, section, 'Pinned');
-                    pinnedContainer.appendChild(card);
-                });
-            }
-
-            // Sort by date (latest first) for Latest Updates
-            data.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            const latest = data[0];
-            if (latest) {
-                const card = createCard(latest, section, 'Latest');
-                container.appendChild(card);
-            }
-        }
-
-        if (hasPinned) {
-            pinnedSection.style.display = 'block';
-        }
+            });
+        });
     }
 
     function formatDateText(item) {
