@@ -25,13 +25,16 @@
          none of them is needed for the first paint, so they are fetched as print
          CSS and promoted once they land. They are same-origin now, but a slow
          request still should not hold the article text back. -->
-    <link rel="stylesheet" href="/vendor/prism-tomorrow.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/vendor/prism-tomorrow.min.css" media="print"
+          onload="this.media='all'" onerror="this.media='all';console.warn('Code theme failed to load')">
 
     <!-- Comments section (styles only; the client itself loads on demand) -->
-    <link rel="stylesheet" href="/vendor/waline.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/vendor/waline.css" media="print"
+          onload="this.media='all'" onerror="this.media='all';console.warn('Comment styles failed to load')">
 
     <!-- Overtrue Share.js - professional sharing library with WeChat/QQ support -->
-    <link rel="stylesheet" href="/vendor/social-share/share.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/vendor/social-share/share.min.css" media="print"
+          onload="this.media='all'" onerror="this.media='all';console.warn('Share styles failed to load')">
 
     <!-- KaTeX styles. Its webfont pack is too large to vendor, so KaTeX stays
          on jsDelivr; only one copy is loaded now. It is also no longer
@@ -171,25 +174,29 @@
         // complete without either.
         const loadScript = (src, onLoad, onError) => {
             const script = document.createElement('script');
-            let settled = false;
-            const fail = () => {
-                if (settled) return;
-                settled = true;
-                console.warn('Script failed to load:', src);
+            let loaded = false;
+            let failedOver = false;
+            // A request that neither loads nor fails is what a stalled CDN looks like:
+            // after ten seconds the caller may fail over. A late `load` is still
+            // honoured, so a slow request is never wasted.
+            const timer = setTimeout(() => {
+                if (loaded || failedOver) return;
+                failedOver = true;
+                console.warn('Script is slow, trying the fallback:', src);
                 if (onError) onError();
-            };
-            // A request that neither loads nor fails is what a stalled CDN looks like.
-            // Ten seconds, then it counts as failed so the caller can fail over.
-            const timer = setTimeout(fail, 10000);
+            }, 10000);
             script.onload = () => {
-                if (settled) return;
-                settled = true;
+                if (loaded) return;
+                loaded = true;
                 clearTimeout(timer);
                 if (onLoad) onLoad();
             };
             script.onerror = () => {
                 clearTimeout(timer);
-                fail();
+                if (failedOver || loaded) return;
+                failedOver = true;
+                console.warn('Script failed to load:', src);
+                if (onError) onError();
             };
             script.src = src;
             document.head.appendChild(script);
@@ -209,11 +216,19 @@
             if (loadKatex.started) return;
             loadKatex.started = true;
 
+            // A stalled request that fails over and then arrives would otherwise
+            // typeset twice; the pass runs once, whichever host delivers first.
+            let typeset = false;
+            const once = () => {
+                if (typeset) return;
+                typeset = true;
+                onReady();
+            };
             const nextHost = (base) => {
                 const index = KATEX_HOSTS.indexOf(base);
                 return KATEX_HOSTS[index + 1];
             };
-            const extension = (base) => loadScript(`${base}contrib/auto-render.min.js`, onReady, () => {
+            const extension = (base) => loadScript(`${base}contrib/auto-render.min.js`, once, () => {
                 const fallback = nextHost(base);
                 if (fallback) extension(fallback);
             });
