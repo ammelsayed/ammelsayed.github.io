@@ -95,12 +95,16 @@
     <my-footer></my-footer>
     <script type="module" src="/styles/footer.js"></script>
 
-    <!-- Prism core and its grammars must stay in order (cpp builds on c), so they
-         keep `defer`. Everything that is independent of them - the share buttons
-         and the two KaTeX scripts - is `async` instead: in a deferred queue a
-         single stalled grammar would delay every script behind it. -->
+    <!-- Deferred scripts execute in document order, so the order here is the
+         dependency order: the two the article cannot start without, then KaTeX
+         (core before its auto-render extension), then the share bundle, and Prism
+         last. Nothing waits on Prism, so a slow grammar cannot delay math or
+         sharing. -->
     <script defer data-vendor="marked" src="/vendor/marked.min.js"></script>
     <script defer data-vendor="js-yaml" src="/vendor/js-yaml.min.js"></script>
+    <script defer data-vendor="social-share" src="/vendor/social-share/social-share.min.js"></script>
+    <script defer data-vendor="katex" src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer data-vendor="katex-auto-render" src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
     <script defer data-vendor="prism" src="/vendor/prism.min.js"></script>
     <script defer data-vendor="prism" src="/vendor/prism-clike.min.js"></script>
     <script defer data-vendor="prism" src="/vendor/prism-javascript.min.js"></script>
@@ -108,12 +112,6 @@
     <script defer data-vendor="prism" src="/vendor/prism-bash.min.js"></script>
     <script defer data-vendor="prism" src="/vendor/prism-c.min.js"></script>
     <script defer data-vendor="prism" src="/vendor/prism-cpp.min.js"></script>
-    <script async data-vendor="social-share" src="/vendor/social-share/social-share.min.js"></script>
-    <!-- The core is `async` (it defines window.katex); auto-render only wraps it
-         and looks the core up when it typesets, so it stays `defer` and cannot
-         hold anything else behind a stalled CDN. -->
-    <script async data-vendor="katex" src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-    <script defer data-vendor="katex-auto-render" src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
 
     <script>
         function formatPostDate(value) {
@@ -170,29 +168,13 @@
             }, everyMs);
         }
 
-        // marked is the only thing the article cannot do without: the front matter
-        // split in `splitFrontMatter` needs no CDN, and every other feature waits on
-        // its own library further down.
-        const libsReady = () => window.marked && typeof window.marked.parse === 'function';
-
-        // The vendored `js-yaml` is a deferred script too, so give it a moment: with
-        // it there, metadata (title, date, share text) is complete; without it, the
-        // `key: value` fallback still fills the common fields. Never fatal.
-        const settleYaml = () => whenAvailable(() => window.jsyaml, 3000);
-
-        // A failed request is not the same thing as a slow one: a 404 or a dropped
-        // connection leaves the global undefined for ever. Re-appending the script
-        // with a different query forces a fresh request instead of a cached failure.
-        const retryScripts = (names) => {
-            names.forEach(name => {
-                const stale = document.querySelector(`script[data-vendor="${name}"]`);
-                if (!stale) return;
-                const fresh = stale.cloneNode();
-                fresh.src = `${stale.src.split('?')[0]}?retry=${Date.now()}`;
-                fresh.dataset.vendor = name;
-                document.head.appendChild(fresh);
-            });
-        };
+        // Both libraries are required and both are same-origin, declared before
+        // anything optional. Waiting for them here means `splitFrontMatter` always
+        // has a real YAML parser, so no fallback parser and no second wait.
+        const libsReady = () => window.marked
+            && typeof window.marked.parse === 'function'
+            && window.jsyaml
+            && typeof window.jsyaml.load === 'function';
 
         // Guard against a retry starting a second render while an earlier attempt
         // is still waiting for the same libraries.
@@ -200,35 +182,28 @@
         let attempts = 0;
 
         async function startPost() {
-            // marked renders the article; without it there is nothing to show. The
-            // wait is checked rather than left to throw, and it stays recoverable: a
-            // library that lands after the first wait is still used, so the article
-            // is delayed rather than lost.
+            // The wait is checked rather than left to throw, so a slow library shows
+            // a message instead of an exception.
             const rendererReady = await whenAvailable(libsReady);
 
             if (!rendererReady) {
                 const contentEl = document.getElementById('post-content');
                 attempts += 1;
-                if (attempts === 2) {
-                    // One cache-busting refetch of the scripts that must exist.
-                    retryScripts(['marked', 'js-yaml']);
-                    contentEl.textContent = 'Reconnecting to the renderer...';
-                } else if (attempts >= 4) {
-                    // Slow is recoverable; refused is not. Say so instead of leaving
-                    // the visitor with a loading line that never changes.
+                if (attempts >= 3) {
+                    // Slow is recoverable, refused is not. After three waits say so
+                    // and stop: nothing is rescheduled, so no timer keeps running and
+                    // no message keeps changing under the reader.
                     contentEl.textContent = 'The article could not be loaded because a required script failed. ';
                     const reload = document.createElement('a');
                     reload.href = window.location.href;
                     reload.textContent = 'Reload the page';
                     contentEl.appendChild(reload);
-                } else {
-                    contentEl.textContent = 'Still loading the libraries this page needs...';
+                    return;
                 }
-                // A plain timer, not `retryUntil`: that helper only runs its
-                // callback once `libsReady` is true, which is exactly what cannot
-                // happen when the required script failed. The next attempt has to
-                // run anyway, so it can refetch the script and, if it keeps
-                // failing, say so.
+                contentEl.textContent = 'Still loading the libraries this page needs...';
+                // A plain timer, not `retryUntil`: that helper only runs its callback
+                // once readiness is true, which is exactly what cannot happen when
+                // the script itself failed.
                 setTimeout(startPost, 5000);
                 return;
             }
@@ -249,59 +224,20 @@
                 const mdRes = await fetch(`/blog/${encodeURIComponent(postId)}.md?t=${Date.now()}`);
                 if (!mdRes.ok) throw new Error('Post not found');
                 const raw = await mdRes.text();
-                // Give the vendored yaml a moment now that the body is in hand, so
-                // the wait overlaps the fetch rather than delaying it.
-                await settleYaml();
-                if (!window.jsyaml) {
-                    // One refetch before giving up on it: the local copy is 39 KB and
-                    // the flat fallback below loses nested fields, so a transient miss
-                    // is worth a second request.
-                    retryScripts(['js-yaml']);
-                    await whenAvailable(() => window.jsyaml, 5000);
-                }
-                // The front matter is metadata; the body is the article. If its
-                // parser has to be fetched from the CDN and that request stalls, the
-                // article is shown with default metadata instead of never shown: the
-                // wait is bounded and its failure handled here, not left pending.
-                // Front matter is split here, not by `parseFrontMatter`: that helper
-                // calls `ensureYamlParser`, whose failure path is an injected CDN
-                // script - the one dependency this change is meant to remove, and
-                // the reason a timeout could previously blank the article. The
-                // delimiter is line-anchored and whitespace-tolerant; if no parser
-                // has arrived, the simple `key: value` pairs still fill the title
-                // and date, so metadata degrades instead of the article.
+                // Front matter is split here rather than by `parseFrontMatter`, whose
+                // `ensureYamlParser` injects a jsDelivr script - the one dependency
+                // this change exists to remove. `libsReady` has already established
+                // the local parser, so there is no second wait and no fallback parser:
+                // the delimiter is line-anchored and whitespace-tolerant, then
+                // js-yaml does the rest.
                 const splitFrontMatter = (text) => {
                     const match = text.match(/^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)([\s\S]*)$/);
                     if (!match) return { data: {}, content: text };
                     let data = {};
-                    if (window.jsyaml && typeof window.jsyaml.load === 'function') {
-                        try {
-                            data = window.jsyaml.load(match[1]) || {};
-                        } catch (error) {
-                            console.warn('Front matter is not valid YAML:', error);
-                        }
-                    } else {
-                        // No parser at all: recover the fields the templates read.
-                        // Flat pairs plus block scalars (`key: |` followed by indented
-                        // lines) cover the posts as written; deeper nesting is only
-                        // reachable when the vendored parser itself is broken, which
-                        // the retry above already reports.
-                        const lines = match[1].split(/\r?\n/);
-                        for (let i = 0; i < lines.length; i += 1) {
-                            const pair = lines[i].match(/^([A-Za-z0-9_-]+):[ \t]*(.*)$/);
-                            if (!pair) continue;
-                            let value = pair[2].trim();
-                            if (/^[|>][-+]?/.test(value)) {
-                                const literal = value.startsWith('|');
-                                const block = [];
-                                while (i + 1 < lines.length && /^[ \t]+/.test(lines[i + 1])) {
-                                    block.push(lines[i + 1].trim());
-                                    i += 1;
-                                }
-                                value = block.join(literal ? '\n' : ' ');
-                            }
-                            data[pair[1]] = value.replace(/^['"]|['"]$/g, '');
-                        }
+                    try {
+                        data = window.jsyaml.load(match[1]) || {};
+                    } catch (error) {
+                        console.warn('Front matter is not valid YAML:', error);
                     }
                     return { data, content: match[2] };
                 };
@@ -447,9 +383,6 @@
                     && typeof window.Prism.highlightAllUnder === 'function')
                     .then(() => {
                         if (!window.Prism || typeof window.Prism.highlightAllUnder !== 'function') {
-                            // One refetch of the core and grammars before giving up:
-                            // a failed request leaves no global to poll for.
-                            retryScripts(['prism']);
                             console.warn('Prism did not load; code blocks stay plain.');
                             return;
                         }
@@ -557,9 +490,6 @@
                 });
                 whenAvailable(shareReady).then(ready => {
                     if (!ready) {
-                        // A failed request never sets the global; refetch it once
-                        // before falling back to the retry loop.
-                        retryScripts(['social-share']);
                         retryUntil(shareReady, showShare);
                         return;
                     }
@@ -588,9 +518,6 @@
                 };
                 whenAvailable(mathReady).then(ready => {
                     if (!ready) {
-                        // Same for the CDN pair: refetch the missing one, then keep
-                        // looking until it lands.
-                        retryScripts(['katex', 'katex-auto-render']);
                         retryUntil(mathReady, typeset);
                         return;
                     }
