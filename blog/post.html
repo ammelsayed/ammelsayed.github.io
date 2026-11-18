@@ -141,8 +141,12 @@
         };
 
         // A 200 response that is not the library leaves the page with nothing to
-        // render, so each required script is checked for its global once it loads.
-        const REQUIRED_GLOBALS = { marked: 'marked', 'js-yaml': 'jsyaml' };
+        // render, so each required script is checked for the method the page calls,
+        // not just for a truthy global.
+        const REQUIRED_APIS = {
+            'marked': () => window.marked && typeof window.marked.parse === 'function',
+            'js-yaml': () => window.jsyaml && typeof window.jsyaml.load === 'function'
+        };
         ['marked', 'js-yaml'].forEach(name => {
             const script = document.querySelector(`script[data-vendor="${name}"]`);
             if (!script) return;
@@ -155,11 +159,13 @@
             // failed stays failed until it is genuinely delivered.
             script.addEventListener('load', () => {
                 delete script.dataset.failed;
-                failedRequired.delete(requiredFile(script.src));
-                if (!window[REQUIRED_GLOBALS[name]]) {
+                // The method has to be there before the record is cleared: a file that
+                // loaded but cannot be called would otherwise leave the page waiting.
+                if (!REQUIRED_APIS[name]()) {
                     reportRequiredFailure(script.src);
                     return;
                 }
+                failedRequired.delete(requiredFile(script.src));
                 if (booted || failedRequired.size) return;
                 startPost();
             });
@@ -595,17 +601,19 @@
                 const MATH_PATTERN = /\$\$[\s\S]+?\$\$|\$[^$\n]+?\$/;
                 // Only text outside code blocks is a formula candidate: a shell snippet
                 // or a regex in a code block is not something KaTeX should be asked to
-                // download for. One walk, no cloning.
+                // download for. The nodetext is joined before the test, because display
+                // maths puts its opening and closing `$$` in different nodes.
                 const hasMath = (el) => {
                     if (!el) return false;
                     const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+                    const parts = [];
                     let node;
                     while ((node = walker.nextNode())) {
                         const parent = node.parentNode;
                         if (parent && parent.closest && parent.closest('pre, code')) continue;
-                        if (MATH_PATTERN.test(node.nodeValue || '')) return true;
+                        parts.push(node.nodeValue || '');
                     }
-                    return false;
+                    return MATH_PATTERN.test(parts.join(''));
                 };
                 const MATH_DELIMITERS = [
                     {left: '$$', right: '$$', display: true},
