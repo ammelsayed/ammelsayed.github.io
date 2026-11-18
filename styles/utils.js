@@ -95,10 +95,13 @@ const RICH_TEXT_TAGS = new Set(['A', 'B', 'STRONG', 'EM', 'I', 'BR', 'SPAN', 'CO
 // host on the page's own scheme.
 const SAFE_URL = /^(?:https?:|mailto:|#|\/(?!\/))/i;
 
-// Any card link (author, DOI) goes through this before it is assigned, so a
-// javascript: or data: URL in the data can never become a clickable link.
+// Any card link (author, DOI, description) goes through this before it is
+// assigned, so a javascript: or data: URL in the data can never become a
+// clickable link. A backslash is refused too: the browser folds "\" into "/",
+// so "/\host" would resolve as protocol-relative and leave this origin.
 function safeHref(value, fallback) {
     const url = typeof value === 'string' ? value.trim() : '';
+    if (!url || url.includes('\\')) return fallback;
     return SAFE_URL.test(url) ? url : fallback;
 }
 
@@ -135,11 +138,21 @@ function observeCardImage(image) {
             entries.forEach(entry => {
                 if (!entry.isIntersecting) return;
                 observer.unobserve(entry.target);
+                // A queued entry can outlive the card it describes: a search may
+                // have replaced the list between the scroll and this callback.
+                if (!entry.target.isConnected) return;
                 loadCardImage(entry.target);
             });
         }, { rootMargin: '200px 0px' });
     }
     cardImageObserver.observe(image);
+}
+
+// Cards that are about to be thrown away must be unobserved, or the observer
+// keeps the detached images (and their urls) alive across every search.
+function forgetCardImages(root) {
+    if (!cardImageObserver || !root) return;
+    root.querySelectorAll('img').forEach(image => cardImageObserver.unobserve(image));
 }
 
 function copySanitizedChildren(source, target, term) {
@@ -161,8 +174,8 @@ function copySanitizedChildren(source, target, term) {
         }
 
         if (tag === 'A') {
-            const href = child.getAttribute('href') || '';
-            if (!SAFE_URL.test(href)) {
+            const href = safeHref(child.getAttribute('href'), '');
+            if (!href) {
                 // Unusable link: keep the label, drop the anchor.
                 copySanitizedChildren(child, target, term);
                 return;
@@ -171,10 +184,14 @@ function copySanitizedChildren(source, target, term) {
             link.setAttribute('href', href);
             const targetAttr = child.getAttribute('target');
             if (targetAttr) link.setAttribute('target', targetAttr);
-            // An authored rel is only added to: noopener is always present, so a
-            // new tab can never reach back into this page through window.opener.
-            const relAttr = (child.getAttribute('rel') || '').trim();
-            link.setAttribute('rel', /noopener/i.test(relAttr) ? relAttr : `${relAttr} noopener noreferrer`.trim());
+            // An authored rel is only added to, token by token: noopener is always
+            // present, so a new tab can never reach back into this page through
+            // window.opener. Tested as a whole token, not as a substring: "x-noopenerx"
+            // is not noopener.
+            const relTokens = (child.getAttribute('rel') || '').toLowerCase().split(/\s+/).filter(Boolean);
+            if (!relTokens.includes('noopener')) relTokens.push('noopener');
+            if (!relTokens.includes('noreferrer')) relTokens.push('noreferrer');
+            link.setAttribute('rel', relTokens.join(' '));
             copySanitizedChildren(child, link, term);
             target.appendChild(link);
             return;
@@ -255,6 +272,7 @@ class CardRenderer {
         const listEl = document.getElementById(this.listElementId);
         if (!listEl) return;
 
+        forgetCardImages(listEl);
         listEl.replaceChildren();
         this.updateCounts(data.length, this.allData.length);
 
@@ -276,7 +294,7 @@ class CardRenderer {
     }
 
     runSearch(term) {
-        term = term.trim().toLowerCase();
+        term = String(term || '').trim();
         if (!term) {
             this.displayItems(this.allData);
             return;
@@ -285,14 +303,14 @@ class CardRenderer {
         const filtered = this.allData
             .map(item => {
                 let matchCount = 0;
+                const matcher = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
                 this.searchFields.forEach(field => {
-                    const value = String(item[field] || '').toLowerCase();
-                    if (value.includes(term)) matchCount++;
-                    
+                    if (matcher.test(String(item[field] || ''))) matchCount++;
+
                     // Also search in meta fields if they exist
                     if (item.meta && Array.isArray(item.meta)) {
                         item.meta.forEach(m => {
-                            if (String(m.text || '').toLowerCase().includes(term)) matchCount++;
+                            if (matcher.test(String(m.text || ''))) matchCount++;
                         });
                     }
                 });
@@ -427,9 +445,12 @@ class CardRenderer {
         }
 
         if (item.link) {
-            card.addEventListener('dblclick', () => {
-                window.location.href = item.link;
-            });
+            const destination = safeHref(item.link, '');
+            if (destination) {
+                card.addEventListener('dblclick', () => {
+                    window.location.href = destination;
+                });
+            }
         }
 
         return card;

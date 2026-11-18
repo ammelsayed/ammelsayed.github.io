@@ -124,17 +124,64 @@
                 // inert document: an <img> there never starts a request, whereas
                 // the children of a detached <div> begin loading the moment they
                 // get a src. Decorate them there, then import the nodes, which is
-                // the first moment they are visible to the loader at all.
+                // the first moment they are visible to the loader at all: the url
+                // travels in data-src and is promoted only after insertion, so the
+                // hints are already on the element when the request can start.
                 const contentEl = document.getElementById('post-content');
                 const parsed = new DOMParser().parseFromString(marked.parse(markdown), 'text/html');
+
+                // Raw HTML inside Markdown is written by post authors, and this is
+                // a static site: anything executable in it would run with the
+                // visitor's own session. The tree is scrubbed before it is imported
+                // — no scripts or embedded players, no event-handler attributes, no
+                // non-http urls.
+                const FORBIDDEN_TAGS = new Set(['SCRIPT', 'IFRAME', 'OBJECT', 'EMBED', 'FORM', 'INPUT', 'BUTTON', 'LINK', 'META', 'BASE', 'STYLE']);
+                const SAFE_ATTR_URL = /^(?:https?:|mailto:|#|\/(?!\/)|\.{1,2}\/)/i;
+
+                function sanitizeTree(root) {
+                    root.querySelectorAll('*').forEach(node => {
+                        if (FORBIDDEN_TAGS.has(node.tagName.toUpperCase())) {
+                            node.remove();
+                            return;
+                        }
+                        Array.from(node.attributes).forEach(attr => {
+                            const name = attr.name.toLowerCase();
+                            if (name.startsWith('on')) {
+                                node.removeAttribute(attr.name);
+                            } else if (name === 'href' || name === 'src' || name === 'xlink:href' || name === 'formaction') {
+                                const value = attr.value.trim();
+                                if (value.includes('\\') || !SAFE_ATTR_URL.test(value)) node.removeAttribute(attr.name);
+                            }
+                        });
+                    });
+                }
+
+                sanitizeTree(parsed.body);
+
+                const deferred = [];
                 parsed.querySelectorAll('img').forEach(img => {
                     img.setAttribute('loading', 'lazy');
                     img.setAttribute('decoding', 'async');
+                    const src = img.getAttribute('src');
+                    if (src) {
+                        img.setAttribute('data-src', src);
+                        img.removeAttribute('src');
+                    }
                 });
+
                 contentEl.replaceChildren(
                     ...Array.from(parsed.body.childNodes, node => document.importNode(node, true))
                 );
 
+                // Now that the elements are in the page with their hints, hand them
+                // their urls: the loader sees loading="lazy" on the first frame, and
+                // the first image keeps a real src for the share metadata.
+                contentEl.querySelectorAll('img[data-src]').forEach(img => {
+                    const src = img.getAttribute('data-src');
+                    if (!src) return;
+                    img.removeAttribute('data-src');
+                    img.src = src;
+                });
                 // Process GitHub-style Alerts - FIXED for proper spacing!
                 processGitHubAlerts(contentEl);
                 
@@ -218,7 +265,9 @@
                 const firstImg = contentEl.querySelector('img');
                 let imageUrl = '';
                 if (firstImg) {
-                    imageUrl = firstImg.src;
+                    // The url may still be in data-src before the promotion loop
+                    // has run; either way the share metadata gets a real url.
+                    imageUrl = firstImg.getAttribute('data-src') || firstImg.src;
                     document.querySelector('meta[property="og:image"]').content = imageUrl;
                 }
 
