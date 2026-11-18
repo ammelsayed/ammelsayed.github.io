@@ -221,7 +221,10 @@
                     ]);
                 } catch (error) {
                     console.warn('Front matter unavailable, showing the body only:', error);
-                    frontMatter = { data: {}, content: raw.replace(/^---[\s\S]*?---\s*/, '') };
+                    // Only a line that is exactly `---` closes the block, so a `---`
+                    // inside a metadata value cannot cut it short; when no closing
+                    // line exists the text is left as it is.
+                    frontMatter = { data: {}, content: raw.replace(/^---\r?\n[\s\S]*?\n---(?:\r?\n|$)/, '') };
                 }
                 const postData = frontMatter.data || {};
                 const markdown = frontMatter.content || '';
@@ -477,14 +480,26 @@
                     showShare();
                 });
 
-                const mathReady = () => typeof window.renderMathInElement === 'function';
-                const typeset = () => renderMathInElement(contentEl, {
-                    delimiters: [
-                        {left: '$$', right: '$$', display: true},
-                        {left: '$', right: '$', display: false}
-                    ],
-                    throwOnError: false
-                });
+                // KaTeX ships as two scripts: the core (which defines window.katex)
+                // and the auto-render extension. The extension alone is useless, so
+                // both have to be there before a pass is attempted.
+                const mathReady = () => typeof window.renderMathInElement === 'function'
+                    && typeof window.katex !== 'undefined';
+                const typeset = () => {
+                    try {
+                        renderMathInElement(contentEl, {
+                            delimiters: [
+                                {left: '$$', right: '$$', display: true},
+                                {left: '$', right: '$', display: false}
+                            ],
+                            throwOnError: false
+                        });
+                    } catch (error) {
+                        // Formulas are decoration: a failure is reported here and the
+                        // article is left with its source text, not an error page.
+                        console.warn('Math rendering failed:', error);
+                    }
+                };
                 whenAvailable(mathReady).then(ready => {
                     if (!ready) {
                         retryUntil(mathReady, typeset);
