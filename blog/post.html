@@ -36,27 +36,10 @@
     <link rel="stylesheet" href="/vendor/social-share/share.min.css" media="print"
           onload="this.media='all'" onerror="this.media='all';console.warn('Share styles failed to load')">
 
-    <!-- KaTeX styles. Its webfont pack is too large to vendor, so KaTeX stays
-         on jsDelivr; only one copy is loaded now. It is also no longer
-         render-blocking: loaded as print CSS and promoted to screen once it
-         arrives, so a slow CDN cannot hold back the first paint. The formulas
-         are typeset later anyway, and the noscript copy covers no-JS readers. -->
-    <link rel="stylesheet" id="katex-css" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
-          media="print" onload="this.media='all'"
-          onerror="this.onerror=null;this.href='https://unpkg.com/katex@0.16.8/dist/katex.min.css';this.media='all'">
-    <script>
-        // A request that stalls fires neither `load` nor `error`, so the print
-        // stylesheet would never be promoted and formulas would render unstyled.
-        // After five seconds the fallback host is used instead; the primary href
-        // is gone by then, so a late answer cannot override it.
-        setTimeout(function () {
-            var link = document.getElementById('katex-css');
-            if (!link || link.media === 'all') return;
-            link.href = 'https://unpkg.com/katex@0.16.8/dist/katex.min.css';
-            link.media = 'all';
-        }, 5000);
-    </script>
-    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"></noscript>
+    <!-- KaTeX styles are not requested here. Its webfont pack is too large to
+         vendor, so the stylesheet is fetched from the same CDN as the KaTeX
+         JavaScript, at the moment a post turns out to have formulas. Posts
+         without maths, and every other page, never ask for it. -->
 </head>
 <body>
     <my-header></my-header>
@@ -209,12 +192,24 @@
             document.head.appendChild(script);
         };
         // KaTeX comes from a CDN, so it gets a second host: a refused or timed-out
-        // request on one is retried on the other, once. The CSS link above does the
-        // same.
+        // request on one is retried on the other, once. The stylesheet follows the
+        // host that delivered the core script, so styles and glyphs come from one
+        // place and only when a post needs them.
         const KATEX_HOSTS = [
             'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/',
             'https://unpkg.com/katex@0.16.8/dist/'
         ];
+        const addKatexStyles = (base) => {
+            if (document.querySelector('link[data-katex-styles]')) return;
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.setAttribute('data-katex-styles', '1');
+            link.href = `${base}katex.min.css`;
+            // Styles are cosmetic: if this fails the formulas still typeset, and the
+            // console says why they look plain.
+            link.onerror = () => console.warn('KaTeX styles could not be loaded; math is shown unstyled.');
+            document.head.appendChild(link);
+        };
         const loadKatex = (onReady, onFail) => {
             if (typeof window.renderMathInElement === 'function' && window.katex) {
                 onReady();
@@ -247,12 +242,18 @@
                 if (fallback) extension(fallback);
                 else giveUp();
             });
-            const core = (base) => loadScript(`${base}katex.min.js`, () => extension(base), () => {
+            const core = (base) => loadScript(`${base}katex.min.js`, () => {
+                addKatexStyles(base);
+                extension(base);
+            }, () => {
                 const fallback = nextHost(base);
                 if (fallback) core(fallback);
                 else giveUp();
             });
-            if (window.katex) extension(KATEX_HOSTS[0]);
+            if (window.katex) {
+                addKatexStyles(KATEX_HOSTS[0]);
+                extension(KATEX_HOSTS[0]);
+            }
             else core(KATEX_HOSTS[0]);
         };
 
@@ -578,7 +579,20 @@
                 // Posts without formulas never request it at all, and neither the
                 // download nor a failure notice appears for them.
                 const MATH_PATTERN = /\$\$[\s\S]+?\$\$|\$[^$\n]+?\$/;
-                const hasMath = (el) => !!el && MATH_PATTERN.test(el.textContent || '');
+                // Only text outside code blocks is a formula candidate: a shell snippet
+                // or a regex in a code block is not something KaTeX should be asked to
+                // download for. One walk, no cloning.
+                const hasMath = (el) => {
+                    if (!el) return false;
+                    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+                    let node;
+                    while ((node = walker.nextNode())) {
+                        const parent = node.parentNode;
+                        if (parent && parent.closest && parent.closest('pre, code')) continue;
+                        if (MATH_PATTERN.test(node.nodeValue || '')) return true;
+                    }
+                    return false;
+                };
                 const MATH_DELIMITERS = [
                     {left: '$$', right: '$$', display: true},
                     {left: '$', right: '$', display: false}
@@ -632,26 +646,6 @@
                     }
                 }, 45000);
 
-                // Comment maths never gates the section: the module loads alongside
-                // Waline and is used if it is there when a comment needs it. A comment
-                // that lands first shows its source; once the module arrives, the same
-                // extension the article uses typesets what is already on screen.
-                let commentKatex = null;
-                import('https://unpkg.com/katex@v0.16/dist/katex.mjs')
-                    .then(module => {
-                        commentKatex = module;
-                        if (!hasMath(placeholder)) return;
-                        loadKatex(() => {
-                            if (typeof window.renderMathInElement === 'function') {
-                                renderMathInElement(placeholder, {
-                                    delimiters: MATH_DELIMITERS,
-                                    throwOnError: false
-                                });
-                            }
-                        });
-                    })
-                    .catch(error => console.warn('Comment maths unavailable:', error));
-
                 (async () => {
                     try {
                         const { init } = await import('https://unpkg.com/@waline/client@v3/dist/waline.js');
@@ -668,13 +662,6 @@
                             wordLimit:300,
                             pageview: true,
                             path: `/blog/post/${postId}`,
-                            texRenderer: (blockMode, tex) => (commentKatex
-                                && typeof commentKatex.renderToString === 'function')
-                                ? commentKatex.renderToString(tex, {
-                                    displayMode: blockMode,
-                                    throwOnError: false,
-                                })
-                                : tex,
                         });
                         clearTimeout(walineNote);
                         clearTimeout(walineLate);
