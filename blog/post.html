@@ -169,13 +169,23 @@
         // stalled CDN request in that queue would hold back Prism and everything
         // behind it. Core first, its auto-render extension second, and the page is
         // complete without either.
-        const loadScript = (src, onLoad) => {
+        const loadScript = (src, onLoad, onError) => {
             const script = document.createElement('script');
             script.src = src;
             script.onload = onLoad || (() => {});
-            script.onerror = () => console.warn('KaTeX part failed to load:', src);
+            script.onerror = () => {
+                console.warn('Script failed to load:', src);
+                if (onError) onError();
+            };
             document.head.appendChild(script);
         };
+        // KaTeX comes from a CDN, so it gets a second host: a refused or timed-out
+        // request on one is retried on the other, once. The CSS link above does the
+        // same.
+        const KATEX_HOSTS = [
+            'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/',
+            'https://unpkg.com/katex@0.16.8/dist/'
+        ];
         const loadKatex = (onReady) => {
             if (typeof window.renderMathInElement === 'function' && window.katex) {
                 onReady();
@@ -183,9 +193,21 @@
             }
             if (loadKatex.started) return;
             loadKatex.started = true;
-            const extension = () => loadScript('https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js', onReady);
-            if (window.katex) extension();
-            else loadScript('https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js', extension);
+
+            const nextHost = (base) => {
+                const index = KATEX_HOSTS.indexOf(base);
+                return KATEX_HOSTS[index + 1];
+            };
+            const extension = (base) => loadScript(`${base}contrib/auto-render.min.js`, onReady, () => {
+                const fallback = nextHost(base);
+                if (fallback) extension(fallback);
+            });
+            const core = (base) => loadScript(`${base}katex.min.js`, () => extension(base), () => {
+                const fallback = nextHost(base);
+                if (fallback) core(fallback);
+            });
+            if (window.katex) extension(KATEX_HOSTS[0]);
+            else core(KATEX_HOSTS[0]);
         };
 
         // If nothing has arrived after fifteen seconds, say so. Nothing polls: the
