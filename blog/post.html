@@ -104,8 +104,11 @@
          its grammars, in dependency order. KaTeX and the share bundle are
          cross-origin or cosmetic, so they are requested on demand in the page
          script: one stalled request there can no longer hold back the queue. -->
-    <script defer data-vendor="marked" src="/vendor/marked.min.js"></script>
-    <script defer data-vendor="js-yaml" src="/vendor/js-yaml.min.js"></script>
+    <!-- `onerror` is set on the tag itself, not by the inline script below, because a
+         refused request can dispatch its error event before that script runs. The
+         attribute records it; the script reads the record and reports it. -->
+    <script defer data-vendor="marked" src="/vendor/marked.min.js" onerror="this.dataset.failed='1'"></script>
+    <script defer data-vendor="js-yaml" src="/vendor/js-yaml.min.js" onerror="this.dataset.failed='1'"></script>
     <script defer data-vendor="prism" src="/vendor/prism.min.js"></script>
     <script defer data-vendor="prism" src="/vendor/prism-clike.min.js"></script>
     <script defer data-vendor="prism" src="/vendor/prism-javascript.min.js"></script>
@@ -157,11 +160,15 @@
         ['marked', 'js-yaml'].forEach(name => {
             const script = document.querySelector(`script[data-vendor="${name}"]`);
             if (!script) return;
+            // A refusal that happened before this script ran is recorded on the tag
+            // by its own `onerror`; anything later comes through the listener.
+            if (script.dataset.failed) reportRequiredFailure(script.src);
             script.addEventListener('error', () => reportRequiredFailure(script.src));
             // However late a script arrives it is still used, and the article is
             // rendered then - there is no attempt count that can drop it. A file that
             // failed stays failed until it is genuinely delivered.
             script.addEventListener('load', () => {
+                delete script.dataset.failed;
                 failedRequired.delete(requiredFile(script.src));
                 if (booted || failedRequired.size) return;
                 startPost();
@@ -217,16 +224,18 @@
             loadKatex.started = true;
 
             // A stalled request that fails over and then arrives would otherwise
-            // typeset twice; the pass runs once, whichever host delivers first.
-            let done = false;
+            // typeset twice; the pass runs once, whichever host delivers first. A
+            // failure notice, however, is withdrawn if a late host succeeds.
+            let typesetDone = false;
+            let gaveUp = false;
             const finish = () => {
-                if (done) return;
-                done = true;
+                if (typesetDone) return;
+                typesetDone = true;
                 onReady();
             };
             const giveUp = () => {
-                if (done) return;
-                done = true;
+                if (typesetDone || gaveUp) return;
+                gaveUp = true;
                 if (onFail) onFail();
             };
             const nextHost = (base) => {
@@ -563,6 +572,10 @@
                 // and the auto-render extension. `loadKatex` chains them and calls
                 // back once both are in, which is also the only moment a pass can run.
                 const typeset = () => {
+                    // A host that arrives after the notice was shown still wins: the
+                    // notice comes down and the formulas are typeset.
+                    const notice = contentEl.querySelector('.math-unavailable');
+                    if (notice) notice.remove();
                     try {
                         renderMathInElement(contentEl, {
                             delimiters: [
