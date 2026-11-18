@@ -22,6 +22,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Generate blog index
         run: ruby scripts/build-blog-index.rb
+      - name: Generate structured content (YAML -> JSON)
+        run: ruby scripts/build-content-json.rb
       - name: Prepare static artifact
         run: |
           mkdir _site
