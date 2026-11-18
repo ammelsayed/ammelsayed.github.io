@@ -120,18 +120,20 @@
                     langPrefix: 'language-'
                 });
 
-                // Post images sit below the first screen. Decorate the parsed
-                // markup while it is still detached from the document, so the
-                // browser cannot start an eager fetch for an image before
-                // loading="lazy" is in place.
+                // Post images sit below the first screen. DOMParser returns an
+                // inert document: an <img> there never starts a request, whereas
+                // the children of a detached <div> begin loading the moment they
+                // get a src. Decorate them there, then import the nodes, which is
+                // the first moment they are visible to the loader at all.
                 const contentEl = document.getElementById('post-content');
-                const parsed = document.createElement('div');
-                parsed.innerHTML = marked.parse(markdown);
+                const parsed = new DOMParser().parseFromString(marked.parse(markdown), 'text/html');
                 parsed.querySelectorAll('img').forEach(img => {
-                    img.loading = 'lazy';
-                    img.decoding = 'async';
+                    img.setAttribute('loading', 'lazy');
+                    img.setAttribute('decoding', 'async');
                 });
-                contentEl.replaceChildren(...parsed.childNodes);
+                contentEl.replaceChildren(
+                    ...Array.from(parsed.body.childNodes, node => document.importNode(node, true))
+                );
 
                 // Process GitHub-style Alerts - FIXED for proper spacing!
                 processGitHubAlerts(contentEl);

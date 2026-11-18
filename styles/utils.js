@@ -62,22 +62,27 @@ function appendHighlighted(target, text, term) {
         return;
     }
 
-    const lowerValue = value.toLowerCase();
-    const lowerNeedle = needle.toLowerCase();
-    let from = 0;
-    let at = lowerValue.indexOf(lowerNeedle);
+    // Matched with a case-insensitive regex instead of indexOf() on a lowercased
+    // copy: a few characters change length when lowercased (U+0130 for one), and
+    // offsets taken from the copy no longer line up with the original text.
+    const pattern = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const matcher = new RegExp(pattern, 'gi');
+    let lastIndex = 0;
+    let match;
 
-    while (at !== -1) {
-        if (at > from) target.appendChild(document.createTextNode(value.slice(from, at)));
+    while ((match = matcher.exec(value)) !== null) {
+        if (match.index > lastIndex) {
+            target.appendChild(document.createTextNode(value.slice(lastIndex, match.index)));
+        }
         const mark = document.createElement('span');
         mark.className = 'highlight';
-        mark.textContent = value.slice(at, at + needle.length);
+        mark.textContent = match[0];
         target.appendChild(mark);
-        from = at + needle.length;
-        at = lowerValue.indexOf(lowerNeedle, from);
+        lastIndex = match.index + match[0].length;
+        if (match[0].length === 0) matcher.lastIndex += 1;
     }
 
-    if (from < value.length) target.appendChild(document.createTextNode(value.slice(from)));
+    if (lastIndex < value.length) target.appendChild(document.createTextNode(value.slice(lastIndex)));
 }
 
 // Descriptions in data/*.yaml are authored HTML (press links, bold labels).
@@ -277,10 +282,10 @@ class CardRenderer {
 
             if (item.author.image) {
                 const avatar = document.createElement('img');
-                avatar.src = item.author.image;
                 avatar.className = 'author_image';
-                avatar.setAttribute('decoding', 'async');
                 avatar.alt = item.author.name || '';
+                avatar.setAttribute('decoding', 'async');
+                avatar.src = item.author.image;
                 authorBox.appendChild(avatar);
             }
 
@@ -342,9 +347,10 @@ class CardRenderer {
 
         // The card image sits below the fold of a list page: defer it, and let
         // the intrinsic dimensions reserve its space when the data provides them.
+        // Every hint is set before `src`, because assigning `src` is what starts
+        // the request: on a detached element `loading="lazy"` is not honoured yet.
         if (item.image) {
             const figure = document.createElement('img');
-            figure.src = item.image;
             figure.className = 'publication-image';
             figure.setAttribute('loading', 'lazy');
             figure.setAttribute('decoding', 'async');
@@ -352,6 +358,7 @@ class CardRenderer {
                 figure.width = item.image_width;
                 figure.height = item.image_height;
             }
+            figure.src = item.image;
             card.appendChild(figure);
         }
 
