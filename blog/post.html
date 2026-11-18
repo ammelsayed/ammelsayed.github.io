@@ -128,27 +128,38 @@
                 // travels in data-src and is promoted only after insertion, so the
                 // hints are already on the element when the request can start.
                 const contentEl = document.getElementById('post-content');
-                const parsed = new DOMParser().parseFromString(marked.parse(markdown), 'text/html');
-
-                // Raw HTML inside Markdown is written by post authors, and this is
-                // a static site: anything executable in it would run with the
-                // visitor's own session. The tree is scrubbed before it is imported
-                // — no scripts or embedded players, no event-handler attributes, no
-                // non-http urls.
-                const FORBIDDEN_TAGS = new Set(['SCRIPT', 'IFRAME', 'OBJECT', 'EMBED', 'FORM', 'INPUT', 'BUTTON', 'LINK', 'META', 'BASE', 'STYLE']);
+                // Image urls leave the html before any parser sees it: they are
+                // carried in data-src, so not even the parse can start a request.
+                // Raw HTML in Markdown is written by post authors on a static site,
+                // so anything executable in it would run with the visitor's own
+                // session: only the tags below survive, event handlers and
+                // resource-bearing attributes (srcset, style, poster) are removed,
+                // and every url must be http(s), mailto, an anchor or relative.
+                // Keeping SVG, video/audio or srcset "just in case" is how the
+                // exotic escapes appear (an SVG <animate> rewriting an href, a
+                // srcset entry that never went through the check), so they go.
+                const ALLOWED_TAGS = new Set([
+                    'P', 'BR', 'DIV', 'SPAN', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
+                    'UL', 'OL', 'LI', 'DL', 'DT', 'DD', 'STRONG', 'B', 'EM', 'I',
+                    'U', 'S', 'SMALL', 'SUP', 'SUB', 'MARK', 'CITE', 'ABBR', 'TIME',
+                    'CODE', 'PRE', 'BLOCKQUOTE', 'HR', 'A', 'IMG', 'FIGURE',
+                    'FIGCAPTION', 'TABLE', 'THEAD', 'TBODY', 'TR', 'TD', 'TH',
+                    'CAPTION', 'DETAILS', 'SUMMARY', 'DEL', 'INS', 'KBD'
+                ]);
+                const DROPPED_ATTRS = new Set(['srcset', 'sizes', 'style', 'poster', 'autoplay', 'loop', 'controls', 'formaction', 'action', 'background', 'ping']);
                 const SAFE_ATTR_URL = /^(?:https?:|mailto:|#|\/(?!\/)|\.{1,2}\/)/i;
 
                 function sanitizeTree(root) {
                     root.querySelectorAll('*').forEach(node => {
-                        if (FORBIDDEN_TAGS.has(node.tagName.toUpperCase())) {
+                        if (!ALLOWED_TAGS.has(node.tagName.toUpperCase())) {
                             node.remove();
                             return;
                         }
                         Array.from(node.attributes).forEach(attr => {
                             const name = attr.name.toLowerCase();
-                            if (name.startsWith('on')) {
+                            if (name.startsWith('on') || DROPPED_ATTRS.has(name)) {
                                 node.removeAttribute(attr.name);
-                            } else if (name === 'href' || name === 'src' || name === 'xlink:href' || name === 'formaction') {
+                            } else if (name === 'href' || name === 'src' || name === 'xlink:href') {
                                 const value = attr.value.trim();
                                 if (value.includes('\\') || !SAFE_ATTR_URL.test(value)) node.removeAttribute(attr.name);
                             }
@@ -156,29 +167,30 @@
                     });
                 }
 
+                const html = marked.parse(markdown).replace(/\ssrc=/gi, ' data-src=');
+                const parsed = new DOMParser().parseFromString(html, 'text/html');
                 sanitizeTree(parsed.body);
 
-                const deferred = [];
                 parsed.querySelectorAll('img').forEach(img => {
-                    img.setAttribute('loading', 'lazy');
                     img.setAttribute('decoding', 'async');
-                    const src = img.getAttribute('src');
-                    if (src) {
-                        img.setAttribute('data-src', src);
-                        img.removeAttribute('src');
-                    }
                 });
 
                 contentEl.replaceChildren(
                     ...Array.from(parsed.body.childNodes, node => document.importNode(node, true))
                 );
 
-                // Now that the elements are in the page with their hints, hand them
-                // their urls: the loader sees loading="lazy" on the first frame, and
-                // the first image keeps a real src for the share metadata.
+                // An image whose size the markup declares keeps a reserved box, so it
+                // gets the lazy hint and nothing can move when it arrives. One without
+                // dimensions is not deferred at all: a deferred unsized image is what
+                // makes a reader's position jump, so it loads the way it did before
+                // this change. The urls are handed over only here, after insertion, so
+                // no request can start from parsing.
                 contentEl.querySelectorAll('img[data-src]').forEach(img => {
                     const src = img.getAttribute('data-src');
                     if (!src) return;
+                    if (img.getAttribute('width') && img.getAttribute('height')) {
+                        img.setAttribute('loading', 'lazy');
+                    }
                     img.removeAttribute('data-src');
                     img.src = src;
                 });

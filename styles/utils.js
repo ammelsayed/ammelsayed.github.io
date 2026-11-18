@@ -426,22 +426,27 @@ class CardRenderer {
             content.appendChild(doiP);
         }
 
-        // The card image sits below the fold of a list page: it gets no `src` at
-        // all until the card is in the document and the image approaches the
-        // viewport (see observeCardImage). The hints and the intrinsic size are
-        // attached first, so nothing moves when the picture finally arrives.
+        // The card image sits below the fold of a list page. When the data carries
+        // its dimensions the space is reserved and the url waits in data-src until
+        // the card is near the viewport (see observeCardImage). Without dimensions
+        // there is nothing to reserve, and a deferred unsized image is exactly what
+        // makes the list jump while scrolling, so that record keeps the behaviour
+        // it had before this change: lazy hint, url on the element.
         if (item.image) {
             const figure = document.createElement('img');
             figure.className = 'publication-image';
-            figure.setAttribute('loading', 'lazy');
             figure.setAttribute('decoding', 'async');
             if (item.image_width && item.image_height) {
                 figure.width = item.image_width;
                 figure.height = item.image_height;
+                figure.setAttribute('loading', 'lazy');
+                figure.dataset.src = item.image;
+                card.appendChild(figure);
+                observeCardImage(figure);
+            } else {
+                figure.src = item.image;
+                card.appendChild(figure);
             }
-            figure.dataset.src = item.image;
-            card.appendChild(figure);
-            observeCardImage(figure);
         }
 
         if (item.link) {
