@@ -95,22 +95,25 @@
     <my-footer></my-footer>
     <script type="module" src="/styles/footer.js"></script>
 
-    <!-- Dependencies: fetched in parallel and deferred. Deferred scripts still
-         execute in document order, so the same-origin ones are declared before
-         the two KaTeX scripts from jsDelivr: a slow CDN can no longer hold back
-         the share buttons or the syntax highlighting behind it. -->
+    <!-- Prism core and its grammars must stay in order (cpp builds on c), so they
+         keep `defer`. Everything that is independent of them - the share buttons
+         and the two KaTeX scripts - is `async` instead: in a deferred queue a
+         single stalled grammar would delay every script behind it. -->
     <script defer data-vendor="marked" src="/vendor/marked.min.js"></script>
     <script defer data-vendor="js-yaml" src="/vendor/js-yaml.min.js"></script>
-    <script defer src="/vendor/prism.min.js"></script>
-    <script defer src="/vendor/prism-clike.min.js"></script>
-    <script defer src="/vendor/prism-javascript.min.js"></script>
-    <script defer src="/vendor/prism-python.min.js"></script>
-    <script defer src="/vendor/prism-bash.min.js"></script>
-    <script defer src="/vendor/prism-c.min.js"></script>
-    <script defer src="/vendor/prism-cpp.min.js"></script>
-    <script defer src="/vendor/social-share/social-share.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <script defer data-vendor="prism" src="/vendor/prism.min.js"></script>
+    <script defer data-vendor="prism" src="/vendor/prism-clike.min.js"></script>
+    <script defer data-vendor="prism" src="/vendor/prism-javascript.min.js"></script>
+    <script defer data-vendor="prism" src="/vendor/prism-python.min.js"></script>
+    <script defer data-vendor="prism" src="/vendor/prism-bash.min.js"></script>
+    <script defer data-vendor="prism" src="/vendor/prism-c.min.js"></script>
+    <script defer data-vendor="prism" src="/vendor/prism-cpp.min.js"></script>
+    <script async data-vendor="social-share" src="/vendor/social-share/social-share.min.js"></script>
+    <!-- The core is `async` (it defines window.katex); auto-render only wraps it
+         and looks the core up when it typesets, so it stays `defer` and cannot
+         hold anything else behind a stalled CDN. -->
+    <script async data-vendor="katex" src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer data-vendor="katex-auto-render" src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
 
     <script>
         function formatPostDate(value) {
@@ -221,7 +224,12 @@
                 } else {
                     contentEl.textContent = 'Still loading the libraries this page needs...';
                 }
-                retryUntil(libsReady, startPost);
+                // A plain timer, not `retryUntil`: that helper only runs its
+                // callback once `libsReady` is true, which is exactly what cannot
+                // happen when the required script failed. The next attempt has to
+                // run anyway, so it can refetch the script and, if it keeps
+                // failing, say so.
+                setTimeout(startPost, 5000);
                 return;
             }
 
@@ -244,6 +252,13 @@
                 // Give the vendored yaml a moment now that the body is in hand, so
                 // the wait overlaps the fetch rather than delaying it.
                 await settleYaml();
+                if (!window.jsyaml) {
+                    // One refetch before giving up on it: the local copy is 39 KB and
+                    // the flat fallback below loses nested fields, so a transient miss
+                    // is worth a second request.
+                    retryScripts(['js-yaml']);
+                    await whenAvailable(() => window.jsyaml, 5000);
+                }
                 // The front matter is metadata; the body is the article. If its
                 // parser has to be fetched from the CDN and that request stalls, the
                 // article is shown with default metadata instead of never shown: the
@@ -266,10 +281,27 @@
                             console.warn('Front matter is not valid YAML:', error);
                         }
                     } else {
-                        match[1].split(/\r?\n/).forEach(line => {
-                            const pair = line.match(/^([A-Za-z0-9_-]+):[ \t]*(.*)$/);
-                            if (pair) data[pair[1]] = pair[2].replace(/^['"]|['"]$/g, '');
-                        });
+                        // No parser at all: recover the fields the templates read.
+                        // Flat pairs plus block scalars (`key: |` followed by indented
+                        // lines) cover the posts as written; deeper nesting is only
+                        // reachable when the vendored parser itself is broken, which
+                        // the retry above already reports.
+                        const lines = match[1].split(/\r?\n/);
+                        for (let i = 0; i < lines.length; i += 1) {
+                            const pair = lines[i].match(/^([A-Za-z0-9_-]+):[ \t]*(.*)$/);
+                            if (!pair) continue;
+                            let value = pair[2].trim();
+                            if (/^[|>][-+]?/.test(value)) {
+                                const literal = value.startsWith('|');
+                                const block = [];
+                                while (i + 1 < lines.length && /^[ \t]+/.test(lines[i + 1])) {
+                                    block.push(lines[i + 1].trim());
+                                    i += 1;
+                                }
+                                value = block.join(literal ? '\n' : ' ');
+                            }
+                            data[pair[1]] = value.replace(/^['"]|['"]$/g, '');
+                        }
                     }
                     return { data, content: match[2] };
                 };
@@ -415,6 +447,9 @@
                     && typeof window.Prism.highlightAllUnder === 'function')
                     .then(() => {
                         if (!window.Prism || typeof window.Prism.highlightAllUnder !== 'function') {
+                            // One refetch of the core and grammars before giving up:
+                            // a failed request leaves no global to poll for.
+                            retryScripts(['prism']);
                             console.warn('Prism did not load; code blocks stay plain.');
                             return;
                         }
@@ -522,6 +557,9 @@
                 });
                 whenAvailable(shareReady).then(ready => {
                     if (!ready) {
+                        // A failed request never sets the global; refetch it once
+                        // before falling back to the retry loop.
+                        retryScripts(['social-share']);
                         retryUntil(shareReady, showShare);
                         return;
                     }
@@ -550,6 +588,9 @@
                 };
                 whenAvailable(mathReady).then(ready => {
                     if (!ready) {
+                        // Same for the CDN pair: refetch the missing one, then keep
+                        // looking until it lands.
+                        retryScripts(['katex', 'katex-auto-render']);
                         retryUntil(mathReady, typeset);
                         return;
                     }
