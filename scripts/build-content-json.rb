@@ -91,7 +91,8 @@ SOURCES.each do |name|
 
   entries = data.select { |entry| entry.is_a?(Hash) }
   if entries.length != data.length
-    warn "Dropping #{data.length - entries.length} non-object entry/entries in #{name}.yaml"
+    warn "Failing #{name}: #{data.length - entries.length} non-object entry/entries"
+    exit 1
   end
 
   entries.each do |entry|

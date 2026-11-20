@@ -1,0 +1,36 @@
+name: Generate the content JSON
+
+# The pages read their lists from data/*.json, which is generated from the YAML
+# files and the blog front matter. Generating it here and committing it keeps
+# hosts that build the repository as-is — Cloudflare Pages, for one — serving the
+# same lists as GitHub Pages, which runs the scripts itself while it builds.
+#
+# Runs on every push to main. A commit pushed with the Actions token does not
+# trigger another run, so this cannot loop on its own commits.
+on:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate the JSON
+        run: |
+          ruby scripts/build-blog-index.rb
+          ruby scripts/build-content-json.rb
+      - name: Commit it
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/events.json data/projects.json data/publications.json data/blogs.generated.json
+          if git diff --cached --quiet; then
+            echo "The JSON already matches the sources; nothing to commit."
+          else
+            git commit -m "(auto) generate the content JSON from the YAML sources"
+            git push
+          fi
