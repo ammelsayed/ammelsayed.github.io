@@ -562,8 +562,21 @@
                 // LinkedIn's retired shareArticle endpoint, which no longer produces
                 // a card; these are the endpoints each platform documents today.
                 const shareHost = document.getElementById('post-share-actions');
-                if (shareHost) {
-                    const shareUrl = window.location.href;
+                // A post with `show: false` is kept out of the index, and the index is
+                // what the share pages are built from: its row would offer links to a
+                // page that does not exist. The generator reads the front matter with
+                // Ruby's YAML, where the bare words `no` and `off` are false too, and
+                // this reads it with js-yaml, which leaves them as text: both sides are
+                // spelled out so a post does not end up visible to one and hidden to
+                // the other.
+                const showFlag = String(postData.show ?? '').toLowerCase();
+                const hiddenPost = showFlag === 'false' || showFlag === 'no' || showFlag === 'off';
+                if (shareHost && !hiddenPost) {
+                    // Share the page under /blog/posts/<id>/ rather than this URL: that
+                    // is the copy whose tags hold the real title, description and
+                    // image, and this page's tags are only filled in after the
+                    // markdown loads, which no crawler waits for.
+                    const shareUrl = `${window.location.origin}/blog/posts/${postId}/`;
                     const shareTitle = titleText;
                     const enc = encodeURIComponent;
                     const icons = {

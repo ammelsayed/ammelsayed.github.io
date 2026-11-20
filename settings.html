@@ -482,7 +482,9 @@
 
         async function editBlogPostContent(index) {
             const post = sectionData[index];
-            const id = post.link.split('=')[1];
+            // The list link is /blog/posts/<id>/, so the id comes from the entry itself
+            // rather than from a query string that is no longer there.
+            const id = post.id || post.link.split('=')[1];
             const fileName = id + '.md';
             const filePath = '/blog/posts/' + fileName;
 
