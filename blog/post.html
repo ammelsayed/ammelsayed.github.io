@@ -32,10 +32,6 @@
     <link rel="stylesheet" href="/vendor/waline.css" media="print"
           onload="this.media='all'" onerror="this.media='all';console.warn('Comment styles failed to load')">
 
-    <!-- Overtrue Share.js - professional sharing library with WeChat/QQ support -->
-    <link rel="stylesheet" href="/vendor/social-share/share.min.css" media="print"
-          onload="this.media='all'" onerror="this.media='all';console.warn('Share styles failed to load')">
-
     <!-- KaTeX styles are not requested here. Its webfont pack is too large to
          vendor, so the stylesheet is fetched from the same CDN as the KaTeX
          JavaScript, at the moment a post turns out to have formulas. Posts
@@ -66,9 +62,9 @@
                     <p>Loading content...</p>
                 </article>
 
-                <div style="border-top: 1px solid var(--border-color);">
-                    <h3 style="font-size: 18px; margin-bottom: 15px;"> Share this article:</h3>
-                    <div class="social-share" id="social-share-container"></div>
+                <div class="post-share" id="post-share">
+                    <span class="post-share-label">Share</span>
+                    <div class="post-share-actions" id="post-share-actions"></div>
                 </div>
 
                 <div id="waline"></div>
@@ -84,9 +80,9 @@
     <!-- Deferred scripts execute in document order, so this queue carries the
          article's hard dependencies and nothing optional: marked and js-yaml
          first (the body cannot be split or rendered without them), then Prism with
-         its grammars, in dependency order. KaTeX and the share bundle are
-         cross-origin or cosmetic, so they are requested on demand in the page
-         script: one stalled request there can no longer hold back the queue. -->
+         its grammars, in dependency order. KaTeX is cross-origin and cosmetic,
+         so it is requested on demand in the page script: one stalled request
+         there can no longer hold back the queue. -->
     <!-- `onerror` is set on the tag itself, not by the inline script below, because a
          refused request can dispatch its error event before that script runs. The
          attribute records it; the script reads the record and reports it. -->
@@ -559,39 +555,104 @@
                 viewSpan.setAttribute('data-path', `/blog/post/${postId}`);
                 metaEl.appendChild(viewSpan);
 
-                // Cosmetic extras: each is applied from its own library's `load`
-                // callback, so a slow or very late library is still used and neither
-                // holds up the render or the comments section.
-                const shareReady = () => typeof window.socialShare === 'function';
-                const showShare = () => {
-                    // The bundle defines `socialShare` (checked by executing it in
-                    // test_share.js); this only keeps a truncated file from throwing
-                    // inside a load callback, where nobody would see it.
-                    if (typeof socialShare !== 'function') {
-                        console.warn('The share bundle did not define socialShare; buttons stay hidden.');
-                        return;
+                // Share row. Built here rather than by a bundle because the title and
+                // the url are only known once the post has loaded, and because the
+                // links are just links: no script, no icon font, no third-party CSS.
+                // The old vendor bundle carried Google+ and Diandian icons and used
+                // LinkedIn's retired shareArticle endpoint, which no longer produces
+                // a card; these are the endpoints each platform documents today.
+                const shareHost = document.getElementById('post-share-actions');
+                if (shareHost) {
+                    const shareUrl = window.location.href;
+                    const shareTitle = titleText;
+                    const enc = encodeURIComponent;
+                    const icons = {
+                        x: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>',
+                        linkedin: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 .001zM.5 8h4.96V24H.5zM8.98 8h4.75v2.19h.07c.66-1.25 2.27-2.57 4.68-2.57 5.01 0 5.94 3.3 5.94 7.59V24h-4.96v-7.72c0-1.84-.04-4.21-2.57-4.21-2.57 0-2.96 2.01-2.96 4.08V24H8.98z"/></svg>',
+                        facebook: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22.675 0H1.325C.593 0 0 .593 0 1.325v21.351C0 23.407.593 24 1.325 24h11.495v-9.294H9.691v-3.622h3.129V8.41c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.462.099 2.795.143v3.24h-1.918c-1.504 0-1.796.715-1.796 1.763v2.316h3.586l-.467 3.622h-3.119V24h6.116C23.407 24 24 23.407 24 22.675V1.325C24 .593 23.407 0 22.675 0z"/></svg>',
+                        telegram: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>',
+                        mail: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zm0 2v.3l9 5.4 9-5.4V7zm0 2.5V17h18v-7.5l-9 5.4z"/></svg>',
+                        copy: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h10a2 2 0 0 1 2 2v10h-2V5H8zm-3 4h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"/></svg>',
+                        share: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 16.5 6.5l-1.4 1.4L13 5.9V15h-2V5.9L8.9 7.9 7.5 6.5zM5 11h3v2H7v7h10v-7h-1v-2h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z"/></svg>',
+                    };
+                    const addButton = ({ label, icon, href, onClick }) => {
+                        const el = document.createElement(href ? 'a' : 'button');
+                        if (href) {
+                            el.href = href;
+                            el.target = '_blank';
+                            el.rel = 'noopener noreferrer';
+                        } else {
+                            el.type = 'button';
+                            el.addEventListener('click', onClick);
+                        }
+                        el.className = 'post-share-btn';
+                        el.dataset.label = label;
+                        el.innerHTML = `<span class="post-share-icon">${icon}</span><span>${label}</span>`;
+                        shareHost.appendChild(el);
+                    };
+
+                    // A short, self-clearing change of the button's own label. The
+                    // timer lives on the element so a second click replaces the reset
+                    // that belongs to the first one instead of racing it.
+                    const flashLabel = (btn, text) => {
+                        const labelEl = btn.lastElementChild;
+                        labelEl.textContent = text;
+                        clearTimeout(btn.resetTimer);
+                        btn.resetTimer = setTimeout(() => { labelEl.textContent = btn.dataset.label; }, 1600);
+                    };
+
+                    // A system sheet when the browser has one; it is the only route
+                    // that can reach an app the site has no link for.
+                    if (typeof navigator.share === 'function') {
+                        addButton({
+                            label: 'Share',
+                            icon: icons.share,
+                            onClick: (event) => {
+                                const btn = event.currentTarget;
+                                navigator.share({ title: shareTitle, text: desc, url: shareUrl })
+                                    .catch((error) => {
+                                        // Dismissing the sheet is not a failure and needs no message.
+                                        if (error && error.name === 'AbortError') return;
+                                        flashLabel(btn, 'Share failed');
+                                    });
+                            },
+                        });
                     }
-                    // A bundle that failed over and then arrived leaves the "unavailable"
-                    // line behind; clear it before the buttons are built.
-                    const box = document.getElementById('social-share-container');
-                    if (box) box.textContent = '';
-                    socialShare('#social-share-container', {
-                        url: window.location.href,
-                        title: titleText,
-                        description: desc,
-                        image: imageUrl,
-                        sites: ['wechat', 'qq', 'weibo', 'facebook', 'twitter', 'linkedin'],
-                        wechatQrcodeTitle: "WeChat Scan to Share"
+
+                    addButton({ label: 'X', icon: icons.x, href: `https://twitter.com/intent/tweet?text=${enc(shareTitle)}&url=${enc(shareUrl)}` });
+                    addButton({ label: 'LinkedIn', icon: icons.linkedin, href: `https://www.linkedin.com/sharing/share-offsite/?url=${enc(shareUrl)}` });
+                    addButton({ label: 'Facebook', icon: icons.facebook, href: `https://www.facebook.com/sharer/sharer.php?u=${enc(shareUrl)}` });
+                    addButton({ label: 'Telegram', icon: icons.telegram, href: `https://t.me/share/url?url=${enc(shareUrl)}&text=${enc(shareTitle)}` });
+                    addButton({ label: 'Email', icon: icons.mail, href: `mailto:?subject=${enc(shareTitle)}&body=${enc(shareTitle + '\n' + shareUrl)}` });
+                    addButton({
+                        label: 'Copy link',
+                        icon: icons.copy,
+                        onClick: async (event) => {
+                            const btn = event.currentTarget;
+                            // Two clicks can overlap; only the latest one is allowed to
+                            // write the label, so a slow first click cannot overwrite the
+                            // answer the second one already showed.
+                            const attempt = (btn.copyAttempt = (btn.copyAttempt || 0) + 1);
+                            let copied = false;
+                            try {
+                                await navigator.clipboard.writeText(shareUrl);
+                                copied = true;
+                            } catch (error) {
+                                // No clipboard permission: fall back to the old
+                                // select-and-copy, which says whether it worked instead
+                                // of reporting success for a click that copied nothing.
+                                const field = document.createElement('input');
+                                field.value = shareUrl;
+                                document.body.appendChild(field);
+                                field.select();
+                                try { copied = document.execCommand('copy'); } catch (e) { copied = false; }
+                                field.remove();
+                            }
+                            if (btn.copyAttempt !== attempt) return;
+                            flashLabel(btn, copied ? 'Copied' : 'Copy failed');
+                        },
                     });
-                };
-                // The share bundle is requested on demand and applied in its own
-                // `load` callback, so a slow or very late bundle is still used and
-                // nothing sits in the deferred queue in front of Prism. If it never
-                // arrives, the space says so instead of staying blank.
-                loadScript('/vendor/social-share/social-share.min.js', showShare, () => {
-                    const box = document.getElementById('social-share-container');
-                    if (box) box.textContent = 'Sharing is unavailable right now.';
-                });
+                }
 
                 // KaTeX ships as two scripts: the core (which defines window.katex)
                 // and the auto-render extension. `loadKatex` chains them and calls

@@ -441,6 +441,66 @@ body {
     overflow-x: auto;
 }
 
+/* Share row: same tokens as the rest of the page, so it follows the theme */
+.post-share {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 40px 0 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
+}
+
+.post-share-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.post-share-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.post-share-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1;
+    color: var(--text-muted);
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    cursor: pointer;
+    transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.post-share-btn:hover,
+.post-share-btn:focus-visible {
+    color: var(--text-color);
+    border-color: var(--text-muted);
+}
+
+.post-share-icon {
+    display: inline-flex;
+    width: 16px;
+    height: 16px;
+}
+
+.post-share-icon svg {
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+}
+
 @media (max-width: 1024px) {
     .blog-post-wrapper {
         flex-direction: column;
