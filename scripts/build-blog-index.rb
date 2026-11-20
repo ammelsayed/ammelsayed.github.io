@@ -10,8 +10,8 @@ posts = Dir.glob(File.join(BLOG_DIR, '*.md')).sort.filter_map do |path|
   text = File.read(path)
   match = text.match(/\A---\s*\n(.*?)\n---\s*(?:\n|\z)/m)
   unless match
-    warn "Skipping #{path}: missing YAML front matter"
-    next
+    warn "Failing #{path}: missing YAML front matter"
+    exit 1
   end
 
   begin
@@ -24,8 +24,8 @@ posts = Dir.glob(File.join(BLOG_DIR, '*.md')).sort.filter_map do |path|
     data['meta'] ||= [{ 'icon' => '🗓️', 'text' => data['date'] }] if data['date']
     data
   rescue Psych::Exception => error
-    warn "Skipping #{path}: invalid YAML front matter (#{error.message.lines.first.strip})"
-    next
+    warn "Failing #{path}: invalid YAML front matter (#{error.message.lines.first.strip})"
+    exit 1
   end
 end
 
