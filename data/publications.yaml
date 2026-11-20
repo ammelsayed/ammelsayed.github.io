@@ -6,6 +6,21 @@
 
 # ### Publications ###
 
+# ### Preprint - arXiv:2611.10753 ###
+- badge: "Preprint"
+  title: "Search sensitivity for type-III seesaw heavy leptons in simulated pp collisions at √s = 13.6 TeV at the LHC"
+  description: "A search for the pair production of TeV-scale heavy leptons as predicted by the type-III seesaw mechanism is presented. The analysis is based on a simulated signal and Standard Model background data corresponding to an integrated luminosity of 500 fb⁻¹ of proton-proton collisions at √s = 13.6 TeV. The ATLAS detector response is modeled with Delphes. Events are categorized based on the number of final state leptons and large-R jets into nine mutually exclusive search channels. Multivariate analysis techniques are employed to separate the signal from the Standard Model backgrounds. Under the flavor-democratic mixing scenario (Bₑ = Bμ = Bτ = 1/3), the expected 95% confidence level upper exclusion limit on the heavy lepton mass is approximately 1.6 TeV."
+  link: "https://doi.org/10.48550/arXiv.2611.10753"
+  image: "/images/publications/arxiv-2611-10753-fig9a.png"
+  date: "2026-11-07"
+  meta:
+    - icon: "🗓️"
+      text: "November 2026"
+    - icon: "📖"
+      text: "arXiv:2611.10753 [hep-ph]"
+    - icon: "📝"
+      text: "Preprint, submitted to Physical Review D"
+
 # ### Publication 1 ###
 - badge: "Article"
   title: "Geant 4 Monte Carlo simulation for I-125 brachytherapy"
