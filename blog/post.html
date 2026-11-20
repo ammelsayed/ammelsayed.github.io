@@ -675,7 +675,11 @@
                             el: '#waline',
                             serverURL: 'https://commentsystem-amber.vercel.app/',
                             lang: 'en',
-                            dark: document.documentElement.getAttribute('data-theme') === 'dark',
+                            // A selector, not the current theme: Waline turns it into
+                            // `[data-theme="dark"]{...}` built once at startup, so the
+                            // comment section follows the toggle instead of keeping the
+                            // palette it was initialised with.
+                            dark: '[data-theme="dark"]',
                             meta: ['nick'],
                             requiredMeta: [],
                             noCopyright: true,
