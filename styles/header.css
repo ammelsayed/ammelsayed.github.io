@@ -248,10 +248,12 @@ header {
 .header-menu .menu-button .menu-navigations,
 .header-menu .menu-navigations {
   position: fixed;
-  top: 66px; /* leave header/logo visible */
+  top: 80px; /* start right under the header, whatever its height is at this breakpoint */
   left: 0;
   width: 100%;
-  height: calc(100vh - 66px);
+  box-sizing: border-box; /* the height below is the whole panel, padding included */
+  height: calc(100vh - 80px);
+  height: calc(100dvh - 80px); /* mobile browsers: use the space actually visible */
   background: rgba(10, 10, 10);
   transform: translateY(-100%);
   opacity: 0;
@@ -279,11 +281,6 @@ header {
   transform: translateY(0);
   opacity: 1;
   pointer-events: auto;
-}
-
-/* slight upward nudge while open (gives the subtle "menu lifts up" effect) */
-.header-menu .menu-button.active .menu-navigations {
-  transform: translateY(-6px);
 }
 
 /* nav list inside the panel: column, left-aligned with logo */
@@ -351,10 +348,16 @@ header {
 /*%%%%%%%%%%%% RESPONSIVE BREAKPOINTS %%%%*/
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
-/* below this width show hamburger and hide regular nav */
+/* below this width show hamburger and hide regular nav.
+   The theme toggle lives inside .navigations, so only the nav list is hidden:
+   phones otherwise have no way to switch themes. */
 @media screen and (max-width: 1100px) {
-  .navigations {
+  .navigations nav {
     display: none;
+  }
+  .navigations {
+    margin-left: auto;
+    padding-right: 6px;
   }
   .header-menu {
     display: flex;
@@ -365,5 +368,38 @@ header {
 @media screen and (min-width: 1100px) {
   .header-menu {
     display: none;
+  }
+}
+
+/* phones: shorter header, so the page starts higher up */
+@media screen and (max-width: 700px) {
+  header {
+    height: 60px;
+  }
+
+  .inner-header {
+    padding: 0 16px;
+  }
+
+  .logo-container h1 {
+    font-size: 24px;
+  }
+
+  .theme-toggle {
+    margin-left: 0;
+    padding: 6px;
+  }
+
+  .header-menu .menu-button button {
+    width: 40px;
+    height: 36px;
+  }
+
+  .header-menu .menu-button .menu-navigations,
+  .header-menu .menu-navigations {
+    top: 60px;
+    height: calc(100vh - 60px);
+    height: calc(100dvh - 60px);
+    padding-top: 24px;
   }
 }

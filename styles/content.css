@@ -210,3 +210,14 @@ body main {
         text-align: center;
     }
 }
+
+/* Phones: the page titles are set for desktop widths and wrap over two lines */
+@media screen and (max-width: 700px) {
+    .page-top {
+        padding: 8px 0 0;
+    }
+    .page-top h1 {
+        font-size: 30px;
+        line-height: 1.25;
+    }
+}
