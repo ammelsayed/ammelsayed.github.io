@@ -196,8 +196,13 @@ body main {
     .publication {
         flex-direction: column;
     }
+    /* Cards stack here, so the figure must stop taking the card width over the
+       whole range, not just on phones */
     .publication-image {
-        max-width: 100%;
+        width: auto;
+        max-width: 260px;
+        margin: 0 20px 20px;
+        align-self: flex-start;
     }
     .search-bar {
         width: 100%;
@@ -219,5 +224,23 @@ body main {
     .page-top h1 {
         font-size: 30px;
         line-height: 1.25;
+    }
+
+    /* Cards: justified text rivers in a 350px column, and the figure used to
+       take the whole card width, which made a publication card ~1100px tall. */
+    .publication .content {
+        margin: 18px 20px;
+    }
+    .publication .content h2 {
+        font-size: 20px;
+    }
+    .publication .content .abstract {
+        text-align: left;
+    }
+    .publication-image {
+        max-width: 200px;
+    }
+    #doi-link {
+        font-size: 13px;
     }
 }
