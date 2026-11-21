@@ -150,9 +150,10 @@ body main {
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    min-width: 0;
     font-size: 14px;
     color: var(--text-muted);
-    white-space: nowrap;
+    overflow-wrap: anywhere;
 }
 
 .meta-item em {
