@@ -462,10 +462,10 @@ class CardRenderer {
             if (destination) {
                 card.addEventListener('click', (event) => {
                     if (event.target.closest('a')) return;
-                    // Only a click that ends a selection inside this card counts
-                    // as selecting text; a selection left elsewhere is ignored.
+                    // A plain click leaves a collapsed caret inside the card,
+                    // so only a non-empty selection counts as selecting text.
                     const selection = window.getSelection();
-                    if (selection && selection.rangeCount && card.contains(selection.anchorNode)) return;
+                    if (selection && !selection.isCollapsed && card.contains(selection.anchorNode)) return;
                     window.location.href = destination;
                 });
             }
