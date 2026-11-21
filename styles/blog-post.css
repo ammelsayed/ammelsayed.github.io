@@ -105,6 +105,12 @@ body {
     opacity: 0.85;
 }
 
+/* When the counter cannot be reached there is no number to label, and an icon
+   on its own would say nothing: the cell appears once Waline fills it. */
+.post-meta-item:has(> .waline-pageview-count:empty) {
+    display: none;
+}
+
 /* Professional GitHub-style Markdown Content */
 .blog-post-content {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;

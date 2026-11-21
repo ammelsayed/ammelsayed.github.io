@@ -79,6 +79,10 @@ const ICON_PATHS = {
     award: '<circle cx="12" cy="8" r="5"></circle><path d="M8.8 12.4 8 21l4-2 4 2-.8-8.6"></path>'
 };
 
+// Icons are parsed from their markup rather than assigned through innerHTML,
+// and the result is cached: a list page asks for the same handful of shapes.
+const iconCache = new Map();
+
 function metaIconFor(icon) {
     if (!icon) return null;
     // Emoji in the data files are written with an emoji variation selector,
@@ -86,13 +90,12 @@ function metaIconFor(icon) {
     const key = String(icon).replace(/\uFE0F|\u200D/g, '');
     const name = META_ICONS[key];
     if (!name) return null;
+    if (iconCache.has(name)) return iconCache.get(name).cloneNode(true);
 
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('viewBox', '0 0 24 24');
-    svg.setAttribute('class', 'meta-icon');
-    svg.setAttribute('aria-hidden', 'true');
-    svg.innerHTML = ICON_PATHS[name];
-    return svg;
+    const markup = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="meta-icon" aria-hidden="true">${ICON_PATHS[name]}</svg>`;
+    const parsed = new DOMParser().parseFromString(markup, 'image/svg+xml').documentElement;
+    iconCache.set(name, parsed);
+    return parsed.cloneNode(true);
 }
 
 // One row of "icon + text" pairs; an entry whose emoji has no icon keeps the
