@@ -293,6 +293,16 @@ body {
     color: white;
 }
 
+/* Touch screens have no hover, so the button that only appears on hover never
+   appears at all. any-pointer also covers touch laptops whose main pointer is
+   a mouse. */
+@media (hover: none), (any-pointer: coarse) {
+    .copy-btn {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
 .blog-post-content :not(pre) > code {
     padding: 0.2em 0.4em;
     margin: 0;
@@ -463,6 +473,7 @@ body {
 .post-share-actions {
     display: flex;
     flex-wrap: wrap;
+    align-items: flex-start; /* a wrapped label must not stretch its neighbours */
     gap: 8px;
 }
 
@@ -470,6 +481,7 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    box-sizing: border-box; /* the 40px phone height includes the padding */
     padding: 7px 12px;
     font-family: inherit;
     font-size: 13px;
@@ -501,24 +513,98 @@ body {
     fill: currentColor;
 }
 
+/* Collapsed contents list for phones; filled in by the post script */
+.toc-mobile {
+    display: none;
+}
+
 @media (max-width: 1024px) {
     .blog-post-wrapper {
         flex-direction: column;
         padding: 40px 20px;
     }
+    /* The sidebar contents table becomes a collapsed block above the article */
     .toc-container {
         display: none !important;
     }
+    .toc-mobile {
+        display: block;
+        width: 100%;
+        max-width: 80ch;
+        box-sizing: border-box;
+        align-self: center;
+        margin-bottom: 24px;
+        padding: 14px 18px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+    }
+    .toc-mobile summary {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--primary-color);
+        cursor: pointer;
+        list-style: none; /* the global reset also removes the disclosure marker */
+    }
+    .toc-mobile summary::after {
+        content: '\25BE';
+        float: right;
+        color: var(--text-muted);
+    }
+    .toc-mobile[open] summary::after {
+        content: '\25B4';
+    }
+    .toc-mobile ul {
+        list-style: none;
+        padding: 0;
+        margin: 12px 0 0;
+    }
+    .toc-mobile li {
+        margin-bottom: 8px;
+    }
+    .toc-mobile li.h3 {
+        margin-left: 20px;
+        font-size: 0.95em;
+    }
+    .toc-mobile a {
+        color: var(--secondary-color);
+    }
     .post-main-container {
-        max-width: 100%;
+        width: 100%;
+        align-self: center;
+    }
+    /* Only the article is capped: the About page reuses .post-main-container
+       and should keep its full width on tablets */
+    .post-main-container.post-article {
+        max-width: 80ch; /* the sidebar used to keep the measure in check */
     }
     .post-header-section h1 {
         font-size: 24px;
     }
     .post-meta {
-        display: None;
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: 12px;
+        row-gap: 4px;
+        font-size: 13px;
+    }
+    /* Without the sidebar the row can wrap at any width, and a slash left at
+       the end of a line reads as debris, so it goes with the separators. */
+    .post-meta .divider {
+        display: none;
+    }
+    .post-meta img {
+        width: 28px;
+        height: 28px;
     }
     .blog-post-content {
         font-size: 15px;
+    }
+}
+
+@media (max-width: 700px) {
+    .post-share-btn {
+        min-height: 40px;
+        padding: 10px 14px;
     }
 }
