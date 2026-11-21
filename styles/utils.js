@@ -50,6 +50,74 @@ window.loadStructuredData = loadStructuredData;
 window.loadBlogPosts = loadBlogPosts;
 window.parseFrontMatter = parseFrontMatter;
 
+// The data files carry an emoji per metadata entry. Drawing those as outline
+// icons keeps the byline calm and identical across platforms, where the emoji
+// itself would render in a different font on every system.
+const META_ICONS = {
+    '🗓': 'calendar',
+    '📅': 'calendar',
+    '📍': 'pin',
+    '👁': 'eye',
+    '🕮': 'book',
+    '📖': 'book',
+    '📄': 'file',
+    '📝': 'file',
+    '🌐': 'globe',
+    '⏱': 'clock',
+    '🕒': 'clock',
+    '🏆': 'award'
+};
+
+const ICON_PATHS = {
+    calendar: '<rect x="3" y="5" width="18" height="15" rx="3"></rect><line x1="8" y1="3.5" x2="8" y2="7"></line><line x1="16" y1="3.5" x2="16" y2="7"></line><line x1="3" y1="10.5" x2="21" y2="10.5"></line>',
+    pin: '<path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z"></path><circle cx="12" cy="10" r="2.6"></circle>',
+    eye: '<path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"></path><circle cx="12" cy="12" r="2.6"></circle>',
+    book: '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"></path><line x1="8" y1="7" x2="16" y2="7"></line>',
+    file: '<path d="M13.5 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5z"></path><line x1="13.5" y1="3" x2="13.5" y2="8.5"></line><line x1="19" y1="8.5" x2="13.5" y2="8.5"></line><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="15" y2="17"></line>',
+    globe: '<circle cx="12" cy="12" r="9"></circle><line x1="3" y1="12" x2="21" y2="12"></line><ellipse cx="12" cy="12" rx="4.2" ry="9"></ellipse>',
+    clock: '<circle cx="12" cy="12" r="9"></circle><line x1="12" y1="7.5" x2="12" y2="12"></line><line x1="12" y1="12" x2="16" y2="14"></line>',
+    award: '<circle cx="12" cy="8" r="5"></circle><path d="M8.8 12.4 8 21l4-2 4 2-.8-8.6"></path>'
+};
+
+// Icons are parsed from their markup rather than assigned through innerHTML,
+// and the result is cached: a list page asks for the same handful of shapes.
+const iconCache = new Map();
+
+function metaIconFor(icon) {
+    if (!icon) return null;
+    // Emoji in the data files are written with an emoji variation selector,
+    // which never matches a plain key in the table above.
+    const key = String(icon).replace(/\uFE0F|\u200D/g, '');
+    const name = META_ICONS[key];
+    if (!name) return null;
+    if (iconCache.has(name)) return iconCache.get(name).cloneNode(true);
+
+    const markup = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="meta-icon" aria-hidden="true">${ICON_PATHS[name]}</svg>`;
+    const parsed = new DOMParser().parseFromString(markup, 'image/svg+xml').documentElement;
+    iconCache.set(name, parsed);
+    return parsed.cloneNode(true);
+}
+
+// One row of "icon + text" pairs; an entry whose emoji has no icon keeps the
+// emoji rather than losing its mark altogether.
+function appendMetaItems(target, meta, term) {
+    if (!meta || !Array.isArray(meta)) return;
+    meta.forEach(entry => {
+        const span = document.createElement('span');
+        span.className = 'meta-item';
+        const icon = metaIconFor(entry.icon);
+        if (icon) {
+            span.appendChild(icon);
+        } else if (entry.icon) {
+            span.appendChild(document.createTextNode(`${entry.icon} `));
+        }
+        appendHighlighted(span, entry.text, term);
+        target.appendChild(span);
+    });
+}
+
+window.metaIconFor = metaIconFor;
+
 // Text whose matches are wrapped in <span class="highlight">. It is built as
 // nodes rather than as a string, so neither the search term nor the content is
 // ever parsed as markup.
@@ -389,33 +457,26 @@ class CardRenderer {
                 authorBox.appendChild(avatar);
             }
 
-            const nameBox = document.createElement('div');
-            nameBox.className = 'AuthorName_and_Date';
             const nameEm = document.createElement('em');
-            nameEm.appendChild(document.createTextNode(' By '));
+            nameEm.className = 'author_name';
+            nameEm.appendChild(document.createTextNode('By '));
             const nameLink = document.createElement('a');
             nameLink.href = safeHref(item.author.link, '#');
             nameLink.target = '_blank';
             nameLink.rel = 'noopener';
             appendHighlighted(nameLink, item.author.name, term);
             nameEm.appendChild(nameLink);
-            nameBox.appendChild(nameEm);
-            authorBox.appendChild(nameBox);
-            content.appendChild(authorBox);
-        }
+            authorBox.appendChild(nameEm);
 
-        if (item.meta && Array.isArray(item.meta) && item.meta.length > 0) {
-            const metaP = document.createElement('p');
-            item.meta.forEach((entry, index) => {
-                const span = document.createElement('span');
-                if (entry.icon) span.appendChild(document.createTextNode(`${entry.icon} `));
-                const metaEm = document.createElement('em');
-                appendHighlighted(metaEm, entry.text, term);
-                span.appendChild(metaEm);
-                if (index > 0) metaP.appendChild(document.createTextNode(' '));
-                metaP.appendChild(span);
-            });
-            content.appendChild(metaP);
+            // The date belongs to the byline, not to a line of its own: the card
+            // header reads better as one row than as three stacked ones.
+            appendMetaItems(authorBox, item.meta, term);
+            content.appendChild(authorBox);
+        } else if (item.meta && Array.isArray(item.meta) && item.meta.length > 0) {
+            const metaRow = document.createElement('div');
+            metaRow.className = 'card-meta';
+            appendMetaItems(metaRow, item.meta, term);
+            content.appendChild(metaRow);
         }
 
         const divider = document.createElement('hr');

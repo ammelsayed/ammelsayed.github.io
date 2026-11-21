@@ -54,14 +54,15 @@ body {
 .post-meta {
     display: flex;
     align-items: center;
-    gap: 12px;
+    flex-wrap: wrap;
+    gap: 8px 16px;
     font-size: 14px;
     color: var(--text-muted);
 }
 
 .post-meta img {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     object-fit: cover;
     vertical-align: middle;
@@ -83,8 +84,31 @@ body {
     font-weight: 600;
 }
 
-.post-meta .divider {
+/* An icon and its value, so the row reads as labelled data rather than as a
+   sentence with separators. */
+.post-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     color: var(--text-muted);
+}
+
+.post-meta-item .meta-icon {
+    width: 15px;
+    height: 15px;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.85;
+}
+
+/* When the counter cannot be reached there is no number to label, and an icon
+   on its own would say nothing: the cell appears once Waline fills it. */
+.post-meta-item:has(> .waline-pageview-count:empty) {
+    display: none;
 }
 
 /* Professional GitHub-style Markdown Content */
@@ -582,20 +606,17 @@ body {
         font-size: 24px;
     }
     .post-meta {
-        display: flex;
-        flex-wrap: wrap;
-        column-gap: 12px;
-        row-gap: 4px;
-        font-size: 13px;
-    }
-    /* Without the sidebar the row can wrap at any width, and a slash left at
-       the end of a line reads as debris, so it goes with the separators. */
-    .post-meta .divider {
-        display: none;
+        column-gap: 8px;
+        row-gap: 6px;
+        font-size: 12.5px;
     }
     .post-meta img {
-        width: 28px;
-        height: 28px;
+        width: 26px;
+        height: 26px;
+    }
+    .post-meta .badge {
+        padding: 2px 8px;
+        font-size: 11px;
     }
     .blog-post-content {
         font-size: 15px;
