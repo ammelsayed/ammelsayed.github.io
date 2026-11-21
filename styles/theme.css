@@ -40,6 +40,17 @@
     --radius-md: 8px;
     --radius-lg: 12px;
 
+    /* Corner geometry. A circle-arc corner holds constant curvature and then
+       meets a straight edge, so curvature steps at the join. A continuous
+       corner instead lets curvature leave zero, peak through the corner and
+       return to zero on the adjacent edge, which is the iOS / visionOS feel.
+       Note that corner-shape's number is a smoothing parameter, not the Lamé
+       exponent of a whole-shape superellipse: squircle is the iOS-like curve
+       (canonical superellipse(2)), while larger values collapse toward a
+       square. The border-radius value stays the superellipse half-dimension of
+       the corner, so existing radii keep their scale. */
+    --corner-shape: squircle;
+
     /* Transitions */
     --transition-fast: 0.2s ease;
     --transition-medium: 0.3s ease;
@@ -85,6 +96,22 @@ body {
     :root {
         --page-top-margin: 24px;
     }
+}
+
+/* Continuous-curvature corners ------------------------------------------------
+   A circular corner has constant curvature along its arc and none on the
+   straight edge, so the two meet with a curvature step. corner-shape replaces
+   that geometry with a superellipse corner: curvature leaves zero, rises
+   smoothly through the corner and returns to zero on the adjacent edge, so the
+   whole outline is continuous in slope and curvature.
+   Border, outset and inset box-shadow, outline, backdrop filter and clipped
+   backgrounds are all generated from the same border geometry, so strokes,
+   focus rings, highlights and shadows hug the same curve.
+   The declaration is inert on anything without a border-radius. */
+*,
+*::before,
+*::after {
+    corner-shape: var(--corner-shape);
 }
 
 a {
