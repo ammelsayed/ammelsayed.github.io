@@ -75,23 +75,31 @@ footer {
     }
 
     .footer-info p {
-        font-size: 10px;
+        font-size: 12px;
         line-height: 1.45;
     }
 
     .footer-tagline {
-        font-size: 10px !important;
+        font-size: 12px !important;
     }
 
     .social-links {
-        gap: 8px;
+        gap: 0;
         width: 100%;
         justify-content: flex-start;
     }
 
+    /* 20px icons were the whole tap target; pad them out to 40px */
+    .social-links a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
+    }
+
     .social-links a img {
-        width: 20px;
-        height: 20px;
+        width: 24px;
+        height: 24px;
     }
 
     .social-links a img:hover {
