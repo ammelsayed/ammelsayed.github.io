@@ -144,46 +144,7 @@ body main {
     word-break: break-all;
 }
 
-/* Search Bar */
-.search-bar {
-    display: flex;
-    align-items: center;
-    position: relative;
-    width: 400px;
-}
-
-.search-input {
-    width: 100%;
-    padding: 10px 40px 10px 15px;
-    border: 2px solid #ccc;
-    border-radius: 25px;
-    font-size: 16px;
-    outline: none;
-    transition: all 0.3s ease;
-}
-
-.search-input:focus {
-    border-color: var(--secondary-color);
-    box-shadow: 0 0 5px rgba(0, 85, 164, 0.3);
-}
-
-.search-button {
-    position: absolute;
-    right: 5px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.search-icon {
-    width: 20px;
-    height: 20px;
-    fill: #666;
-}
+/* Search Bar (removed: the field now lives in the header) */
 
 .highlight {
     background-color: #fff9c4;
@@ -203,10 +164,6 @@ body main {
         max-width: 260px;
         margin: 0 20px 20px;
         align-self: flex-start;
-    }
-    .search-bar {
-        width: 100%;
-        margin-top: 10px;
     }
     .page-top {
         flex-direction: column;

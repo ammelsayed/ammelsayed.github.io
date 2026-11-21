@@ -17,6 +17,7 @@
 header {
   width: 100%; /* To take all width of the page */
   height: 80px;
+  position: relative; /* Anchors the search layer that covers the whole bar */
 
   display: flex;
   flex-direction: row; /* Items are placed left to right. */
@@ -24,6 +25,130 @@ header {
   align-items: center; /*  Aligns flex items along the cross axis: */
 
   background: var(--header-bg);
+}
+
+/*%%%%% HEADER SEARCH %%%%%%%*/
+
+.header-searchbtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color var(--transition-fast);
+  margin-left: 15px;
+}
+
+.header-searchbtn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.header-searchbtn svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: white;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Sits on top of the logo and the links: the field gets the entire bar. */
+.header-search {
+  position: absolute;
+  inset: 0;
+  z-index: 2100;
+  display: flex;
+  align-items: center;
+  background: var(--header-bg);
+}
+
+.header-search[hidden] {
+  display: none;
+}
+
+.header-search-form {
+  width: 100%;
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 0 20px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-search-icon {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.6);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.header-search-field {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: white;
+  font-size: 17px;
+  font-family: inherit;
+}
+
+.header-search-field::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.header-search-field::-webkit-search-cancel-button,
+.header-search-field::-webkit-search-decoration {
+  display: none;
+}
+
+.header-search-close {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color var(--transition-fast);
+}
+
+.header-search-close:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.header-search-close svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: white;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+@media (max-width: 700px) {
+  .header-search-form {
+    padding: 0 16px;
+    gap: 8px;
+  }
+
+  .header-search-field {
+    font-size: 16px;
+  }
 }
 
 .theme-toggle {

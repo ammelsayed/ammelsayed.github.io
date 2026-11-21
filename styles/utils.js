@@ -283,14 +283,22 @@ class CardRenderer {
     }
 
     setupSearch() {
-        const searchInput = document.querySelector(this.searchInputSelector);
-        if (!searchInput) return;
-
         let debounceTimeout;
-        searchInput.addEventListener('input', () => {
+        const schedule = value => {
             clearTimeout(debounceTimeout);
-            debounceTimeout = setTimeout(() => this.runSearch(searchInput.value), 300);
+            debounceTimeout = setTimeout(() => this.runSearch(value), 300);
+        };
+
+        // Search lives in the header now; it announces the term as an event so
+        // the filtering here stays independent of where the field is drawn.
+        window.addEventListener('site:search', event => {
+            schedule(event.detail ? event.detail.term : '');
         });
+
+        const searchInput = document.querySelector(this.searchInputSelector);
+        if (searchInput) {
+            searchInput.addEventListener('input', () => schedule(searchInput.value));
+        }
     }
 
     runSearch(term) {
