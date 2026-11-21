@@ -28,7 +28,7 @@
         ['.menu-navigations', 'glass-sheet'],
         [
             '.post-share-btn, #scroll-to-top, .theme-toggle, .menu-button > button,' +
-                ' .search-bar, .wl-btn, .wl-emoji-popup, .wl-gif-popup',
+                ' .search-bar, .wl-btn:not(.primary), .wl-emoji-popup, .wl-gif-popup',
             'glass-sm',
         ],
     ];
@@ -115,7 +115,7 @@
         return url;
     }
 
-    function filterFor(w, h, radius, bevel, url) {
+    function filterFor(mapKey, w, h, radius, bevel, url) {
         const dark = isDark();
         const scale = Math.max(2, Math.round(bevel * 0.9 * (dark ? 1.15 : 1)));
         const key = `${url.length}|${w}|${h}|${scale}`;
@@ -190,8 +190,9 @@
         const bh = Math.round(h / BUCKET) * BUCKET;
         const brushed = Math.min(24, Math.max(1, Math.round(radius)));
         const bbevel = Math.min(24, Math.max(1, Math.round(bevel)));
+        const mapKey = `${bw}|${bh}|${brushed}|${bbevel}`;
         const url = mapFor(bw, bh, brushed, bbevel);
-        const id = filterFor(bw, bh, brushed, bbevel, url);
+        const id = filterFor(mapKey, bw, bh, brushed, bbevel, url);
         el.style.setProperty('--glass-filter', `url(#${id})`);
     }
 
@@ -222,10 +223,10 @@
 
     function watch() {
         for (const el of document.querySelectorAll(TARGETS)) {
-            if (!seen.has(el)) {
-                dress(el);
-                sizes.observe(el);
-            }
+            // Every target is observed, including the ones decorate() already
+            // dressed, so a later resize still rebuilds their maps.
+            sizes.observe(el);
+            if (!seen.has(el)) dress(el);
         }
     }
 
