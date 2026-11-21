@@ -1,0 +1,333 @@
+/*
+    Liquid glass material
+    ---------------------
+    One material in four physical layers:
+
+    1. Base fill. The core keeps the colour the design asked for: white in the
+       light theme, a deep translucent dark in the dark theme. It is not made
+       transparent to fake glass; the glass reading comes from the other three.
+    2. Refraction. A backdrop layer sits behind the core, inset by one bevel,
+       so the only place the page can be seen through the surface is the band
+       around the edge, which is exactly how a thick slab behaves. That band is
+       blurred, saturated, and displaced by a per-surface displacement map
+       (styles/glass.js) through feDisplacementMap.
+    3. Specular. The edge band carries direction-dependent light: a bright top
+       sheen that falls away towards the corners, cooler side light, and a
+       shaded bottom. On top of that a soft contour glow gives the edge its
+       polished line; nothing here is a solid 1px border.
+    4. Elevation. Layered shadows set the surface above the page: short and
+       dense in the light theme, long and wide in the dark theme where surfaces
+       feel further from the background.
+
+    Rounded shapes inherit the continuous-curvature corner from theme.css, so
+    every bevel, rim and shadow follows the same squircle outline.
+*/
+
+:root {
+    /* Dark glass: deep translucent fill, stronger blur, cool rims, long shadows */
+    --glass-blur: 18px;
+    --glass-saturation: 1.7;
+    --glass-veil: rgba(150, 175, 220, 0.05);
+    --glass-core-lg: rgba(25, 27, 34, 0.76);
+    --glass-core-md: rgba(31, 34, 41, 0.70);
+    --glass-core-sm: rgba(39, 43, 51, 0.64);
+    --glass-core-sheet: rgba(16, 17, 21, 0.84);
+    --glass-band-top: rgba(206, 228, 255, 0.34);
+    --glass-band-side: rgba(176, 202, 245, 0.16);
+    --glass-band-bottom: rgba(0, 0, 0, 0.62);
+    --glass-top-light: rgba(215, 233, 255, 0.34);
+    --glass-side-light: rgba(165, 188, 230, 0.14);
+    --glass-bottom-shade: rgba(0, 0, 0, 0.55);
+    --glass-edge-tint: rgba(120, 140, 180, 0.14);
+    --glass-edge-glow: rgba(180, 205, 255, 0.22);
+    --glass-rim-top: rgba(236, 245, 255, 0.62);
+    --glass-rim-bottom: rgba(0, 0, 0, 0.55);
+    --glass-bevel-lg: 6px;
+    --glass-bevel-md: 5px;
+    --glass-bevel-sm: 4px;
+    --glass-shadow-lg:
+        0 2px 6px rgba(0, 0, 0, 0.50),
+        0 14px 30px rgba(0, 0, 0, 0.55),
+        0 40px 80px rgba(0, 0, 0, 0.45);
+    --glass-shadow-sm:
+        0 1px 4px rgba(0, 0, 0, 0.50),
+        0 10px 24px rgba(0, 0, 0, 0.45),
+        0 26px 56px rgba(0, 0, 0, 0.35);
+    --glass-light: 1;
+}
+
+[data-theme='light'] {
+    /* White glass: the fill stays white; thickness, contour and shadow carry
+       the material, with only a cool tint in the edge band */
+    --glass-blur: 10px;
+    --glass-saturation: 1.35;
+    --glass-veil: rgba(255, 255, 255, 0.18);
+    --glass-core-lg: #ffffff;
+    --glass-core-md: rgba(255, 255, 255, 0.88);
+    --glass-core-sm: rgba(255, 255, 255, 0.76);
+    --glass-core-sheet: rgba(250, 251, 253, 0.90);
+    --glass-band-top: rgba(118, 140, 176, 0.17);
+    --glass-band-side: rgba(118, 140, 176, 0.15);
+    --glass-band-bottom: rgba(16, 24, 40, 0.26);
+    --glass-top-light: rgba(163, 180, 208, 0.22);
+    --glass-side-light: rgba(255, 255, 255, 0.50);
+    --glass-bottom-shade: rgba(146, 164, 198, 0.26);
+    --glass-edge-tint: rgba(214, 223, 239, 0.55);
+    --glass-edge-glow: rgba(122, 143, 180, 0.26);
+    --glass-rim-top: rgba(255, 255, 255, 1);
+    --glass-rim-bottom: rgba(16, 24, 40, 0.16);
+    --glass-bevel-lg: 6px;
+    --glass-bevel-md: 5px;
+    --glass-bevel-sm: 3px;
+    --glass-shadow-lg:
+        0 1px 3px rgba(16, 24, 40, 0.12),
+        0 8px 18px rgba(16, 24, 40, 0.08),
+        0 26px 50px rgba(16, 24, 40, 0.06);
+    --glass-shadow-sm:
+        0 1px 2px rgba(16, 24, 40, 0.10),
+        0 5px 14px rgba(16, 24, 40, 0.09),
+        0 14px 30px rgba(16, 24, 40, 0.07);
+    --glass-light: -1;
+}
+
+/* The page is never perfectly flat: the material needs a little ambient colour
+   to bend, and this wash keeps the refraction legible where nothing else sits
+   behind the glass. It is far too low in contrast to touch the text. */
+body {
+    background-image:
+        radial-gradient(80% 60% at 6% -12%, rgba(120, 155, 225, 0.20), rgba(0, 0, 0, 0) 68%),
+        radial-gradient(70% 55% at 98% 110%, rgba(255, 172, 110, 0.12), rgba(0, 0, 0, 0) 68%);
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+}
+
+[data-theme='light'] body {
+    background-image:
+        radial-gradient(80% 60% at 6% -12%, rgba(128, 165, 255, 0.18), rgba(0, 0, 0, 0) 68%),
+        radial-gradient(70% 55% at 98% 110%, rgba(255, 186, 130, 0.16), rgba(0, 0, 0, 0) 68%);
+}
+
+/* Base material -------------------------------------------------------------
+   The element keeps its radius and its contents. The two inset layers paint the
+   surface behind the text, so no child rule has to change. */
+.glass {
+    position: relative;
+    isolation: isolate;
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: var(--glass-shadow-lg);
+}
+
+.glass::before,
+.glass::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+/* Refraction and light: the backdrop band around the edge, carrying the rim */
+.glass::before {
+    inset: 0;
+    z-index: -2;
+    background:
+        /* top sheen: light entering the slab from above, gone by the corners */
+        radial-gradient(120% 88% at 50% -34%, var(--glass-top-light) 0%, rgba(255, 255, 255, 0) 58%),
+        /* the bevel band itself, anchored to the bevel so it never drifts with size */
+        linear-gradient(180deg, var(--glass-band-top) 0px, rgba(255, 255, 255, 0) calc(var(--glass-bevel) * 0.95)),
+        linear-gradient(90deg, var(--glass-band-side) 0px, rgba(255, 255, 255, 0) calc(var(--glass-bevel) * 1.1)),
+        linear-gradient(270deg, var(--glass-band-side) 0px, rgba(255, 255, 255, 0) calc(var(--glass-bevel) * 1.1)),
+        linear-gradient(0deg, var(--glass-band-bottom) 0px, rgba(255, 255, 255, 0) calc(var(--glass-bevel) * 1.05)),
+        /* bottom occlusion and the edge's own tint */
+        radial-gradient(125% 100% at 50% 132%, var(--glass-bottom-shade) 0%, rgba(0, 0, 0, 0) 62%),
+        /* the band is cut from the same material, but part of it stays open so
+           the page behind still shows through the edge */
+        var(--glass-band-core);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+    filter: var(--glass-filter, none);
+    box-shadow:
+        /* soft, blurred specular along the top edge, not a drawn stroke */
+        inset 0 1px 2px -1px var(--glass-rim-top),
+        inset 0 3px 7px -4px var(--glass-rim-top),
+        /* a faint contour glow so the outline separates from the page */
+        inset 0 0 2px 0 var(--glass-edge-glow),
+        inset 0 -2px 5px -2px var(--glass-rim-bottom);
+}
+
+/* The core: the element's own colour, inset by one bevel. Its soft inner edge
+   is where the thickness meets the fill. */
+.glass::after {
+    inset: var(--glass-bevel);
+    z-index: -1;
+    background: var(--glass-core);
+    box-shadow:
+        /* the core bleeds into the band in its own colour, so the join reads as
+           one curved slab rather than a card inside a card */
+        0 0 var(--glass-blend) var(--glass-core),
+        inset 0 calc(var(--glass-light) * -9px) 16px -9px var(--glass-rim-bottom);
+}
+
+/* Material sizes ---------------------------------------------------------- */
+.glass-lg {
+    --glass-bevel: var(--glass-bevel-lg);
+    --glass-core: var(--glass-core-lg);
+    --glass-band-core: color-mix(in srgb, var(--glass-core-lg) 76%, transparent);
+    --glass-blend: calc(var(--glass-bevel-lg) * 0.55);
+    --glass-radius: 16px;
+}
+
+.glass-md {
+    --glass-bevel: var(--glass-bevel-md);
+    --glass-core: var(--glass-core-md);
+    --glass-band-core: color-mix(in srgb, var(--glass-core-md) 76%, transparent);
+    --glass-blend: 3px;
+    --glass-radius: 12px;
+}
+
+.glass-sm {
+    --glass-bevel: var(--glass-bevel-sm);
+    --glass-core: var(--glass-core-sm);
+    --glass-band-core: color-mix(in srgb, var(--glass-core-sm) 76%, transparent);
+    --glass-blend: 2px;
+    --glass-radius: 999px;
+    box-shadow: var(--glass-shadow-sm);
+}
+
+/* A sheet has no thickness ring: it is frosted glass and the fill does the work */
+.glass-sheet {
+    --glass-bevel: 0px;
+    --glass-core: var(--glass-core-sheet);
+    --glass-blend: 0px;
+    box-shadow: var(--glass-shadow-lg);
+}
+
+.glass-sheet::before {
+    background: linear-gradient(180deg, var(--glass-rim-top), rgba(0, 0, 0, 0) 5%), var(--glass-veil);
+}
+
+/* Surfaces --------------------------------------------------------------- */
+
+/* Cards and panels: the bevel has to clear the 20px inner margin */
+.publication,
+.latest-card,
+.toc-container,
+.toc-mobile,
+.wl-panel {
+    --glass-bevel: var(--glass-bevel-lg);
+    --glass-core: var(--glass-core-lg);
+    --glass-radius: 16px;
+    border: none;
+    border-radius: 16px;
+    box-shadow: var(--glass-shadow-lg);
+}
+
+.toc-container,
+.toc-mobile {
+    --glass-radius: 8px;
+    border-radius: 8px;
+}
+
+.publication:hover,
+.latest-card:hover {
+    box-shadow: var(--glass-shadow-lg);
+}
+
+/* Controls: small bevel, short shadow, pill radius */
+.post-share-btn,
+#scroll-to-top,
+.theme-toggle,
+.menu-button > button,
+.search-bar,
+.wl-btn:not(.primary) {
+    --glass-bevel: var(--glass-bevel-sm);
+    --glass-core: var(--glass-core-sm);
+    border: none !important;
+    box-shadow: var(--glass-shadow-sm);
+}
+
+.post-share-btn {
+    --glass-radius: 8px;
+    border-radius: 8px;
+}
+
+.search-bar {
+    --glass-radius: 25px;
+    border-radius: 25px;
+}
+
+.search-input {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* The field lost its border, so it keeps a focus ring of its own */
+.search-input:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+}
+
+/* Surfaces that were already positioned keep the positioning they had */
+#scroll-to-top.glass {
+    position: fixed;
+}
+
+.menu-navigations.glass {
+    position: fixed;
+}
+
+.toc-container.glass {
+    position: sticky;
+}
+
+.theme-toggle,
+#scroll-to-top {
+    --glass-radius: 999px;
+    border-radius: 50%;
+}
+
+.menu-button > button {
+    --glass-radius: 12px;
+    border-radius: 12px;
+}
+
+#scroll-to-top {
+    background: transparent !important;
+    color: var(--text-color);
+}
+
+/* Popovers */
+.wl-emoji-popup,
+.wl-gif-popup {
+    --glass-bevel: var(--glass-bevel-md);
+    --glass-core: var(--glass-core-md);
+    --glass-radius: 8px;
+    border: none !important;
+    box-shadow: var(--glass-shadow-lg);
+}
+
+/* Mobile sheet */
+.menu-navigations {
+    --glass-bevel: 0px;
+    --glass-core: var(--glass-core-sheet);
+    background: transparent !important;
+    box-shadow: inset 0 0 3px var(--glass-edge-glow), var(--glass-shadow-lg);
+}
+
+/* Toolbar: the header keeps its ink, but stops being a flat band. The blur is
+   left out on purpose: a backdrop-filter here would become the containing block
+   for the fixed mobile menu inside it. */
+header {
+    background: color-mix(in srgb, var(--header-bg) 82%, transparent);
+    box-shadow:
+        inset 0 -1px 0 rgba(255, 255, 255, 0.07),
+        0 12px 34px rgba(0, 0, 0, 0.34);
+}
+
+/* Without backdrop-filter the band is filled by the core instead of the page */
+@supports not (backdrop-filter: blur(1px)) {
+    .glass::before {
+        background: var(--glass-core);
+    }
+}
