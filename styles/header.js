@@ -12,8 +12,7 @@
 class MyHeader extends HTMLElement {
     connectedCallback() {
         // Check if user is logged in
-        const isLoggedIn = sessionStorage.getItem('isAdmin') === 'true';
-        const loginText = isLoggedIn ? 'Logout' : 'Login';
+        const isLoggedIn = sessionStorage.getItem('isAdmin') === 'true';        const loginText = isLoggedIn ? 'Logout' : 'Login';
         const loginHref = isLoggedIn ? 'javascript:logoutFromHeader()' : '/login.html';
 
         // List pages mark themselves with data-search; only there does a search
@@ -134,8 +133,7 @@ class MyHeader extends HTMLElement {
                     <circle cx="11" cy="11" r="7"></circle>
                     <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
                 </svg>
-                <input class="header-search-field" type="search" autocomplete="off" spellcheck="false"
-                       placeholder="${placeholder}" aria-label="${placeholder}">
+                <input class="header-search-field" type="search" autocomplete="off" spellcheck="false">
                 <button class="header-search-close" type="button" aria-label="Close search">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                         <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -146,13 +144,30 @@ class MyHeader extends HTMLElement {
         header.appendChild(layer);
 
         const field = layer.querySelector('.header-search-field');
+        field.placeholder = placeholder;
+        field.setAttribute('aria-label', placeholder);
+
         const emit = () => {
             window.dispatchEvent(new CustomEvent('site:search', { detail: { term: field.value } }));
         };
 
+        // menu.js owns the panel and the scroll lock, and it has no close of its
+        // own, so the three states it toggles are undone here before the field
+        // covers the bar.
+        const closeMenu = () => {
+            const wrap = this.querySelector('.menu-button');
+            const panel = this.querySelector('.menu-navigations');
+            if (wrap) wrap.classList.remove('active');
+            if (wrap) {
+                const btn = wrap.querySelector('button');
+                if (btn) btn.classList.remove('active');
+            }
+            if (panel) panel.classList.remove('visible');
+            document.body.style.overflow = '';
+        };
+
         const open = () => {
-            const menuBtn = this.querySelector('.menu-button');
-            if (menuBtn) menuBtn.classList.remove('active');
+            closeMenu();
             layer.hidden = false;
             trigger.setAttribute('aria-expanded', 'true');
             header.classList.add('search-open');
@@ -171,7 +186,10 @@ class MyHeader extends HTMLElement {
             }
         };
 
-        trigger.addEventListener('click', () => (layer.hidden ? open() : close()));
+        // The field covers the icon while it is open, so the icon only opens it;
+        // the close button and Escape are what dismiss it.
+        trigger.addEventListener('click', open);
+
         field.addEventListener('input', emit);
         field.addEventListener('keydown', e => {
             if (e.key === 'Escape') {

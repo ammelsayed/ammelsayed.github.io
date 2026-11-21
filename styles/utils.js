@@ -286,6 +286,12 @@ class CardRenderer {
         let debounceTimeout;
         const schedule = value => {
             clearTimeout(debounceTimeout);
+            // An empty term means the field was dismissed: the list goes back
+            // at once rather than after the typing delay.
+            if (!value) {
+                this.runSearch('');
+                return;
+            }
             debounceTimeout = setTimeout(() => this.runSearch(value), 300);
         };
 
@@ -299,6 +305,11 @@ class CardRenderer {
         if (searchInput) {
             searchInput.addEventListener('input', () => schedule(searchInput.value));
         }
+
+        // The data request runs before this listener exists, and a term typed
+        // while it was in flight is not in any event this code can hear.
+        const headerField = document.querySelector('.header-search-field');
+        if (headerField && headerField.value) schedule(headerField.value);
     }
 
     runSearch(term) {
