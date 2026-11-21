@@ -49,7 +49,7 @@
                 <nav id="toc-content"></nav>
             </div>
 
-            <div class="post-main-container">
+            <div class="post-main-container post-article">
                 <div class="post-header-section">
                     <h1 id="post-title">Loading...</h1>
                     <div id="post-meta" class="post-meta">
@@ -455,10 +455,22 @@
                     btn.innerText = 'Copy';
                     wrapper.appendChild(btn);
                     btn.addEventListener('click', async () => {
-                        await navigator.clipboard.writeText(pre.querySelector('code').innerText);
-                        btn.innerText = 'Copied';
-                        btn.classList.add('copied');
-                        setTimeout(() => { btn.innerText = 'Copy'; btn.classList.remove('copied'); }, 2000);
+                        const attempt = (btn.copyAttempt = (btn.copyAttempt || 0) + 1);
+                        let copied = true;
+                        try {
+                            await navigator.clipboard.writeText(pre.querySelector('code').innerText);
+                        } catch (err) {
+                            copied = false;
+                        }
+                        // only the newest attempt may write the label
+                        if (attempt !== btn.copyAttempt) return;
+                        btn.innerText = copied ? 'Copied' : 'Copy failed';
+                        btn.classList.toggle('copied', copied);
+                        setTimeout(() => {
+                            if (attempt !== btn.copyAttempt) return;
+                            btn.innerText = 'Copy';
+                            btn.classList.remove('copied');
+                        }, copied ? 2000 : 3000);
                     });
                 });
 
@@ -474,7 +486,9 @@
                 const tocContent = document.getElementById('toc-content');
                 const headings = contentEl.querySelectorAll('h2, h3');
                 const updateTocVisibility = () => {
-                    const shouldShowToc = window.innerWidth > 1024 && headings.length > 0;
+                    // Below 1024px the sidebar becomes a block above the article,
+                    // so the only reason to hide it is a post without headings.
+                    const shouldShowToc = headings.length > 0;
                     tocContainer.style.display = shouldShowToc ? 'block' : 'none';
                 };
                 
@@ -493,10 +507,20 @@
                         tocList.appendChild(li);
                     });
                     tocContent.appendChild(tocList);
+
+                    // Phones get the same list as a collapsed block above the
+                    // article, since the sticky sidebar does not fit there.
+                    const mobileToc = document.createElement('details');
+                    mobileToc.className = 'toc-mobile';
+                    const summary = document.createElement('summary');
+                    summary.textContent = 'Contents';
+                    mobileToc.appendChild(summary);
+                    mobileToc.appendChild(tocList.cloneNode(true));
+                    const wrapper = document.querySelector('.blog-post-wrapper');
+                    wrapper.insertBefore(mobileToc, document.querySelector('.post-main-container'));
                 }
 
                 updateTocVisibility();
-                window.addEventListener('resize', updateTocVisibility);
 
                 // Force theme background
                 const updatePostTheme = () => {
