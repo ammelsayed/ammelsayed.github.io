@@ -283,14 +283,33 @@ class CardRenderer {
     }
 
     setupSearch() {
-        const searchInput = document.querySelector(this.searchInputSelector);
-        if (!searchInput) return;
-
         let debounceTimeout;
-        searchInput.addEventListener('input', () => {
+        const schedule = value => {
             clearTimeout(debounceTimeout);
-            debounceTimeout = setTimeout(() => this.runSearch(searchInput.value), 300);
+            // An empty term means the field was dismissed: the list goes back
+            // at once rather than after the typing delay.
+            if (!value) {
+                this.runSearch('');
+                return;
+            }
+            debounceTimeout = setTimeout(() => this.runSearch(value), 300);
+        };
+
+        // Search lives in the header now; it announces the term as an event so
+        // the filtering here stays independent of where the field is drawn.
+        window.addEventListener('site:search', event => {
+            schedule(event.detail ? event.detail.term : '');
         });
+
+        const searchInput = document.querySelector(this.searchInputSelector);
+        if (searchInput) {
+            searchInput.addEventListener('input', () => schedule(searchInput.value));
+        }
+
+        // The data request runs before this listener exists, and a term typed
+        // while it was in flight is not in any event this code can hear.
+        const headerField = document.querySelector('.header-search-field');
+        if (headerField && headerField.value) schedule(headerField.value);
     }
 
     runSearch(term) {

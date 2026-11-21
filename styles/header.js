@@ -12,9 +12,12 @@
 class MyHeader extends HTMLElement {
     connectedCallback() {
         // Check if user is logged in
-        const isLoggedIn = sessionStorage.getItem('isAdmin') === 'true';
-        const loginText = isLoggedIn ? 'Logout' : 'Login';
+        const isLoggedIn = sessionStorage.getItem('isAdmin') === 'true';        const loginText = isLoggedIn ? 'Logout' : 'Login';
         const loginHref = isLoggedIn ? 'javascript:logoutFromHeader()' : '/login.html';
+
+        // List pages mark themselves with data-search; only there does a search
+        // control make sense, so the header stays untouched everywhere else.
+        const searchable = document.querySelector('[data-search]');
         
         const navLinks = `
         <ul>
@@ -42,6 +45,12 @@ class MyHeader extends HTMLElement {
                 <!--Navigation links goes here-->
                 <div class="navigations">
                     <nav>${navLinks}</nav>
+                    ${searchable ? `<button class="header-searchbtn" id="header-search" type="button" aria-label="Search" aria-expanded="false">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="11" cy="11" r="7"></circle>
+                            <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
+                        </svg>
+                    </button>` : ''}
                     <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark theme">
                         <svg class="sun-icon" viewBox="0 0 24 24" style="display: none;">
                             <circle cx="12" cy="12" r="5"></circle>
@@ -78,6 +87,7 @@ class MyHeader extends HTMLElement {
 
         this.highlightActiveLink();
         this.setupThemeToggle();
+        if (searchable) this.setupSearch(searchable);
         
         // Add logout function to window so it can be called from the link
         if (!window.logoutFromHeader) {
@@ -102,6 +112,95 @@ class MyHeader extends HTMLElement {
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
             this.updateIcons(theme, sunIcon, moonIcon);
+        });
+    }
+
+    // The search field lives in the header and slides over the whole bar, so the
+    // page itself carries no search box. List pages announce themselves with
+    // data-search; the value is only used to name what is being searched.
+    setupSearch(container) {
+        const kind = container.getAttribute('data-search');
+        const placeholder = kind ? `Search ${kind}…` : 'Search…';
+        const header = this.querySelector('header');
+        const trigger = this.querySelector('#header-search');
+
+        const layer = document.createElement('div');
+        layer.className = 'header-search';
+        layer.hidden = true;
+        layer.innerHTML = `
+            <form class="header-search-form" role="search">
+                <svg class="header-search-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
+                </svg>
+                <input class="header-search-field" type="search" autocomplete="off" spellcheck="false">
+                <button class="header-search-close" type="button" aria-label="Close search">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                    </svg>
+                </button>
+            </form>`;
+        header.appendChild(layer);
+
+        const field = layer.querySelector('.header-search-field');
+        field.placeholder = placeholder;
+        field.setAttribute('aria-label', placeholder);
+
+        const emit = () => {
+            window.dispatchEvent(new CustomEvent('site:search', { detail: { term: field.value } }));
+        };
+
+        // menu.js owns the panel and the scroll lock, and it has no close of its
+        // own, so the three states it toggles are undone here before the field
+        // covers the bar.
+        const closeMenu = () => {
+            const wrap = this.querySelector('.menu-button');
+            const panel = this.querySelector('.menu-navigations');
+            if (wrap) wrap.classList.remove('active');
+            if (wrap) {
+                const btn = wrap.querySelector('button');
+                if (btn) btn.classList.remove('active');
+            }
+            if (panel) panel.classList.remove('visible');
+            document.body.style.overflow = '';
+        };
+
+        const open = () => {
+            closeMenu();
+            layer.hidden = false;
+            trigger.setAttribute('aria-expanded', 'true');
+            header.classList.add('search-open');
+            field.focus();
+        };
+
+        const close = () => {
+            if (layer.hidden) return;
+            layer.hidden = true;
+            trigger.setAttribute('aria-expanded', 'false');
+            header.classList.remove('search-open');
+            trigger.focus();
+            if (field.value) {
+                field.value = '';
+                emit();
+            }
+        };
+
+        // The field covers the icon while it is open, so the icon only opens it;
+        // the close button and Escape are what dismiss it.
+        trigger.addEventListener('click', open);
+
+        field.addEventListener('input', emit);
+        field.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                close();
+            }
+        });
+        layer.querySelector('form').addEventListener('submit', e => e.preventDefault());
+        layer.querySelector('.header-search-close').addEventListener('click', close);
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && !layer.hidden) close();
         });
     }
 
