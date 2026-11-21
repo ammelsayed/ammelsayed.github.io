@@ -116,26 +116,59 @@ body main {
     color: var(--text-color);
 }
 
-.author_information {
+/* The byline is one row: avatar, name, then the metadata that belongs to the
+   same line of information (date, venue, tag). */
+.author_information,
+.card-meta {
     margin-bottom: 15px;
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     justify-content: flex-start;
     align-items: center;
+    gap: 6px 14px;
 }
 
 .author_image {
-    width: 50px;
-    height: 50px;
+    width: 34px;
+    height: 34px;
     object-fit: cover;
     border-radius: 50%;
-    margin-right: 10px;
 }
 
-.AuthorName_and_Date {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+.author_name {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.author_name a {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.meta-item em {
+    font-style: normal;
+}
+
+.meta-icon {
+    width: 15px;
+    height: 15px;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.85;
 }
 
 #doi-link {
@@ -193,6 +226,15 @@ body main {
     }
     .publication .content .abstract {
         text-align: left;
+    }
+    /* The metadata of a publication runs to three entries, which read as a
+       paragraph when set at the desktop size in a 350px column. */
+    .card-meta {
+        gap: 4px 12px;
+        font-size: 13px;
+    }
+    .meta-item {
+        font-size: 13px;
     }
     .publication-image {
         max-width: 200px;
