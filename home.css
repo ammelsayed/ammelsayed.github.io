@@ -288,6 +288,26 @@ section h2, section h3, section h4 {
     }
 }
 
+@media (max-width: 700px) {
+    /* The desktop card carries 60px of margin and a 220px portrait, which
+       pushes the greeting off the first screen on a phone. */
+    #greetings {
+        margin: 24px auto;
+        padding: 28px 20px;
+        gap: 20px;
+    }
+    #greetings #greetings-image {
+        flex: 0 0 auto;
+    }
+    #greetings img {
+        width: 150px;
+        height: 150px;
+    }
+    #greetings-text h1 {
+        font-size: 24px;
+    }
+}
+
 .recents{
     display: flex;
     flex-direction: column;

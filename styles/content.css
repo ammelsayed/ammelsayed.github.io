@@ -244,3 +244,14 @@ body main {
         font-size: 13px;
     }
 }
+
+/* Phones: the blog cards print the whole post, which makes the index ~4500px
+   long. Six lines is enough to decide whether to open the post. */
+@media screen and (max-width: 700px) {
+    .publication:has(.author_information) .abstract {
+        display: -webkit-box;
+        -webkit-line-clamp: 6;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+}

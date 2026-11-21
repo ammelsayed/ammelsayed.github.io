@@ -453,10 +453,19 @@ class CardRenderer {
             }
         }
 
-        if (item.link) {
+        // A phone has no double click, so one tap opens the card. A publication
+        // card points at its DOI, and a DOI is not a page to open by accident,
+        // so those keep their own link and leave the card inert.
+        const openOnTap = item.link && !item.link.includes('doi.org');
+        if (openOnTap) {
             const destination = safeHref(item.link, '');
             if (destination) {
-                card.addEventListener('dblclick', () => {
+                card.addEventListener('click', (event) => {
+                    if (event.target.closest('a')) return;
+                    // Only a click that ends a selection inside this card counts
+                    // as selecting text; a selection left elsewhere is ignored.
+                    const selection = window.getSelection();
+                    if (selection && selection.rangeCount && card.contains(selection.anchorNode)) return;
                     window.location.href = destination;
                 });
             }
