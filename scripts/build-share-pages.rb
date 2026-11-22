@@ -121,12 +121,15 @@ posts.each do |post|
                       'the post script tag')
   page = page.sub('</html>', "#{MARKER}\n</html>")
 
-  # Written beside the page and moved onto it. A `blog/<id>.html` that is a link
-  # to a tracked source would take the write itself, and `blog` is committed, so
-  # the source would be committed as generated HTML.
+  # Written beside the page and moved onto it. Neither name may be a link: `blog`
+  # is committed, so a write that follows one would land in whatever it points at
+  # and be committed there. A page the generator did not write is someone's file
+  # at the post's address, and it is not replaced either.
   path = File.join(BLOG_DIR, "#{id}.html")
-  abort "Failing: #{path} is a link, and it would be written through." if File.symlink?(path)
   partial = "#{path}.partial"
+  link = [path, partial].find { |candidate| File.symlink?(candidate) }
+  abort "Failing: #{link} is a link, and it would be written through." if link
+  abort "Failing: #{path} was not written by this script, and it is not replaced." if File.exist?(path) && !File.read(path).include?(MARKER)
   File.write(partial, page)
   File.rename(partial, path)
 end
@@ -137,6 +140,7 @@ end
 # in this folder too, and they are never ours to delete.
 Dir.glob(File.join(BLOG_DIR, '*.html')).each do |path|
   next if ids.include?(File.basename(path, '.html'))
+  next if File.symlink?(path)
   File.delete(path) if File.read(path).include?(MARKER)
 end
 

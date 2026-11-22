@@ -7,10 +7,16 @@ name: Generate the content JSON
 # so anything either host serves has to be in it.
 #
 # Runs on every push to main. A commit pushed with the Actions token does not
-# trigger another run, so this cannot loop on its own commits.
+# trigger another run, so this cannot loop on its own commits. One run at a time:
+# two pushes a moment apart would otherwise write the same files, and the second
+# would be pushed onto a branch that had moved.
 on:
   push:
     branches: ["main"]
+
+concurrency:
+  group: generated-files
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -35,5 +41,6 @@ jobs:
             echo "The generated files already match the sources; nothing to commit."
           else
             git commit -m "(auto) generate the content JSON and the article pages from the YAML sources"
+            git pull --rebase origin main
             git push
           fi
