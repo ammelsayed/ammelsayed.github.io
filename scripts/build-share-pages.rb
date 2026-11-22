@@ -42,10 +42,12 @@ def replace_once(page, needle, value, what)
 end
 
 # The front matter keeps the day the post went up; the tag wants an instant.
+# The day is read however it was written - `1999-9-09` is a day like any other -
+# and the post is named in a warning when it is not a date at all, rather than
+# losing the tag in silence.
 def published_time(value)
-  date = Date.iso8601(value.to_s)
-  "#{date}T00:00:00Z"
-rescue Date::Error, ArgumentError
+  "#{Date.parse(value.to_s)}T00:00:00Z"
+rescue Date::Error, ArgumentError, TypeError
   nil
 end
 
@@ -83,6 +85,7 @@ posts.each do |post|
   image = "#{SITE}/#{image.delete_prefix('/')}" unless image.empty? || image.match?(%r{\A(?:https?:)?//}i)
   url = "#{SITE}/blog/#{id}"
   published = published_time(date)
+  warn "Skipping article:published_time on #{id}: #{date.inspect} is not a date." if published.nil? && !date.empty?
 
   # The article page: blog/post.html with its own head and its own id. The
   # script it loads reads that id, so nothing has to choose the post at runtime.
