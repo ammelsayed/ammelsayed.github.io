@@ -46,27 +46,43 @@ jobs:
             git add -A -- data blog
           }
 
+          # Returns 0 when a commit was made, 1 when there was nothing to commit,
+          # 2 when the commit itself failed: the first is not a failure, the last
+          # is, and the two are not treated alike.
           commit() {
             if git diff --cached --quiet; then
-              echo "The generated files already match the sources; nothing to commit."
               return 1
             fi
-            git commit -m "(auto) generate the content JSON and the share pages from the YAML sources"
+            if git commit -m "(auto) generate the content JSON and the share pages from the YAML sources"; then
+              return 0
+            fi
+            return 2
+          }
+
+          land() {
+            commit
+            case $? in
+              0) ;;
+              1) echo "The generated files already match the sources; nothing to commit."; exit 0 ;;
+              *) echo "The generated files could not be committed." >&2; exit 1 ;;
+            esac
           }
 
           generate
-          commit || exit 0
+          land
 
           # Another push can land between this checkout and this push, and a push
           # from an older revision is refused. These files are output, so they are
-          # regenerated on the newest main rather than merged with it.
+          # regenerated on the newest main rather than merged with it. FETCH_HEAD is
+          # what the fetch just brought: `origin/main` may still point at the
+          # revision this job started on.
           for attempt in 1 2 3; do
             if git push; then exit 0; fi
             echo "Push refused; regenerating on the newest main (attempt $attempt)"
             git fetch --depth=1 origin main
-            git reset --hard origin/main
+            git reset --hard FETCH_HEAD
             generate
-            commit || exit 0
+            land
           done
           echo "The generated files could not be pushed after three attempts." >&2
           exit 1

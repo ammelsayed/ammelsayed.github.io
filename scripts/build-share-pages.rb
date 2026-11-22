@@ -52,6 +52,12 @@ def page_dir!(root, id, generated: false)
     warn "Failing: \"#{id}\" cannot be a post id; it is used as a directory name."
     exit 1
   end
+  # The root is checked too: a link at `blog/posts` pointing at `blog` would send
+  # every legacy stub over the page it is meant to point to.
+  if File.symlink?(root)
+    warn "Failing: #{root} is a link; generated pages are not written through it."
+    exit 1
+  end
   dir = File.join(root, id)
   page = File.join(dir, 'index.html')
   if File.symlink?(dir) || File.symlink?(page)
