@@ -681,13 +681,14 @@ body {
         height: 40px;
     }
 
-    /* The row is two marks wide on a phone: the word would take a third of it,
-       and every extra route is already a tap away in the system sheet. */
+    /* The row is two marks wide on a phone: the word would take a third of it.
+       The system sheet, when the browser has one, stands in for every app the
+       row links to; without it the row keeps those links rather than losing them. */
     .post-share-label {
         display: none;
     }
 
-    .post-share-actions > :not(:first-child) {
+    .post-share-actions.has-sheet > .post-share-btn:not(.is-primary) {
         display: none;
     }
 }

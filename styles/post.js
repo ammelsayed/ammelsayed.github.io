@@ -546,9 +546,6 @@
                         facebook: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22.675 0H1.325C.593 0 0 .593 0 1.325v21.351C0 23.407.593 24 1.325 24h11.495v-9.294H9.691v-3.622h3.129V8.41c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.462.099 2.795.143v3.24h-1.918c-1.504 0-1.796.715-1.796 1.763v2.316h3.586l-.467 3.622h-3.119V24h6.116C23.407 24 24 23.407 24 22.675V1.325C24 .593 23.407 0 22.675 0z"/></svg>',
                         copy: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h10a2 2 0 0 1 2 2v10h-2V5H8zm-3 4h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"/></svg>',
                         share: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 16.5 6.5l-1.4 1.4L13 5.9V15h-2V5.9L8.9 7.9 7.5 6.5zM5 11h3v2H7v7h10v-7h-1v-2h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z"/></svg>',
-                        // One thumb in the metadata set's outline weight: the hand and
-                        // its cuff, so at 16px it cannot read as a mitten.
-                        like: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.8 10.8h2.9l2.6-6a2.2 2.2 0 0 1 4.1 1.4l-.9 4.6h4a1.8 1.8 0 0 1 1.76 2.25l-1.4 6.6a2.2 2.2 0 0 1-2.16 1.75H6.8z"></path><rect x="3.2" y="10.8" width="3.6" height="9.4" rx="1.2"></rect></svg>',
                     };
                     const addButton = ({ label, icon, href, onClick }) => {
                         const el = document.createElement(href ? 'a' : 'button');
@@ -568,6 +565,7 @@
                         el.setAttribute('aria-label', label);
                         el.innerHTML = `<span class="post-share-icon">${icon}</span>`;
                         shareHost.appendChild(el);
+                        return el;
                     };
 
                     // With no label to rewrite, a state is shown by swapping the glyph:
@@ -589,9 +587,11 @@
                     };
 
                     // A system sheet when the browser has one; it is the only route
-                    // that can reach an app the site has no link for.
+                    // that can reach an app the site has no link for. It is also the
+                    // one route a phone keeps to itself, so it says which button that
+                    // is: without a sheet the row keeps every link it has.
                     if (typeof navigator.share === 'function') {
-                        addButton({
+                        const sheet = addButton({
                             label: 'Share',
                             icon: icons.share,
                             onClick: (event) => {
@@ -604,6 +604,8 @@
                                     });
                             },
                         });
+                        sheet.classList.add('is-primary');
+                        shareHost.classList.add('has-sheet');
                     }
 
                     addButton({ label: 'X', icon: icons.x, href: `https://twitter.com/intent/tweet?text=${enc(shareTitle)}&url=${enc(shareUrl)}` });
@@ -649,10 +651,26 @@
                         const counterUrl = 'https://commentsystem-amber.vercel.app/api/article';
                         const likePath = `/like/blog/post/${postId}`;
                         const likeKey = `post-like:${postId}`;
+                        const svgNS = 'http://www.w3.org/2000/svg';
                         const tallyOf = (payload) => {
                             const row = payload && payload.data && payload.data[0];
                             return row && typeof row.time === 'number' ? row.time : null;
                         };
+
+                        // Built as nodes rather than parsed from a string: the shape is
+                        // fixed here, so nothing about it should travel as markup.
+                        const glyph = document.createElementNS(svgNS, 'svg');
+                        glyph.setAttribute('viewBox', '0 0 24 24');
+                        glyph.setAttribute('aria-hidden', 'true');
+                        const hand = document.createElementNS(svgNS, 'path');
+                        hand.setAttribute('d', 'M6.8 10.8h2.9l2.6-6a2.2 2.2 0 0 1 4.1 1.4l-.9 4.6h4a1.8 1.8 0 0 1 1.76 2.25l-1.4 6.6a2.2 2.2 0 0 1-2.16 1.75H6.8z');
+                        const cuff = document.createElementNS(svgNS, 'rect');
+                        cuff.setAttribute('x', '3.2');
+                        cuff.setAttribute('y', '10.8');
+                        cuff.setAttribute('width', '3.6');
+                        cuff.setAttribute('height', '9.4');
+                        cuff.setAttribute('rx', '1.2');
+                        glyph.append(hand, cuff);
 
                         const likeBtn = document.createElement('button');
                         likeBtn.type = 'button';
@@ -661,7 +679,10 @@
                         likeBtn.title = 'Like this post';
                         likeBtn.setAttribute('aria-label', 'Like this post');
                         likeBtn.setAttribute('aria-pressed', 'false');
-                        likeBtn.innerHTML = `<span class="post-share-icon">${icons.like}</span>`;
+                        const iconBox = document.createElement('span');
+                        iconBox.className = 'post-share-icon';
+                        iconBox.appendChild(glyph);
+                        likeBtn.appendChild(iconBox);
 
                         const likeCount = document.createElement('span');
                         likeCount.className = 'post-like-count';
@@ -678,31 +699,70 @@
                         // `null` means "not known", and the number is left off rather
                         // than printed as a zero the visitor would read as a fact.
                         let total = null;
+                        // Every request takes a number; only the newest owns the tally,
+                        // so a slow read cannot walk the display back below a like that
+                        // has already landed.
+                        let latest = 0;
                         const paint = () => {
                             if (total === null) return;
                             likeCount.textContent = String(liked && total === 0 ? 1 : total);
                         };
-                        const settle = () => {
+                        const markLiked = () => {
                             liked = true;
                             likeBtn.classList.add('is-liked');
                             likeBtn.title = 'You liked this post';
                             likeBtn.setAttribute('aria-label', 'You liked this post');
                             likeBtn.setAttribute('aria-pressed', 'true');
                         };
+                        const markUnliked = () => {
+                            liked = false;
+                            likeBtn.classList.remove('is-liked');
+                            likeBtn.title = 'Like this post';
+                            likeBtn.setAttribute('aria-label', 'Like this post');
+                            likeBtn.setAttribute('aria-pressed', 'false');
+                        };
+                        const readTally = () => {
+                            const ticket = ++latest;
+                            fetch(`${counterUrl}?path=${enc(likePath)}&type=time`)
+                                .then((response) => (response.ok ? response.json() : null))
+                                .then((payload) => {
+                                    if (ticket !== latest) return;
+                                    total = tallyOf(payload);
+                                    paint();
+                                })
+                                .catch(() => {
+                                    if (ticket === latest) total = null;
+                                });
+                        };
 
-                        if (liked) settle();
+                        if (liked) markLiked();
+                        readTally();
 
-                        fetch(`${counterUrl}?path=${enc(likePath)}&type=time`)
-                            .then((response) => (response.ok ? response.json() : null))
-                            .then((payload) => {
-                                total = tallyOf(payload);
-                                paint();
-                            })
-                            .catch(() => { total = null; });
+                        // Another tab that likes the same post is the same reader: it
+                        // adopts the mark rather than sending a second like.
+                        window.addEventListener('storage', (event) => {
+                            if (event.key !== likeKey) return;
+                            if (event.newValue === '1') markLiked();
+                            else markUnliked();
+                            readTally();
+                        });
 
                         likeBtn.addEventListener('click', async () => {
                             if (liked) return;
-                            settle();
+                            let takenElsewhere = false;
+                            try {
+                                takenElsewhere = window.localStorage.getItem(likeKey) === '1';
+                            } catch (error) {
+                                takenElsewhere = false;
+                            }
+                            if (takenElsewhere) {
+                                markLiked();
+                                paint();
+                                return;
+                            }
+
+                            markLiked();
+                            const shownBefore = total;
                             if (total !== null) total += 1;
                             paint();
                             try {
@@ -710,21 +770,35 @@
                             } catch (error) {
                                 // Nothing to remember it with; the mark still stands.
                             }
+
+                            const ticket = ++latest;
                             try {
                                 const response = await fetch(counterUrl, {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ path: likePath, type: 'time' }),
                                 });
-                                const payload = response.ok ? await response.json() : null;
+                                if (!response.ok) throw new Error(`like not recorded: ${response.status}`);
+                                const payload = await response.json();
                                 const serverTotal = tallyOf(payload);
-                                if (serverTotal !== null) {
+                                if (serverTotal === null) throw new Error('like not recorded: no tally');
+                                if (ticket === latest) {
                                     total = serverTotal;
                                     paint();
                                 }
                             } catch (error) {
-                                // The server did not confirm; the like stays on screen
-                                // as this browser's own, and nothing is retracted.
+                                // Nothing was recorded, so the button goes back to where
+                                // it was: a mark left standing for a like the server never
+                                // took would block the reader from trying again.
+                                if (ticket !== latest) return;
+                                markUnliked();
+                                total = shownBefore;
+                                paint();
+                                try {
+                                    window.localStorage.removeItem(likeKey);
+                                } catch (removeError) {
+                                    // Storage refused the write too; the mark is already off.
+                                }
                             }
                         });
                     }
