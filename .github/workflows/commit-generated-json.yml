@@ -2,9 +2,12 @@ name: Generate the content JSON
 
 # The pages read their lists from data/*.json, which is generated from the YAML
 # files and the blog front matter, and the link previews read the tags on the
-# static pages under blog/posts/. Generating both here and committing them keeps
-# hosts that build the repository as-is — Cloudflare Pages, for one — serving the
+# pages under blog/<id>/. Generating both here and committing them keeps hosts
+# that build the repository as-is — Cloudflare Pages, for one — serving the
 # same files as GitHub Pages, which runs the scripts itself while it builds.
+#
+# A post is added by writing blog/<id>.md and nothing else: the index, the
+# search index and its page all come out of this run.
 #
 # Runs on every push to main. A commit pushed with the Actions token does not
 # trigger another run, so this cannot loop on its own commits.
@@ -30,7 +33,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/events.json data/projects.json data/publications.json data/blogs.generated.json data/search-index.json blog/posts
+          # `-A` over the two whole directories, not a list of files: a post's
+          # page is a directory named after it, and a page whose post was hidden
+          # or deleted has to be staged as a deletion. A pathspec naming
+          # blog/posts alone would leave the pages in blog/<id>/ unpublished.
+          git add -A -- data blog
           if git diff --cached --quiet; then
             echo "The generated files already match the sources; nothing to commit."
           else
