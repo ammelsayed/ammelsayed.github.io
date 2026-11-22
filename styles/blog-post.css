@@ -695,62 +695,14 @@ body {
     font-variant-numeric: tabular-nums;
 }
 
-/* Collapsed contents list for phones; filled in by the post script */
-.toc-mobile {
-    display: none;
-}
-
 @media (max-width: 1024px) {
     .blog-post-wrapper {
         flex-direction: column;
         padding: 40px 20px;
     }
-    /* The sidebar contents table becomes a collapsed block above the article */
+    /* The sidebar does not fit beside the article below this width */
     .toc-container {
         display: none !important;
-    }
-    .toc-mobile {
-        display: block;
-        width: 100%;
-        max-width: 80ch;
-        font-family: var(--font-body);
-        box-sizing: border-box;
-        align-self: center;
-        margin-bottom: 24px;
-        padding: 14px 18px;
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-    }
-    .toc-mobile summary {
-        font-size: 15px;
-        font-weight: 600;
-        color: var(--primary-color);
-        cursor: pointer;
-        list-style: none; /* the global reset also removes the disclosure marker */
-    }
-    .toc-mobile summary::after {
-        content: '\25BE';
-        float: right;
-        color: var(--text-muted);
-    }
-    .toc-mobile[open] summary::after {
-        content: '\25B4';
-    }
-    .toc-mobile ul {
-        list-style: none;
-        padding: 0;
-        margin: 12px 0 0;
-    }
-    .toc-mobile li {
-        margin-bottom: 8px;
-    }
-    .toc-mobile li.h3 {
-        margin-left: 20px;
-        font-size: 0.95em;
-    }
-    .toc-mobile a {
-        color: var(--secondary-color);
     }
     .post-main-container {
         width: 100%;
