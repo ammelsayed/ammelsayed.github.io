@@ -39,6 +39,14 @@
             const body = postBody();
             if (body) body.hidden = true;
             document.documentElement.dataset.postState = 'failed';
+            // The contents list points at headings inside the article that has just
+            // been hidden, so it goes with it: an index of an article that is not
+            // there reads as a page that gave up halfway. The sidebar and the
+            // phone's collapsed block are built at different times, so both are
+            // cleared rather than one of them.
+            const toc = document.getElementById('toc-container');
+            if (toc) toc.style.display = 'none';
+            document.querySelectorAll('.toc-mobile').forEach((mobile) => mobile.remove());
             const loading = postLoading();
             if (!loading) return;
             const note = document.createElement('p');
