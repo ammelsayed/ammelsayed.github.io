@@ -466,15 +466,27 @@ body {
     overflow-x: auto;
 }
 
-/* Share row: same tokens as the rest of the page, so it follows the theme */
+/* Share row: same tokens as the rest of the page, so it follows the theme.
+   The share buttons open the row and the like closes it, so the two ends meet
+   the comment card below: that card is inset .5em from the column, and this
+   row carries the same inset, which is why the word and the tally line up with
+   the card's edges instead of hanging outside them. */
 .post-share {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 40px 0.5rem 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
+}
+
+.post-share-left {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 12px;
-    margin: 40px 0 32px;
-    padding-top: 24px;
-    border-top: 1px solid var(--border-color);
+    min-width: 0;
 }
 
 .post-share-label {
@@ -488,19 +500,21 @@ body {
 .post-share-actions {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-start; /* a wrapped label must not stretch its neighbours */
+    align-items: center;
     gap: 8px;
 }
 
+/* A glyph and nothing else: the label lives in the tooltip, so the button is a
+   square that holds the mark at the middle of its own box. */
 .post-share-btn {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    box-sizing: border-box; /* the 40px phone height includes the padding */
-    padding: 7px 12px;
+    justify-content: center;
+    box-sizing: border-box; /* the 40px phone width includes the border */
+    width: 34px;
+    height: 34px;
+    padding: 0;
     font-family: inherit;
-    font-size: 13px;
-    line-height: 1;
     color: var(--text-muted);
     background: var(--card-bg);
     border: 1px solid var(--border-color);
@@ -526,6 +540,57 @@ body {
     width: 100%;
     height: 100%;
     fill: currentColor;
+}
+
+/* A tick or a cross is a stroke, not a filled mark: brand glyphs stay solid, but
+   a state shape drawn as a filled path would print as a blot. */
+.post-share-icon svg.state {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* The like closes the row, on the numbering side of its thumb */
+.post-like {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-left: auto;
+}
+
+/* The same outline set as the metadata icons: one tone, no second colour, and
+   the thumb fills in when the like is the visitor's own */
+.post-share-btn.is-like .post-share-icon svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.post-share-btn.is-like:hover {
+    color: var(--text-color);
+    border-color: var(--text-muted);
+}
+
+.post-share-btn.is-like.is-liked {
+    color: var(--text-color);
+    border-color: var(--text-muted);
+    cursor: default;
+}
+
+.post-share-btn.is-like.is-liked .post-share-icon svg {
+    fill: currentColor;
+}
+
+.post-like-count {
+    min-width: 1ch;
+    font-size: 13px;
+    line-height: 1;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
 }
 
 /* Collapsed contents list for phones; filled in by the post script */
@@ -612,7 +677,18 @@ body {
 
 @media (max-width: 700px) {
     .post-share-btn {
-        min-height: 40px;
-        padding: 10px 14px;
+        width: 40px;
+        height: 40px;
+    }
+
+    /* The row is two marks wide on a phone: the word would take a third of it.
+       The system sheet, when the browser has one, stands in for every app the
+       row links to; without it the row keeps those links rather than losing them. */
+    .post-share-label {
+        display: none;
+    }
+
+    .post-share-actions.has-sheet > .post-share-btn:not(.is-primary) {
+        display: none;
     }
 }

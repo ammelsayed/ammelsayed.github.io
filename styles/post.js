@@ -565,6 +565,7 @@
                         el.setAttribute('aria-label', label);
                         el.innerHTML = `<span class="post-share-icon">${icon}</span>`;
                         shareHost.appendChild(el);
+                        return el;
                     };
 
                     // With no label to rewrite, a state is shown by swapping the glyph:
@@ -586,9 +587,11 @@
                     };
 
                     // A system sheet when the browser has one; it is the only route
-                    // that can reach an app the site has no link for.
+                    // that can reach an app the site has no link for. It is also the
+                    // one route a phone keeps to itself, so it says which button that
+                    // is: without a sheet the row keeps every link it has.
                     if (typeof navigator.share === 'function') {
-                        addButton({
+                        const sheet = addButton({
                             label: 'Share',
                             icon: icons.share,
                             onClick: (event) => {
@@ -601,6 +604,8 @@
                                     });
                             },
                         });
+                        sheet.classList.add('is-primary');
+                        shareHost.classList.add('has-sheet');
                     }
 
                     addButton({ label: 'X', icon: icons.x, href: `https://twitter.com/intent/tweet?text=${enc(shareTitle)}&url=${enc(shareUrl)}` });
@@ -634,6 +639,169 @@
                             flashState(btn, copied ? icons.check : icons.failed, copied ? 'Copied' : 'Copy failed');
                         },
                     });
+
+                    // A like is a counter on the server this page already talks to for
+                    // its comments: `/api/article` tallies a path, so each post gets a
+                    // `/like/...` path of its own and the number lives beside the
+                    // comments with no second service and no extra credential. Waline
+                    // only counts up, so a like cannot be taken back: the button takes
+                    // one per browser, then retires itself.
+                    const likeHost = document.getElementById('post-like');
+                    if (likeHost) {
+                        const counterUrl = 'https://commentsystem-amber.vercel.app/api/article';
+                        const likePath = `/like/blog/post/${postId}`;
+                        const likeKey = `post-like:${postId}`;
+                        const svgNS = 'http://www.w3.org/2000/svg';
+                        const tallyOf = (payload) => {
+                            const row = payload && payload.data && payload.data[0];
+                            return row && typeof row.time === 'number' ? row.time : null;
+                        };
+
+                        // Built as nodes rather than parsed from a string: the shape is
+                        // fixed here, so nothing about it should travel as markup.
+                        const glyph = document.createElementNS(svgNS, 'svg');
+                        glyph.setAttribute('viewBox', '0 0 24 24');
+                        glyph.setAttribute('aria-hidden', 'true');
+                        const hand = document.createElementNS(svgNS, 'path');
+                        hand.setAttribute('d', 'M6.8 10.8h2.9l2.6-6a2.2 2.2 0 0 1 4.1 1.4l-.9 4.6h4a1.8 1.8 0 0 1 1.76 2.25l-1.4 6.6a2.2 2.2 0 0 1-2.16 1.75H6.8z');
+                        const cuff = document.createElementNS(svgNS, 'rect');
+                        cuff.setAttribute('x', '3.2');
+                        cuff.setAttribute('y', '10.8');
+                        cuff.setAttribute('width', '3.6');
+                        cuff.setAttribute('height', '9.4');
+                        cuff.setAttribute('rx', '1.2');
+                        glyph.append(hand, cuff);
+
+                        const likeBtn = document.createElement('button');
+                        likeBtn.type = 'button';
+                        likeBtn.className = 'post-share-btn is-like';
+                        // The word stays a tooltip; nothing is printed beside the glyph.
+                        likeBtn.title = 'Like this post';
+                        likeBtn.setAttribute('aria-label', 'Like this post');
+                        likeBtn.setAttribute('aria-pressed', 'false');
+                        const iconBox = document.createElement('span');
+                        iconBox.className = 'post-share-icon';
+                        iconBox.appendChild(glyph);
+                        likeBtn.appendChild(iconBox);
+
+                        const likeCount = document.createElement('span');
+                        likeCount.className = 'post-like-count';
+                        likeCount.setAttribute('aria-live', 'polite');
+                        likeHost.append(likeBtn, likeCount);
+
+                        let liked = false;
+                        try {
+                            liked = window.localStorage.getItem(likeKey) === '1';
+                        } catch (error) {
+                            // A browser that refuses storage just forgets the like.
+                            liked = false;
+                        }
+                        // `null` means "not known", and the number is left off rather
+                        // than printed as a zero the visitor would read as a fact.
+                        let total = null;
+                        // Every request takes a number; only the newest owns the tally,
+                        // so a slow read cannot walk the display back below a like that
+                        // has already landed.
+                        let latest = 0;
+                        const paint = () => {
+                            if (total === null) return;
+                            likeCount.textContent = String(liked && total === 0 ? 1 : total);
+                        };
+                        const markLiked = () => {
+                            liked = true;
+                            likeBtn.classList.add('is-liked');
+                            likeBtn.title = 'You liked this post';
+                            likeBtn.setAttribute('aria-label', 'You liked this post');
+                            likeBtn.setAttribute('aria-pressed', 'true');
+                        };
+                        const markUnliked = () => {
+                            liked = false;
+                            likeBtn.classList.remove('is-liked');
+                            likeBtn.title = 'Like this post';
+                            likeBtn.setAttribute('aria-label', 'Like this post');
+                            likeBtn.setAttribute('aria-pressed', 'false');
+                        };
+                        const readTally = () => {
+                            const ticket = ++latest;
+                            fetch(`${counterUrl}?path=${enc(likePath)}&type=time`)
+                                .then((response) => (response.ok ? response.json() : null))
+                                .then((payload) => {
+                                    if (ticket !== latest) return;
+                                    total = tallyOf(payload);
+                                    paint();
+                                })
+                                .catch(() => {
+                                    if (ticket === latest) total = null;
+                                });
+                        };
+
+                        if (liked) markLiked();
+                        readTally();
+
+                        // Another tab that likes the same post is the same reader: it
+                        // adopts the mark rather than sending a second like.
+                        window.addEventListener('storage', (event) => {
+                            if (event.key !== likeKey) return;
+                            if (event.newValue === '1') markLiked();
+                            else markUnliked();
+                            readTally();
+                        });
+
+                        likeBtn.addEventListener('click', async () => {
+                            if (liked) return;
+                            let takenElsewhere = false;
+                            try {
+                                takenElsewhere = window.localStorage.getItem(likeKey) === '1';
+                            } catch (error) {
+                                takenElsewhere = false;
+                            }
+                            if (takenElsewhere) {
+                                markLiked();
+                                paint();
+                                return;
+                            }
+
+                            markLiked();
+                            const shownBefore = total;
+                            if (total !== null) total += 1;
+                            paint();
+                            try {
+                                window.localStorage.setItem(likeKey, '1');
+                            } catch (error) {
+                                // Nothing to remember it with; the mark still stands.
+                            }
+
+                            const ticket = ++latest;
+                            try {
+                                const response = await fetch(counterUrl, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ path: likePath, type: 'time' }),
+                                });
+                                if (!response.ok) throw new Error(`like not recorded: ${response.status}`);
+                                const payload = await response.json();
+                                const serverTotal = tallyOf(payload);
+                                if (serverTotal === null) throw new Error('like not recorded: no tally');
+                                if (ticket === latest) {
+                                    total = serverTotal;
+                                    paint();
+                                }
+                            } catch (error) {
+                                // Nothing was recorded, so the button goes back to where
+                                // it was: a mark left standing for a like the server never
+                                // took would block the reader from trying again.
+                                if (ticket !== latest) return;
+                                markUnliked();
+                                total = shownBefore;
+                                paint();
+                                try {
+                                    window.localStorage.removeItem(likeKey);
+                                } catch (removeError) {
+                                    // Storage refused the write too; the mark is already off.
+                                }
+                            }
+                        });
+                    }
                 }
 
                 // KaTeX ships as two scripts: the core (which defines window.katex)
