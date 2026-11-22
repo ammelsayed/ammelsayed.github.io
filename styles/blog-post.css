@@ -362,7 +362,7 @@ body {
     margin: 0;
     padding: 16px;
     overflow-x: auto;
-    font-size: 70%;
+    font-size: max(70%, 12px);
     line-height: 1.45;
     background-color: #2d2d2d !important;
     border-radius: 6px;
@@ -419,7 +419,7 @@ body {
 .blog-post-content :not(pre) > code {
     padding: 0.2em 0.4em;
     margin: 0;
-    font-size: 70%;
+    font-size: max(70%, 12px);
     white-space: break-spaces;
     background-color: rgba(175, 184, 193, 0.2);
     border-radius: 6px;
@@ -429,9 +429,9 @@ body {
 
 /* A percentage here resolves against whatever contains the code, and in a
    heading that is the heading: 70% of an h2 lands above the prose. Size heading
-   code against the 16px base so it stays under the article text. */
+   code against the base, at the same 12px floor, so it stays under the text. */
 .blog-post-content :is(h1, h2, h3, h4, h5, h6) > code {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
 }
 
 /* OVERRIDE GLOBAL list-style: none */
@@ -791,13 +791,6 @@ body {
     }
     .blog-post-content {
         font-size: 15px;
-    }
-    /* 70% of that body is 10.5px, below what a mono snippet can carry. Pin the
-       code to 70% of the 16px base instead, so the article text may shrink but
-       the code stops at a size that still reads. */
-    .blog-post-content pre,
-    .blog-post-content :not(pre) > code {
-        font-size: 0.7rem;
     }
 }
 
