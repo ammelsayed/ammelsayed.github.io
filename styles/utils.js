@@ -299,7 +299,10 @@ function appendRichText(target, html, term) {
 const MATH_SOURCE = /\$\$[\s\S]+?\$\$|\$[^$\n]+?\$/;
 // Two hosts, the pair the article page already uses: a host that refuses would
 // leave a card on raw TeX for the rest of the visit.
-const KATEX_HOSTS = [
+// Named for the card, not for the page: the article page declares its own host
+// list, and both files are plain scripts sharing one global scope - a second
+// `const KATEX_HOSTS` there would stop the whole article script from parsing.
+const CARD_KATEX_HOSTS = [
     'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/',
     'https://unpkg.com/katex@0.16.8/dist/'
 ];
@@ -308,7 +311,7 @@ let katexLoading = null;
 // One file from a host, and whether it arrived: a request that neither loads nor
 // fails is what a stalled connection looks like, so it gives up after ten seconds
 // and the caller tries the other host.
-function loadKatexFile(url) {
+function loadCardKatexFile(url) {
     return new Promise(resolve => {
         const tag = document.createElement('script');
         const timer = setTimeout(() => {
@@ -332,7 +335,7 @@ function loadKatexFile(url) {
 // Both files, and the stylesheet that positions the glyphs: a host that serves the
 // script but not the styles is not good enough, because the formula would be drawn
 // unpositioned. Three answers have to be yes before that host is used.
-function loadKatex() {
+function loadCardKatex() {
     const attempt = async base => {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
@@ -346,12 +349,12 @@ function loadKatex() {
             link.remove();
             return false;
         }
-        if (!await loadKatexFile(`${base}katex.min.js`)) return false;
+        if (!await loadCardKatexFile(`${base}katex.min.js`)) return false;
         if (!window.katex || typeof window.katex.renderToString !== 'function') return false;
-        await loadKatexFile(`${base}contrib/auto-render.min.js`);
+        await loadCardKatexFile(`${base}contrib/auto-render.min.js`);
         return typeof window.renderMathInElement === 'function';
     };
-    return attempt(KATEX_HOSTS[0]).then(ok => ok || attempt(KATEX_HOSTS[1]));
+    return attempt(CARD_KATEX_HOSTS[0]).then(ok => ok || attempt(CARD_KATEX_HOSTS[1]));
 }
 
 function typesetMath(root) {
@@ -369,7 +372,7 @@ function typesetMath(root) {
         run();
         return;
     }
-    katexLoading = katexLoading || loadKatex();
+    katexLoading = katexLoading || loadCardKatex();
     katexLoading.then(drawn => {
         if (drawn) run();
     });
