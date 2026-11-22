@@ -186,7 +186,7 @@ section h2, section h3, section h4 {
 }
 
 #greetings-text h1 {
-    font-family: var(--font-body);
+    font-family: var(--font-heading);
     font-size: 28px; /* Matches logo font size */
     margin: 0;
     font-weight: 700;
@@ -198,7 +198,6 @@ section h2, section h3, section h4 {
 
 #greetings-text .title {
     font-size: 1.1rem;
-    font-family: var(--font-body);
     font-weight: 500;
     margin-top: 5px;
     color: var(--secondary-color);
@@ -208,7 +207,6 @@ section h2, section h3, section h4 {
 
 #greetings-text .affiliation {
     font-size: 1rem;
-    font-family: var(--font-body);
     color: var(--text-muted);
     margin-top: 2px;
     opacity: 0;
@@ -218,7 +216,6 @@ section h2, section h3, section h4 {
 #greetings-text .home-bio {
     margin-top: 20px;
     font-size: 1rem;
-    font-family: var(--font-body);
     line-height: 1.7;
     color: var(--text-color);
     max-width: 550px;
@@ -337,7 +334,6 @@ section h2, section h3, section h4 {
 
 .section-title {
     font-size: 28px;
-    font-family: var(--font-body);
     margin-bottom: 30px;
     text-align: center;
     color: var(--text-color);
@@ -402,7 +398,6 @@ section h2, section h3, section h4 {
 
 .latest-card h3 {
     font-size: 18px;
-    font-family: var(--font-body);
     margin-bottom: 12px;
     line-height: 1.4;
     color: var(--text-color);
@@ -410,7 +405,6 @@ section h2, section h3, section h4 {
 
 .latest-card p {
     font-size: 14px;
-    font-family: var(--font-body);
     color: var(--text-muted);
     line-height: 1.6;
     display: -webkit-box;
