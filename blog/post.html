@@ -575,7 +575,6 @@
                     const dateMeta = postData.meta ? postData.meta.find(m => m.icon === '🗓️' || /^[A-Za-z]+ \d{4}$/.test(m.text)) : null;
                     const dateText = formatPostDate(dateMeta ? dateMeta.text : postData.date);
                     const author = postData.author || {};
-                    const badge = postData.badge || '';
 
                     metaEl.innerHTML = '';
 
@@ -598,13 +597,6 @@
                     metaEl.appendChild(by);
 
                     if (dateText) metaEl.appendChild(postMetaItem('🗓️', dateText));
-
-                    if (badge) {
-                        const badgeEl = document.createElement('span');
-                        badgeEl.className = 'badge';
-                        badgeEl.textContent = badge;
-                        metaEl.appendChild(badgeEl);
-                    }
                 }
 
                 const views = document.createElement('span');
