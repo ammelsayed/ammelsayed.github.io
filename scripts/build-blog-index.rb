@@ -41,5 +41,10 @@ posts = Dir.glob(File.join(BLOG_DIR, '*.md')).sort.filter_map do |path|
   end
 end
 
+if (collision = PostId.collision(posts.map { |post| post['id'] }))
+  warn "Failing: #{collision.join(' and ')} differ only in case, and would be one page."
+  exit 1
+end
+
 File.write(OUTPUT_PATH, JSON.pretty_generate(posts) + "\n")
 puts "Generated #{OUTPUT_PATH} with #{posts.length} blog post(s)."

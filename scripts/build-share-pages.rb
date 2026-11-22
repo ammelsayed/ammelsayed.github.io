@@ -70,6 +70,10 @@ ids.each do |id|
   warn "Failing: #{id.inspect} #{problem}."
   exit 1
 end
+if (collision = PostId.collision(ids))
+  warn "Failing: #{collision.join(' and ')} differ only in case, and would be one page."
+  exit 1
+end
 
 FileUtils.mkdir_p(BLOG_DIR)
 

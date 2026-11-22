@@ -490,13 +490,14 @@
 
             // The id is also the name the generator writes the page under, so the
             // editor takes the same rule the index is built under: letters, digits,
-            // `-` and `_`, and neither `post` nor `index`, whose pages are the shell
-            // and the listing. A name outside it fails the index build; refusing
-            // here keeps the source from being committed first.
-            if (!id || !/^(?!post$|index$)[A-Za-z0-9][A-Za-z0-9_-]*$/.test(id)) {
+            // `-` and `_`, at most 40 characters, and neither `post` nor `index` in
+            // any case, whose pages are the shell and the listing. A name outside it
+            // fails the index build; refusing here keeps the source from being
+            // committed first.
+            if (!id || !/^(?![Pp][Oo][Ss][Tt]$|[Ii][Nn][Dd][Ee][Xx]$)[A-Za-z0-9][A-Za-z0-9_-]{0,39}$/.test(id)) {
                 document.getElementById('section-content').innerHTML = `
                     <div class="section-header"><h1>This post has no usable id</h1></div>
-                    <p>Its id is the name of its file in <code>blog/</code>: letters, digits, <code>-</code> and <code>_</code> only, and neither <code>post</code> nor <code>index</code>.</p>
+                    <p>Its id is the name of its file in <code>blog/</code>: letters, digits, <code>-</code> and <code>_</code>, at most 40 characters, and neither <code>post</code> nor <code>index</code>.</p>
                 `;
                 return;
             }

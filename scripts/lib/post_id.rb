@@ -20,8 +20,16 @@ module PostId
   def self.problem(id)
     return 'is not a name a url carries: use letters, digits, dashes and underscores' unless id.match?(PATTERN)
     return "is longer than #{MAX_LENGTH} characters" if id.length > MAX_LENGTH
-    return 'is the name of the article shell or the listing' if RESERVED.include?(id)
+    # Folded, because the page is a file: where case is not kept, `Post.html` is
+    # the shell's own page.
+    return 'is the name of the article shell or the listing' if RESERVED.include?(id.downcase)
 
     nil
+  end
+
+  # The ids that fold to one page, or nil: two posts whose ids differ only in
+  # case are one file wherever names are compared without it.
+  def self.collision(ids)
+    ids.group_by(&:downcase).find { |_, group| group.size > 1 }&.last
   end
 end
