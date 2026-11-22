@@ -132,7 +132,10 @@
             reload.href = window.location.href;
             reload.textContent = 'Reload the page';
             note.appendChild(reload);
-            box.appendChild(note);
+            // The bars and the caption go with it: a failure note over an
+            // animated skeleton says two things at once, and the animation says
+            // the wrong one.
+            box.replaceChildren(note);
         }, 15000);
     </script>
     <!-- A version on the script, because the shell and /styles/post.js are one
