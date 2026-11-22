@@ -546,6 +546,9 @@
                         facebook: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22.675 0H1.325C.593 0 0 .593 0 1.325v21.351C0 23.407.593 24 1.325 24h11.495v-9.294H9.691v-3.622h3.129V8.41c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.462.099 2.795.143v3.24h-1.918c-1.504 0-1.796.715-1.796 1.763v2.316h3.586l-.467 3.622h-3.119V24h6.116C23.407 24 24 23.407 24 22.675V1.325C24 .593 23.407 0 22.675 0z"/></svg>',
                         copy: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h10a2 2 0 0 1 2 2v10h-2V5H8zm-3 4h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"/></svg>',
                         share: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 16.5 6.5l-1.4 1.4L13 5.9V15h-2V5.9L8.9 7.9 7.5 6.5zM5 11h3v2H7v7h10v-7h-1v-2h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z"/></svg>',
+                        // One thumb in the metadata set's outline weight: the hand and
+                        // its cuff, so at 16px it cannot read as a mitten.
+                        like: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.8 10.8h2.9l2.6-6a2.2 2.2 0 0 1 4.1 1.4l-.9 4.6h4a1.8 1.8 0 0 1 1.76 2.25l-1.4 6.6a2.2 2.2 0 0 1-2.16 1.75H6.8z"></path><rect x="3.2" y="10.8" width="3.6" height="9.4" rx="1.2"></rect></svg>',
                     };
                     const addButton = ({ label, icon, href, onClick }) => {
                         const el = document.createElement(href ? 'a' : 'button');
@@ -634,6 +637,97 @@
                             flashState(btn, copied ? icons.check : icons.failed, copied ? 'Copied' : 'Copy failed');
                         },
                     });
+
+                    // A like is a counter on the server this page already talks to for
+                    // its comments: `/api/article` tallies a path, so each post gets a
+                    // `/like/...` path of its own and the number lives beside the
+                    // comments with no second service and no extra credential. Waline
+                    // only counts up, so a like cannot be taken back: the button takes
+                    // one per browser, then retires itself.
+                    const likeHost = document.getElementById('post-like');
+                    if (likeHost) {
+                        const counterUrl = 'https://commentsystem-amber.vercel.app/api/article';
+                        const likePath = `/like/blog/post/${postId}`;
+                        const likeKey = `post-like:${postId}`;
+                        const tallyOf = (payload) => {
+                            const row = payload && payload.data && payload.data[0];
+                            return row && typeof row.time === 'number' ? row.time : null;
+                        };
+
+                        const likeBtn = document.createElement('button');
+                        likeBtn.type = 'button';
+                        likeBtn.className = 'post-share-btn is-like';
+                        // The word stays a tooltip; nothing is printed beside the glyph.
+                        likeBtn.title = 'Like this post';
+                        likeBtn.setAttribute('aria-label', 'Like this post');
+                        likeBtn.setAttribute('aria-pressed', 'false');
+                        likeBtn.innerHTML = `<span class="post-share-icon">${icons.like}</span>`;
+
+                        const likeCount = document.createElement('span');
+                        likeCount.className = 'post-like-count';
+                        likeCount.setAttribute('aria-live', 'polite');
+                        likeHost.append(likeBtn, likeCount);
+
+                        let liked = false;
+                        try {
+                            liked = window.localStorage.getItem(likeKey) === '1';
+                        } catch (error) {
+                            // A browser that refuses storage just forgets the like.
+                            liked = false;
+                        }
+                        // `null` means "not known", and the number is left off rather
+                        // than printed as a zero the visitor would read as a fact.
+                        let total = null;
+                        const paint = () => {
+                            if (total === null) return;
+                            likeCount.textContent = String(liked && total === 0 ? 1 : total);
+                        };
+                        const settle = () => {
+                            liked = true;
+                            likeBtn.classList.add('is-liked');
+                            likeBtn.title = 'You liked this post';
+                            likeBtn.setAttribute('aria-label', 'You liked this post');
+                            likeBtn.setAttribute('aria-pressed', 'true');
+                        };
+
+                        if (liked) settle();
+
+                        fetch(`${counterUrl}?path=${enc(likePath)}&type=time`)
+                            .then((response) => (response.ok ? response.json() : null))
+                            .then((payload) => {
+                                total = tallyOf(payload);
+                                paint();
+                            })
+                            .catch(() => { total = null; });
+
+                        likeBtn.addEventListener('click', async () => {
+                            if (liked) return;
+                            settle();
+                            if (total !== null) total += 1;
+                            paint();
+                            try {
+                                window.localStorage.setItem(likeKey, '1');
+                            } catch (error) {
+                                // Nothing to remember it with; the mark still stands.
+                            }
+                            try {
+                                const response = await fetch(counterUrl, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ path: likePath, type: 'time' }),
+                                });
+                                const payload = response.ok ? await response.json() : null;
+                                const serverTotal = tallyOf(payload);
+                                if (serverTotal !== null) {
+                                    total = serverTotal;
+                                    paint();
+                                }
+                            } catch (error) {
+                                // The server did not confirm; the like stays on screen
+                                // as this browser's own, and nothing is retracted.
+                            }
+                        });
+                    }
                 }
 
                 // KaTeX ships as two scripts: the core (which defines window.katex)
