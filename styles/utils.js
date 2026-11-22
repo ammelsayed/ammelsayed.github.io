@@ -62,10 +62,16 @@ const META_ICONS = {
     '📖': 'book',
     '📄': 'file',
     '📝': 'file',
-    '🌐': 'globe',
+    '🌐': 'code',
     '⏱': 'clock',
     '🕒': 'clock',
-    '🏆': 'award'
+    '🏆': 'award',
+    '💻': 'monitor',
+    '🖥': 'monitor',
+    '🔬': 'atom',
+    '⚛': 'atom',
+    '📊': 'chart',
+    '📈': 'chart'
 };
 
 const ICON_PATHS = {
@@ -74,9 +80,12 @@ const ICON_PATHS = {
     eye: '<path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"></path><circle cx="12" cy="12" r="2.6"></circle>',
     book: '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"></path><line x1="8" y1="7" x2="16" y2="7"></line>',
     file: '<path d="M13.5 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5z"></path><line x1="13.5" y1="3" x2="13.5" y2="8.5"></line><line x1="19" y1="8.5" x2="13.5" y2="8.5"></line><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="15" y2="17"></line>',
-    globe: '<circle cx="12" cy="12" r="9"></circle><line x1="3" y1="12" x2="21" y2="12"></line><ellipse cx="12" cy="12" rx="4.2" ry="9"></ellipse>',
+    code: '<path d="M14.5 6.5 20 12l-5.5 5.5"></path><path d="M9.5 6.5 4 12l5.5 5.5"></path>',
     clock: '<circle cx="12" cy="12" r="9"></circle><line x1="12" y1="7.5" x2="12" y2="12"></line><line x1="12" y1="12" x2="16" y2="14"></line>',
-    award: '<circle cx="12" cy="8" r="5"></circle><path d="M8.8 12.4 8 21l4-2 4 2-.8-8.6"></path>'
+    award: '<circle cx="12" cy="8" r="5"></circle><path d="M8.8 12.4 8 21l4-2 4 2-.8-8.6"></path>',
+    monitor: '<rect x="3" y="4" width="18" height="12.5" rx="2.5"></rect><line x1="12" y1="16.5" x2="12" y2="20"></line><line x1="8" y1="20" x2="16" y2="20"></line>',
+    chart: '<line x1="6" y1="20" x2="6" y2="14"></line><line x1="12" y1="20" x2="12" y2="8"></line><line x1="18" y1="20" x2="18" y2="11"></line>',
+    atom: '<circle cx="12" cy="12" r="1.6"></circle><ellipse cx="12" cy="12" rx="9.5" ry="4.6" transform="rotate(45 12 12)"></ellipse><ellipse cx="12" cy="12" rx="9.5" ry="4.6" transform="rotate(-45 12 12)"></ellipse>'
 };
 
 // Icons are parsed from their markup rather than assigned through innerHTML,
@@ -98,19 +107,16 @@ function metaIconFor(icon) {
     return parsed.cloneNode(true);
 }
 
-// One row of "icon + text" pairs; an entry whose emoji has no icon keeps the
-// emoji rather than losing its mark altogether.
+// One row of "icon + text" pairs. Metadata never prints an emoji: an entry whose
+// emoji has no shape here keeps its text and loses the mark, so a row can't fall
+// back to a coloured glyph in the middle of an outline set.
 function appendMetaItems(target, meta, term) {
     if (!meta || !Array.isArray(meta)) return;
     meta.forEach(entry => {
         const span = document.createElement('span');
         span.className = 'meta-item';
         const icon = metaIconFor(entry.icon);
-        if (icon) {
-            span.appendChild(icon);
-        } else if (entry.icon) {
-            span.appendChild(document.createTextNode(`${entry.icon} `));
-        }
+        if (icon) span.appendChild(icon);
         appendHighlighted(span, entry.text, term);
         target.appendChild(span);
     });

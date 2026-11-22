@@ -166,7 +166,7 @@ body main {
     flex: none;
     fill: none;
     stroke: currentColor;
-    stroke-width: 1.8;
+    stroke-width: 2;
     stroke-linecap: round;
     stroke-linejoin: round;
     opacity: 0.85;
