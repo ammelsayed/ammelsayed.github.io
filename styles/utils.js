@@ -277,11 +277,106 @@ function copySanitizedChildren(source, target, term) {
     });
 }
 
+// A formula can hold a "<" or an "&", and a description is parsed as HTML before
+// it is typeset, so those characters are escaped inside a formula first: the text
+// node then carries exactly what the author wrote.
+const HTML_SPECIAL = { '&': '&amp;', '<': '&lt;', '>': '&gt;' };
+
 function appendRichText(target, html, term) {
     if (html == null || html === '') return;
-    const parsed = new DOMParser().parseFromString(String(html), 'text/html');
+    const safe = String(html).replace(MATH_SOURCE, run => run.replace(/[&<>]/g, ch => HTML_SPECIAL[ch]));
+    const parsed = new DOMParser().parseFromString(safe, 'text/html');
     copySanitizedChildren(parsed.body, target, term);
 }
+
+// A title or an abstract in the data may be authored in TeX, the way a post is:
+// "at $\sqrt{s}=13.6$ TeV". KaTeX ships a pass that reads the text nodes of a
+// finished block of html and draws what is between the dollars, so nothing here
+// rewrites the string, keeps a second copy of it, or decides what a formula is -
+// the same module the article page has always used. It is fetched on the first
+// list that actually contains a dollar, and a card that never gets one keeps its
+// text as typed.
+const MATH_SOURCE = /\$\$[\s\S]+?\$\$|\$[^$\n]+?\$/;
+// Two hosts, the pair the article page already uses: a host that refuses would
+// leave a card on raw TeX for the rest of the visit.
+const KATEX_HOSTS = [
+    'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/',
+    'https://unpkg.com/katex@0.16.8/dist/'
+];
+let katexLoading = null;
+
+// One file from a host, and whether it arrived: a request that neither loads nor
+// fails is what a stalled connection looks like, so it gives up after ten seconds
+// and the caller tries the other host.
+function loadKatexFile(url) {
+    return new Promise(resolve => {
+        const tag = document.createElement('script');
+        const timer = setTimeout(() => {
+            tag.remove();
+            resolve(false);
+        }, 10000);
+        tag.src = url;
+        tag.onload = () => {
+            clearTimeout(timer);
+            resolve(true);
+        };
+        tag.onerror = () => {
+            clearTimeout(timer);
+            tag.remove();
+            resolve(false);
+        };
+        document.head.append(tag);
+    });
+}
+
+// Both files, and the stylesheet that positions the glyphs: a host that serves the
+// script but not the styles is not good enough, because the formula would be drawn
+// unpositioned. Three answers have to be yes before that host is used.
+function loadKatex() {
+    const attempt = async base => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = `${base}katex.min.css`;
+        const styled = await new Promise(resolve => {
+            link.onload = () => resolve(true);
+            link.onerror = () => resolve(false);
+            document.head.append(link);
+        });
+        if (!styled) {
+            link.remove();
+            return false;
+        }
+        if (!await loadKatexFile(`${base}katex.min.js`)) return false;
+        if (!window.katex || typeof window.katex.renderToString !== 'function') return false;
+        await loadKatexFile(`${base}contrib/auto-render.min.js`);
+        return typeof window.renderMathInElement === 'function';
+    };
+    return attempt(KATEX_HOSTS[0]).then(ok => ok || attempt(KATEX_HOSTS[1]));
+}
+
+function typesetMath(root) {
+    if (!root || !MATH_SOURCE.test(root.textContent || '')) return;
+    const run = () => window.renderMathInElement(root, {
+        delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false }
+        ],
+        throwOnError: false,
+        // Code in a card is quoted source, not a formula.
+        ignoredTags: ['script', 'style', 'pre', 'code', 'textarea']
+    });
+    if (typeof window.renderMathInElement === 'function') {
+        run();
+        return;
+    }
+    katexLoading = katexLoading || loadKatex();
+    katexLoading.then(drawn => {
+        if (drawn) run();
+    });
+}
+
+window.typesetMath = typesetMath;
+window.appendRichText = appendRichText;
 
 class CardRenderer {
     constructor(options) {
@@ -354,6 +449,10 @@ class CardRenderer {
             const card = this.renderCardFn(item, searchTerm, this.highlightText.bind(this));
             listEl.appendChild(card);
         });
+
+        // One pass over the finished list, not one per card: a formula in a title
+        // or in an abstract is drawn once the text is where the reader sees it.
+        typesetMath(listEl);
     }
 
     setupSearch() {

@@ -165,17 +165,34 @@
         const card = document.createElement('div');
         card.className = 'latest-card';
         card.onclick = () => window.location.href = item.link || section.page;
-        
+
         const dateText = formatDateText(item);
-        
-        card.innerHTML = `
-            <div class="latest-card-header">
-                <span class="badge">${typeLabel} ${section.name}</span>
-                <span class="date">${dateText ? dateText : ''}</span>
-            </div>
-            <h3>${item.title}</h3>
-            <p>${item.description}</p>
-        `;
+
+        const header = document.createElement('div');
+        header.className = 'latest-card-header';
+        const badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.textContent = `${typeLabel} ${section.name}`;
+        const date = document.createElement('span');
+        date.className = 'date';
+        date.textContent = dateText;
+        header.append(badge, date);
+
+        // Text arrives as text: a title or an abstract may carry TeX ("$a<b$"),
+        // and assembling the card as html would read that as markup.
+        const heading = document.createElement('h3');
+        heading.textContent = item.title || '';
+        const abstract = document.createElement('p');
+        if (window.appendRichText) {
+            window.appendRichText(abstract, item.description, '');
+        } else {
+            abstract.textContent = item.description || '';
+        }
+        card.append(header, heading, abstract);
+
+        // The card is built, so the formula in its title (if it has one) can be
+        // drawn by the same pass the list pages use.
+        window.typesetMath && window.typesetMath(card);
         return card;
     }
 
