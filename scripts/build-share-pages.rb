@@ -39,10 +39,13 @@ end
 
 # The front matter keeps the day the post went up; the tag wants an instant.
 # The day is read however it was written - `1999-9-09` is a day like any other -
-# and the post is named in a warning when it is not a date at all, rather than
-# losing the tag in silence.
+# but it has to be a day: `Date.parse` fills in what a value leaves out and rolls
+# an impossible one forward, so it would answer an empty date with today and
+# `2026-02-31` with the third of March. `strptime` refuses both instead, and the
+# post is named in a warning rather than losing the tag in silence.
 def published_time(value)
-  "#{Date.parse(value.to_s)}T00:00:00Z"
+  date = Date.strptime(value.to_s.strip, '%Y-%m-%d')
+  "#{date.strftime('%Y-%m-%d')}T00:00:00Z"
 rescue Date::Error, ArgumentError, TypeError
   nil
 end
@@ -118,7 +121,14 @@ posts.each do |post|
                       'the post script tag')
   page = page.sub('</html>', "#{MARKER}\n</html>")
 
-  File.write(File.join(BLOG_DIR, "#{id}.html"), page)
+  # Written beside the page and moved onto it. A `blog/<id>.html` that is a link
+  # to a tracked source would take the write itself, and `blog` is committed, so
+  # the source would be committed as generated HTML.
+  path = File.join(BLOG_DIR, "#{id}.html")
+  abort "Failing: #{path} is a link, and it would be written through." if File.symlink?(path)
+  partial = "#{path}.partial"
+  File.write(partial, page)
+  File.rename(partial, path)
 end
 
 # A post hidden with `show: false`, or deleted, drops out of the index. Its page
