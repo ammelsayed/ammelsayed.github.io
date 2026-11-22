@@ -35,7 +35,7 @@ body main {
     margin: 0px;   /* Space outside the border */
     padding: 20px;  /* Space inside the border, between content and border */
     flex: 1; /* Fills available space */
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-family: var(--font-default);
     display: flex;
     flex-direction: column; 
     justify-content: flex-start;   
@@ -77,6 +77,7 @@ body main {
 }
 
 .page-top .text h1{
+    font-family: var(--font-heading);
     font-size: 60px
 }
 
@@ -96,6 +97,7 @@ body main {
     height: 50px;
     object-fit: cover;    /* crop to fill without distortion */
     border-radius: 50%;   /* make it a perfect circle */
+    corner-shape: round;  /* 50% plus the squircle corner is a rounded square */
     margin: 0;
     margin-right: 10px;
     display: block;       /* remove any inline gaps */
@@ -130,6 +132,7 @@ section {
 section p {
     padding: 10px 30px;
     font-size: 16.5px;
+    font-family: var(--font-body);
     word-wrap: break-word;
     overflow-wrap: break-word;
 }
@@ -162,6 +165,7 @@ section hr {
 section ul li {
     padding: 5px 30px;
     font-size: 16.5px;
+    font-family: var(--font-body);
     word-wrap: break-word;
     overflow-wrap: break-word;
     list-style-type: disc; /* Use disc bullets for list items */
@@ -170,7 +174,7 @@ section ul li {
 
 .inline-code{
     font-size: 14px;                        /* slightly smaller than body text */
-    font-family: Menlo, Consolas, monospace;
+    font-family: var(--font-mono);
 
     background-color: #f5f5f5;               /* very light gray */
     color: #c7254e;                          /* dark reddish code color */
@@ -186,6 +190,7 @@ section ul li {
 
 section code {
     margin: 5px 30px;
+    font-family: var(--font-mono);
     font-size: 15px;                      
     padding: 0.15em 0.3em;                  
     overflow-x: auto; 
@@ -210,6 +215,7 @@ section img {
 
 section h1, section h2, section h3, section h4 {
     padding: 10px 30px;
+    font-family: var(--font-heading);
     word-wrap: break-word;
     overflow-wrap: break-word;
 }
@@ -273,6 +279,7 @@ section h1, section h2, section h3, section h4 {
 /* keep same h1 sizing used elsewhere */
 .versions h1 {
     font-size: 30px;
+    font-family: var(--font-heading);
     padding: 10px 30px;
     margin: 0 0 8px 0;
     color: #111;
@@ -299,6 +306,7 @@ section h1, section h2, section h3, section h4 {
 .versions-table caption {
     text-align: left;
     font-weight: 600;
+    font-family: var(--font-body);
     font-size: 14px;
     color: #333;
     padding: 6px 0;
@@ -310,6 +318,7 @@ section h1, section h2, section h3, section h4 {
     padding: 12px 16px;
     font-size: 15px;
     font-weight: 700;
+    font-family: var(--font-body);
     background: #f7f7fb;
     color: #222;
     border-bottom: 1px solid #e6e6ef;
@@ -319,6 +328,7 @@ section h1, section h2, section h3, section h4 {
 .versions-table tbody td {
     padding: 12px 16px;
     font-size: 16px;
+    font-family: var(--font-body);
     color: #222;
     vertical-align: middle;
     border-bottom: 1px solid #f0f0f5;
@@ -326,7 +336,7 @@ section h1, section h2, section h3, section h4 {
 
 /* monospace, bold version column for emphasis */
 .version-number {
-    font-family: Menlo, Consolas, "Courier New", monospace;
+    font-family: var(--font-mono);
     font-weight: 700;
     white-space: nowrap;
     width: 160px;

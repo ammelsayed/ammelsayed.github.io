@@ -7,7 +7,7 @@ body main {
     margin: 0;
     padding: 20px;
     flex: 1;
-    font-family: var(--font-main);
+    font-family: var(--font-default);
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -92,24 +92,34 @@ body main {
 .publication .content .badge-container {
     margin-bottom: 5px;
     color: var(--badge-color);
+    font-family: var(--font-default);
+}
+
+/* The badge is marked up as em > b for emphasis, not for italics: the label is
+   a normal-weight tag and reads as one. */
+.publication .content .badge-container em {
+    font-style: normal;
 }
 
 .publication .content .badge-container b {
     background: var(--badge-bg);
     padding: 2px 8px;
     border-radius: 4px;
+    font-family: var(--font-default);
     font-size: 12px;
     font-weight: 600;
 }
 
 .publication .content h2 {
     margin-bottom: 10px;
+    font-family: var(--font-heading);
     font-size: 24px;
     color: var(--text-color);
 }
 
 .publication .content .abstract {
     font-size: 15px;
+    font-family: var(--font-body);
     text-align: justify;
     margin-top: 5px;
     margin-bottom: 10px;
@@ -127,6 +137,9 @@ body main {
     justify-content: flex-start;
     align-items: center;
     gap: 6px 14px;
+    /* The byline and the metadata are UI text: they keep the default family even
+       when the card around them is set in the body family. */
+    font-family: var(--font-default);
 }
 
 .author_image {
@@ -134,16 +147,19 @@ body main {
     height: 34px;
     object-fit: cover;
     border-radius: 50%;
+    corner-shape: round;
 }
 
 .author_name {
+    font-style: normal;
+    font-family: var(--font-default);
     font-size: 14px;
     color: var(--text-muted);
 }
 
 .author_name a {
     color: var(--text-color);
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .meta-item {
@@ -151,6 +167,7 @@ body main {
     align-items: center;
     gap: 6px;
     min-width: 0;
+    font-family: var(--font-default);
     font-size: 14px;
     color: var(--text-muted);
     overflow-wrap: anywhere;
@@ -174,8 +191,18 @@ body main {
 
 #doi-link {
     margin-top: 10px;
+    font-family: var(--font-default);
     font-size: 14px;
     word-break: break-all;
+}
+
+/* The result count is UI chrome ("Showing 3 out of 7 posts"), so it stays in the
+   default family while the list around it is set in the body family. The text
+   lives in an <i> that exists as a hook, not as emphasis. */
+#content-count,
+#content-count i {
+    font-family: var(--font-default);
+    font-style: normal;
 }
 
 /* Search Bar (removed: the field now lives in the header) */

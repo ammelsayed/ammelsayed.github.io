@@ -2,6 +2,7 @@
 body {
     background-color: var(--background-color);
     color: var(--text-color);
+    font-family: var(--font-default);
     margin: 0;
     padding: 0;
 }
@@ -19,9 +20,24 @@ body {
 #waline {
     --waline-theme-color : var(--primary-color);
     --waline-active-color : var(--secondary-color);
+    /* The comments are reading text and follow the article's family. Waline
+       styles the editor and its buttons itself, so the family is handed to the
+       controls explicitly; its code blocks keep their own monospace. */
+    font-family: var(--font-body);
     max-width: var(--container-max-width); 
     margin: 0 auto;
     padding: 10px 0px 100px 0px;
+}
+
+#waline textarea,
+#waline input,
+#waline button {
+    font-family: var(--font-body);
+}
+
+#waline .wl-avatar,
+#waline .wl-avatar img {
+    corner-shape: round;
 }
 
 .post-main-container {
@@ -56,6 +72,9 @@ body {
     align-items: center;
     flex-wrap: wrap;
     gap: 8px 16px;
+    /* The line under the title is metadata, not prose, so it keeps the default
+       family while the article below it is set in the body family. */
+    font-family: var(--font-default);
     font-size: 14px;
     color: var(--text-muted);
 }
@@ -64,6 +83,7 @@ body {
     width: 32px;
     height: 32px;
     border-radius: 50%;
+    corner-shape: round;
     object-fit: cover;
     vertical-align: middle;
     border: 1px solid var(--border-color);
@@ -104,7 +124,7 @@ body {
 
 /* Professional GitHub-style Markdown Content */
 .blog-post-content {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: var(--font-body);
     font-size: 16px;
     line-height: 1.6;
     color: var(--text-color);
@@ -271,7 +291,7 @@ body {
 }
 
 .blog-post-content pre code {
-    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+    font-family: var(--font-mono);
     font-size: inherit;
     line-height: inherit;
     word-wrap: normal;
@@ -325,7 +345,7 @@ body {
     white-space: break-spaces;
     background-color: rgba(175, 184, 193, 0.2);
     border-radius: 6px;
-    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+    font-family: var(--font-mono);
     color: #cf222e;
 }
 
@@ -417,6 +437,7 @@ body {
     height: fit-content;
     position: sticky;
     top: var(--page-top-margin);
+    font-family: var(--font-body);
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -476,6 +497,7 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+    font-family: var(--font-body);
     margin: 40px 0.5rem 32px;
     padding-top: 24px;
     border-top: 1px solid var(--border-color);
@@ -514,7 +536,9 @@ body {
     width: 34px;
     height: 34px;
     padding: 0;
-    font-family: inherit;
+    /* A control, not prose: the button keeps the UI family so a fallback glyph
+       or a text label in a share control does not come out of the body family. */
+    font-family: var(--font-default);
     color: var(--text-muted);
     background: var(--card-bg);
     border: 1px solid var(--border-color);
@@ -611,6 +635,7 @@ body {
         display: block;
         width: 100%;
         max-width: 80ch;
+        font-family: var(--font-body);
         box-sizing: border-box;
         align-self: center;
         margin-bottom: 24px;
