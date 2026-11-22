@@ -27,10 +27,6 @@ const strip = value => (value || '')
 
 const words = value => strip(value).split(/[^a-z0-9\u00c0-\uffff]+/).filter(Boolean);
 
-const escapeHtml = value => (value || '').replace(/[&<>"']/g, char => ({
-  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-}[char]));
-
 // Two words one edit apart: enough to absorb a typo, not enough to match
 // unrelated words.
 function near(a, b) {
@@ -107,18 +103,67 @@ function snippet(item, tokens) {
   return text.trim();
 }
 
-function highlight(value, tokens) {
-  const escaped = escapeHtml(value);
-  if (!tokens.length) return escaped;
-  const pattern = tokens
-    .map(token => escapeHtml(token).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-    .join('|');
-  return escaped.replace(new RegExp(`(${pattern})`, 'gi'), '<mark>$1</mark>');
+// Writes the text into the given element, wrapping the matched words in
+// <mark>. Matching happens on the string, so nothing from the index ever
+// reaches the page as markup.
+function markMatches(parent, text, tokens) {
+  const marks = tokens.filter(token => token.length > 1);
+  if (!marks.length || !text) {
+    parent.append(text || '');
+    return parent;
+  }
+  const pattern = new RegExp(
+    `(${marks.map(token => token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`,
+    'gi'
+  );
+  let last = 0;
+  for (const match of text.matchAll(pattern)) {
+    if (match.index > last) parent.append(text.slice(last, match.index));
+    const mark = document.createElement('mark');
+    mark.textContent = match[0];
+    parent.append(mark);
+    last = match.index + match[0].length;
+  }
+  if (last < text.length) parent.append(text.slice(last));
+  return parent;
+}
+
+// The index is written from the YAML sources, but a link that is not a path or
+// a web address should not become a clickable script on the page.
+const SAFE_URL = /^(\/(?!\/)|https?:\/\/|mailto:)/i;
+const safeUrl = value => {
+  const url = String(value || '').trim();
+  return SAFE_URL.test(url) ? url : '#';
+};
+
+const HINTS = [
+  [['↑', '↓'], ' to move'],
+  [['↵'], ' to open'],
+  [['esc'], ' to close']
+];
+
+function hint(keys, label) {
+  const wrap = document.createElement('span');
+  for (const key of keys) {
+    const keycap = document.createElement('kbd');
+    keycap.textContent = key;
+    wrap.append(keycap);
+  }
+  wrap.append(label);
+  return wrap;
+}
+
+function message(text) {
+  const box = document.createElement('div');
+  box.className = 'site-search-empty';
+  box.textContent = text;
+  return box;
 }
 
 export function createSiteSearch(field, { onDismiss } = {}) {
   let loaded = null;
   let term = '';
+  let shown = '';
   let timer = 0;
   let sequence = 0;
   let active = -1;
@@ -130,24 +175,33 @@ export function createSiteSearch(field, { onDismiss } = {}) {
   const panel = document.createElement('div');
   panel.className = 'site-search';
   panel.hidden = true;
-  panel.innerHTML = `
-    <div class="site-search-inner">
-      <div class="site-search-list" role="listbox" aria-label="Search results"></div>
-      <div class="site-search-foot">
-        <span><kbd>↑</kbd><kbd>↓</kbd> to move</span>
-        <span><kbd>↵</kbd> to open</span>
-        <span><kbd>esc</kbd> to close</span>
-      </div>
-    </div>`;
-  document.body.append(backdrop, panel);
 
-  const list = panel.querySelector('.site-search-list');
+  const inner = document.createElement('div');
+  inner.className = 'site-search-inner';
+
+  const list = document.createElement('div');
+  list.className = 'site-search-list';
+  list.setAttribute('role', 'listbox');
+  list.setAttribute('aria-label', 'Search results');
+
+  const foot = document.createElement('div');
+  foot.className = 'site-search-foot';
+  for (const [keys, label] of HINTS) foot.append(hint(keys, label));
+
+  inner.append(list, foot);
+  panel.append(inner);
+  document.body.append(backdrop, panel);
 
   const load = () => {
     if (!loaded) {
       loaded = fetch(INDEX_URL, { cache: 'no-cache' })
         .then(response => (response.ok ? response.json() : Promise.reject(new Error(String(response.status)))))
-        .then(data => (Array.isArray(data.items) ? data.items : []).map(prepare));
+        .then(data => (Array.isArray(data.items) ? data.items : []).map(prepare))
+        // A failed request must not stick: the next open retries it.
+        .catch(error => {
+          loaded = null;
+          throw error;
+        });
     }
     return loaded;
   };
@@ -162,32 +216,43 @@ export function createSiteSearch(field, { onDismiss } = {}) {
   }
 
   function row(item, tokens) {
-    // A one-letter query would light up every "a" in a snippet, so only tokens
-    // long enough to mean something are marked.
-    const marks = tokens.filter(token => token.length > 1);
     const link = document.createElement('a');
     link.className = 'site-search-item';
-    link.href = item.url;
+    link.href = safeUrl(item.url);
     link.setAttribute('role', 'option');
     link.setAttribute('aria-selected', 'false');
-    link.innerHTML = `
-      <span class="site-search-line">
-        <span class="site-search-kind">${escapeHtml(item.kind)}</span>
-        <span class="site-search-title">${highlight(item.title, marks)}</span>
-      </span>
-      <span class="site-search-snippet">${highlight(snippet(item, marks), marks)}</span>`;
+
+    const line = document.createElement('span');
+    line.className = 'site-search-line';
+
+    const kind = document.createElement('span');
+    kind.className = 'site-search-kind';
+    kind.textContent = item.kind;
+
+    const title = document.createElement('span');
+    title.className = 'site-search-title';
+    markMatches(title, item.title, tokens);
+
+    const note = document.createElement('span');
+    note.className = 'site-search-snippet';
+    markMatches(note, snippet(item, tokens), tokens);
+
+    line.append(kind, title);
+    link.append(line, note);
     return link;
   }
 
   async function render() {
     const ticket = ++sequence;
-    const tokens = strip(term).split(/\s+/).filter(Boolean);
+    const tokens = words(term);
 
     let items;
     try {
       items = await load();
     } catch (error) {
-      list.innerHTML = '<div class="site-search-empty">The search index could not be loaded.</div>';
+      if (ticket !== sequence) return;
+      list.replaceChildren(message('The search index could not be loaded.'));
+      shown = term.trim();
       return;
     }
     if (ticket !== sequence) return;
@@ -209,14 +274,21 @@ export function createSiteSearch(field, { onDismiss } = {}) {
     list.replaceChildren();
 
     if (!hits.length) {
-      list.innerHTML = `<div class="site-search-empty">No results for “${escapeHtml(term.trim())}”.</div>`;
+      list.append(message(`No results for “${term.trim()}”.`));
+      shown = term.trim();
       return;
     }
 
     for (const item of hits) list.append(row(item, tokens));
+    shown = term.trim();
   }
 
+  // While a new query is still waiting for the debounce, the rows on screen
+  // belong to the previous one, so keys are ignored until they match again.
+  const current = () => shown === term.trim();
+
   function move(step) {
+    if (!current()) return;
     const rows = list.querySelectorAll('.site-search-item');
     if (!rows.length) return;
     active = Math.max(0, Math.min(rows.length - 1, active + step));
@@ -229,6 +301,7 @@ export function createSiteSearch(field, { onDismiss } = {}) {
   }
 
   function activate() {
+    if (!current()) return false;
     const rows = list.querySelectorAll('.site-search-item');
     if (!rows.length) return false;
     const target = rows[active] || rows[0];
@@ -243,8 +316,11 @@ export function createSiteSearch(field, { onDismiss } = {}) {
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
       move(-1);
-    } else if (event.key === 'Enter' && activate()) {
+    } else if (event.key === 'Enter') {
+      // Always swallow Enter: the field sits in a form, and with no result to
+      // open a default submission would reload the page and lose the query.
       event.preventDefault();
+      activate();
     }
   });
 

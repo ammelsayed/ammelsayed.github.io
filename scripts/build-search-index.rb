@@ -22,8 +22,6 @@ OUTPUT_PATH = File.join(DATA_DIR, 'search-index.json')
 PAGES = [
   { 'title' => 'Home', 'description' => 'A.M.M. Elsayed: research, publications, projects, blog and events.',
     'url' => '/index.html', 'tags' => 'home start' },
-  { 'title' => 'About', 'description' => 'Biography, research interests, positions and contact details.',
-    'url' => '/about/index.html', 'tags' => 'about biography contact' },
   { 'title' => 'Publications', 'description' => 'Journal papers, preprints and conference notes in experimental particle physics.',
     'url' => '/publications/index.html', 'tags' => 'publications papers preprints' },
   { 'title' => 'Projects', 'description' => 'Analysis code, software and web templates.',
@@ -52,17 +50,6 @@ def plain_text(markdown)
   body.gsub(/\s+/, ' ').strip
 end
 
-def trim(text, limit)
-  return '' if text.nil?
-
-  clean = text.strip
-  return clean if clean.length <= limit
-
-  cut = clean[0, limit]
-  cut = cut.sub(/\s+\S*\z/, '')
-  "#{cut} …"
-end
-
 def tags_for(entry)
   parts = [entry['badge']]
   parts.concat(Array(entry['meta']).map { |item| item['text'] if item.is_a?(Hash) })
@@ -71,12 +58,20 @@ end
 
 items = PAGES.map { |page| page.merge('kind' => 'Page') }
 
+# The About page keeps its prose in about.md; without it a search for a research
+# interest or a discipline would stop at the three words in the description.
+about = File.join(ROOT, 'about', 'about.md')
+items << {
+  'title' => 'About', 'description' => '', 'url' => '/about/index.html', 'kind' => 'Page',
+  'tags' => 'about biography contact', 'body' => plain_text(File.read(about)), 'date' => ''
+} if File.exist?(about)
+
 JSON.parse(File.read(File.join(DATA_DIR, 'blogs.generated.json'))).each do |post|
   id = post['id'].to_s
   next if id.empty?
 
   path = File.join(BLOG_DIR, "#{id}.md")
-  body = File.exist?(path) ? trim(plain_text(File.read(path)), 2200) : ''
+  body = File.exist?(path) ? plain_text(File.read(path)) : ''
 
   items << {
     'title' => post['title'].to_s,
@@ -110,6 +105,5 @@ end
 
 items.reject! { |item| item['title'].empty? }
 
-index = { 'generated' => Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ'), 'items' => items }
-File.write(OUTPUT_PATH, JSON.pretty_generate(index) + "\n")
+File.write(OUTPUT_PATH, JSON.pretty_generate({ 'items' => items }) + "\n")
 puts "Generated #{OUTPUT_PATH} with #{items.length} entry(ies)."
