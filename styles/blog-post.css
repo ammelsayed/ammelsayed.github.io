@@ -362,7 +362,10 @@ body {
     margin: 0;
     padding: 16px;
     overflow-x: auto;
-    font-size: 85%;
+    /* A block is read as its own object inside the article, so it sits a step
+       under the inline snippets: 12px on the 16px body, and held at 12px where
+       the body drops to 15px. */
+    font-size: max(75%, 12px);
     line-height: 1.45;
     background-color: #2d2d2d !important;
     border-radius: 6px;
