@@ -785,6 +785,13 @@ body {
     .blog-post-content {
         font-size: 15px;
     }
+    /* 70% of that body is 10.5px, below what a mono snippet can carry. Pin the
+       code to 70% of the 16px base instead, so the article text may shrink but
+       the code stops at a size that still reads. */
+    .blog-post-content pre,
+    .blog-post-content :not(pre) > code {
+        font-size: 0.7rem;
+    }
 }
 
 @media (max-width: 700px) {
