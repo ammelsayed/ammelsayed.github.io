@@ -859,6 +859,20 @@
                         const paint = () => {
                             if (total === null) return;
                             likeCount.textContent = String(liked && total === 0 ? 1 : total);
+                            likeCount.removeAttribute('title');
+                        };
+                        // Not knowing is shown rather than left blank: the article
+                        // appears before the tally does, and an empty cell beside the
+                        // glyph read as zero likes or as a broken row. An ellipsis says
+                        // the number is on its way, a dash that it is not coming, and
+                        // the tooltip says why.
+                        const paintPending = () => {
+                            likeCount.textContent = '\u2026';
+                            likeCount.title = 'The like count is still loading';
+                        };
+                        const paintUnknown = () => {
+                            likeCount.textContent = '\u2014';
+                            likeCount.title = 'The like count could not be read right now';
                         };
                         const markLiked = () => {
                             liked = true;
@@ -876,15 +890,29 @@
                         };
                         const readTally = () => {
                             const ticket = ++latest;
-                            fetch(`${counterUrl}?path=${enc(likePath)}&type=time`)
+                            if (total === null) paintPending();
+                            // A request that neither answers nor fails is what a
+                            // stalled cross-origin call looks like. It is given a
+                            // deadline rather than leaving "still loading" up for the
+                            // whole visit, and the deadline is a state the reader can
+                            // read: the dash.
+                            const controller = typeof AbortController === 'function' ? new AbortController() : null;
+                            const timer = controller ? setTimeout(() => controller.abort(), 8000) : null;
+                            fetch(`${counterUrl}?path=${enc(likePath)}&type=time`,
+                                  controller ? { signal: controller.signal } : undefined)
                                 .then((response) => (response.ok ? response.json() : null))
                                 .then((payload) => {
+                                    clearTimeout(timer);
                                     if (ticket !== latest) return;
                                     total = tallyOf(payload);
-                                    paint();
+                                    if (total === null) paintUnknown();
+                                    else paint();
                                 })
                                 .catch(() => {
-                                    if (ticket === latest) total = null;
+                                    clearTimeout(timer);
+                                    if (ticket !== latest) return;
+                                    total = null;
+                                    paintUnknown();
                                 });
                         };
 
