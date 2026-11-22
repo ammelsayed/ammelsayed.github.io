@@ -283,6 +283,58 @@ function appendRichText(target, html, term) {
     copySanitizedChildren(parsed.body, target, term);
 }
 
+// A title or an abstract in the data may be authored in TeX, the way a post is:
+// "at $\sqrt{s}=13.6$ TeV". KaTeX ships a pass that reads the text nodes of a
+// finished block of html and draws what is between the dollars, so nothing here
+// rewrites the string, keeps a second copy of it, or decides what a formula is -
+// the same module the article page has always used. It is fetched on the first
+// list that actually contains a dollar, and a card that never gets one keeps its
+// text as typed.
+const MATH_SOURCE = /\$\$[\s\S]+?\$\$|\$[^$\n]+?\$/;
+const KATEX_CDN = 'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/';
+let katexLoading = null;
+
+function loadKatex() {
+    const head = document.head;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = `${KATEX_CDN}katex.min.css`;
+    head.append(link);
+    // Both files answer the same way whether they arrive or not: without them the
+    // card shows the source, which is what it did before this existed.
+    const script = name => new Promise(resolve => {
+        const tag = document.createElement('script');
+        tag.src = KATEX_CDN + name;
+        tag.onload = resolve;
+        tag.onerror = resolve;
+        head.append(tag);
+    });
+    return script('katex.min.js').then(() => script('contrib/auto-render.min.js'));
+}
+
+function typesetMath(root) {
+    if (!root || !MATH_SOURCE.test(root.textContent || '')) return;
+    const run = () => window.renderMathInElement(root, {
+        delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false }
+        ],
+        throwOnError: false,
+        // Code in a card is quoted source, not a formula.
+        ignoredTags: ['script', 'style', 'pre', 'code', 'textarea']
+    });
+    if (typeof window.renderMathInElement === 'function') {
+        run();
+        return;
+    }
+    katexLoading = katexLoading || loadKatex();
+    katexLoading.then(() => {
+        if (typeof window.renderMathInElement === 'function') run();
+    });
+}
+
+window.typesetMath = typesetMath;
+
 class CardRenderer {
     constructor(options) {
         this.dataUrl = options.dataUrl;
@@ -354,6 +406,10 @@ class CardRenderer {
             const card = this.renderCardFn(item, searchTerm, this.highlightText.bind(this));
             listEl.appendChild(card);
         });
+
+        // One pass over the finished list, not one per card: a formula in a title
+        // or in an abstract is drawn once the text is where the reader sees it.
+        typesetMath(listEl);
     }
 
     setupSearch() {

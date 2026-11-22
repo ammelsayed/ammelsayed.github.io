@@ -176,6 +176,9 @@
             <h3>${item.title}</h3>
             <p>${item.description}</p>
         `;
+        // The card is built, so the formula in its title (if it has one) can be
+        // drawn by the same pass the list pages use.
+        window.typesetMath && window.typesetMath(card);
         return card;
     }
 

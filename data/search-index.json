@@ -88,8 +88,8 @@
       "date": "2026-06-23"
     },
     {
-      "title": "Search sensitivity for type-III seesaw heavy leptons in simulated pp collisions at √s = 13.6 TeV at the LHC",
-      "description": "A search for the pair production of TeV-scale heavy leptons as predicted by the type-III seesaw mechanism is presented. The analysis is based on a simulated signal and Standard Model background data corresponding to an integrated luminosity of 500 fb⁻¹ of proton-proton collisions at √s = 13.6 TeV. The ATLAS detector response is modeled with Delphes. Events are categorized based on the number of final state leptons and large-R jets into nine mutually exclusive search channels. Multivariate analysis techniques are employed to separate the signal from the Standard Model backgrounds. Under the flavor-democratic mixing scenario (Bₑ = Bμ = Bτ = 1/3), the expected 95% confidence level upper exclusion limit on the heavy lepton mass is approximately 1.6 TeV.",
+      "title": "Search sensitivity for type-III seesaw heavy leptons in simulated pp collisions at $\\sqrt{s}=13.6$ TeV at the LHC",
+      "description": "A search for the pair production of TeV-scale heavy leptons as predicted by the type-III seesaw mechanism is presented. The analysis is based on a simulated signal and Standard Model background data corresponding to an integrated luminosity of $500\\ \\mathrm{fb}^{-1}$ of proton-proton collisions at $\\sqrt{s}=13.6$ TeV. The ATLAS detector response is modeled with Delphes. Events are categorized based on the number of final state leptons and large-$R$ jets into nine mutually exclusive search channels. Multivariate analysis techniques are employed to separate the signal from the Standard Model backgrounds. Under the flavor-democratic mixing scenario ($B_e = B_\\mu = B_\\tau = 1/3$), the expected 95% confidence level upper exclusion limit on the heavy lepton mass is approximately 1.6 TeV.",
       "url": "https://doi.org/10.48550/arXiv.2611.10753",
       "kind": "Publication",
       "tags": "Preprint November 2026 arXiv:2611.10753 [hep-ph] Preprint, submitted to Physical Review D",
