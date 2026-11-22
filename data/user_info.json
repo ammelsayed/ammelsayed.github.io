@@ -8,11 +8,11 @@
       "address": "https://cdn1.iconfinder.com/data/icons/neutro-essential/32/home-1024.png"
     },
     "social": [
-      { "name": "Github", "url": "https://github.com/ammelsayed", "icon": "../images/github-brands-solid.png" },
-      { "name": "ORCID", "url": "https://orcid.org/0000-0002-4955-4958", "icon": "../images/orcid-brands-solid.png" },
-      { "name": "Google Scholar", "url": "https://scholar.google.com/citations?user=Xo0hJpMAAAAJ&hl=en", "icon": "../images/google-scholar-brands-solid.png" },
-      { "name": "ResearchGate", "url": "https://www.researchgate.net/profile/Amm-Elsayed", "icon": "../images/researchgate-brands-solid.png" },
-      { "name": "LinkedIn", "url": "https://www.linkedin.com/in/a-m-m-elsayed/", "icon": "../images/square-linkedin-brands-solid.png" }
+      { "name": "Github", "url": "https://github.com/ammelsayed", "icon": "/images/github-brands-solid.png" },
+      { "name": "ORCID", "url": "https://orcid.org/0000-0002-4955-4958", "icon": "/images/orcid-brands-solid.png" },
+      { "name": "Google Scholar", "url": "https://scholar.google.com/citations?user=Xo0hJpMAAAAJ&hl=en", "icon": "/images/google-scholar-brands-solid.png" },
+      { "name": "ResearchGate", "url": "https://www.researchgate.net/profile/Amm-Elsayed", "icon": "/images/researchgate-brands-solid.png" },
+      { "name": "LinkedIn", "url": "https://www.linkedin.com/in/a-m-m-elsayed/", "icon": "/images/square-linkedin-brands-solid.png" }
 
 
     ]

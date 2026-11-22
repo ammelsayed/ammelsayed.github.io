@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robust Management of Long-Running Computational Processes: A Case Study with MadGraph | Blog</title>
+    <meta name="description" content="In high-energy physics and beyond, computational workflows often rely on extensive event generators such as MadGraph5_aMC@NLO. These simulations may run for days, weeks or event months, consuming significant system resources. To ensure reproducibility, fault tolerance, and effective resource utilisation, it is imperative to launch such processes in a detached, non-interactive manner while preserving the ability to monitor, log, and, if necessary, terminate them cleanly. This note discusses the practical aspects of process management in a Unix-like environment, focusing on the use of nohup, background job control, process groups, and a self-contained launcher script that encapsulates these mechanisms.">
+    <link rel="canonical" href="https://ammelsayed.pages.dev/blog/post5/">
+    
+    <!-- Open Graph for social sharing -->
+    <meta property="og:title" content="Robust Management of Long-Running Computational Processes: A Case Study with MadGraph" id="og-title">
+    <meta property="og:description" content="In high-energy physics and beyond, computational workflows often rely on extensive event generators such as MadGraph5_aMC@NLO. These simulations may run for days, weeks or event months, consuming significant system resources. To ensure reproducibility, fault tolerance, and effective resource utilisation, it is imperative to launch such processes in a detached, non-interactive manner while preserving the ability to monitor, log, and, if necessary, terminate them cleanly. This note discusses the practical aspects of process management in a Unix-like environment, focusing on the use of nohup, background job control, process groups, and a self-contained launcher script that encapsulates these mechanisms." id="og-description">
+    <meta property="og:url" content="https://ammelsayed.pages.dev/blog/post5/">
+    <meta property="og:type" content="article">
+    <meta property="og:image" content="https://ammelsayed.pages.dev/images/linux-logo.png">
+    
+    <link rel="icon" href="/images/tap-icon.png">
+    
+    <!-- Global Theme Styles -->
+    <link rel="stylesheet" href="/styles/theme.css">
+    <link rel="stylesheet" href="/styles/header.css">
+    <link rel="stylesheet" href="/styles/footer.css">
+    <link rel="stylesheet" href="/styles/blog-post.css">
+
+    <!-- Markdown & Highlighting Styles (self-hosted, see /vendor). These three
+         style optional features - code colours, comments, share buttons - and
+         none of them is needed for the first paint, so they are fetched as print
+         CSS and promoted once they land. They are same-origin now, but a slow
+         request still should not hold the article text back. -->
+    <link rel="stylesheet" href="/vendor/prism-tomorrow.min.css" media="print"
+          onload="this.media='all'" onerror="this.media='all';console.warn('Code theme failed to load')">
+
+    <!-- Comments section (styles only; the client itself loads on demand) -->
+    <link rel="stylesheet" href="/vendor/waline.css" media="print"
+          onload="this.media='all'" onerror="this.media='all';console.warn('Comment styles failed to load')">
+
+    <!-- KaTeX styles are not requested here. Its webfont pack is too large to
+         vendor, so the stylesheet is fetched from the same CDN as the KaTeX
+         JavaScript, at the moment a post turns out to have formulas. Posts
+         without maths, and every other page, never ask for it. -->
+</head>
+<body>
+    <my-header></my-header>
+    <script type="module" src="/styles/header.js"></script>
+    <script src="/menu.js"></script>
+
+    <main>
+        <div class="blog-post-wrapper">
+            <div id="toc-container" class="toc-container" style="display: none;">
+                <h3>Contents</h3>
+                <nav id="toc-content"></nav>
+            </div>
+
+            <div class="post-main-container post-article">
+                <div class="post-header-section">
+                    <h1 id="post-title">Loading...</h1>
+                    <div id="post-meta" class="post-meta">
+                        <!-- Populated by JS -->
+                    </div>
+                    
+                </div>
+
+                <article id="post-content" class="blog-post-content">
+                    <p>Loading content...</p>
+                </article>
+
+                <div class="post-share" id="post-share">
+                    <span class="post-share-label">Share</span>
+                    <div class="post-share-actions" id="post-share-actions"></div>
+                </div>
+
+                <div id="waline"></div>
+
+            </div>
+        </div>
+    </main>
+
+    <script src="/styles/utils.js"></script>
+    <my-footer></my-footer>
+    <script type="module" src="/styles/footer.js"></script>
+
+    <!-- Deferred scripts execute in document order, so this queue carries the
+         article's hard dependencies and nothing optional: marked and js-yaml
+         first (the body cannot be split or rendered without them), then Prism with
+         its grammars, in dependency order. KaTeX is cross-origin and cosmetic,
+         so it is requested on demand in the page script: one stalled request
+         there can no longer hold back the queue. -->
+    <!-- `onerror` is set on the tag itself, not by /styles/post.js, because a
+         refused request can dispatch its error event before that file runs. The
+         attribute records it; the script reads the record and reports it. -->
+    <script defer data-vendor="marked" src="/vendor/marked.min.js" onerror="this.dataset.failed='1'"></script>
+    <script defer data-vendor="js-yaml" src="/vendor/js-yaml.min.js" onerror="this.dataset.failed='1'"></script>
+    <script defer data-vendor="prism" src="/vendor/prism.min.js"></script>
+    <script defer data-vendor="prism" src="/vendor/prism-clike.min.js"></script>
+    <script defer data-vendor="prism" src="/vendor/prism-javascript.min.js"></script>
+    <script defer data-vendor="prism" src="/vendor/prism-python.min.js"></script>
+    <script defer data-vendor="prism" src="/vendor/prism-bash.min.js"></script>
+    <script defer data-vendor="prism" src="/vendor/prism-c.min.js"></script>
+    <script defer data-vendor="prism" src="/vendor/prism-cpp.min.js"></script>
+
+    <script>window.POST_ID = "post5";</script>
+    <script src="/styles/post.js"></script>
+</body>
+<!-- generated by scripts/build-share-pages.rb -->
+</html>

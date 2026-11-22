@@ -18,7 +18,7 @@
       }
     ],
     "id": "post1",
-    "link": "/blog/posts/post1/"
+    "link": "/blog/post1/"
   },
   {
     "author": {
@@ -38,7 +38,7 @@
       }
     ],
     "id": "post4",
-    "link": "/blog/posts/post4/"
+    "link": "/blog/post4/"
   },
   {
     "author": {
@@ -58,7 +58,7 @@
       }
     ],
     "id": "post5",
-    "link": "/blog/posts/post5/"
+    "link": "/blog/post5/"
   },
   {
     "author": {
@@ -78,6 +78,6 @@
       }
     ],
     "id": "post6",
-    "link": "/blog/posts/post6/"
+    "link": "/blog/post6/"
   }
 ]
