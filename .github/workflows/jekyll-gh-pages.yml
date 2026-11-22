@@ -24,8 +24,6 @@ jobs:
         run: ruby scripts/build-blog-index.rb
       - name: Generate structured content (YAML -> JSON)
         run: ruby scripts/build-content-json.rb
-      - name: Generate the share pages
-        run: ruby scripts/build-share-pages.rb
       - name: Generate the search index
         run: ruby scripts/build-search-index.rb
       - name: Prepare static artifact
@@ -33,6 +31,12 @@ jobs:
           mkdir _site
           rsync -a --exclude='.git' --exclude='_site' ./ _site/
           touch _site/.nojekyll
+      # The one output that is not a checked-in file: a page per post, written
+      # into the artifact so that blog/ itself stays the posts, the listing and
+      # the shell. It runs after the copy, because it writes into the copy, and
+      # writes /blog/<id>.html, which both hosts answer at /blog/<id>.
+      - name: Give every post a page
+        run: ruby scripts/build-share-pages.rb _site
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

@@ -532,8 +532,9 @@
                 if (shareHost && !hiddenPost) {
                     // Share the post's own page, which carries its tags as served.
                     // The tags on this address are filled in after the markdown
-                    // loads, and no crawler waits for that.
-                    const shareUrl = `${window.location.origin}/blog/${postId}/`;
+                    // loads, and no crawler waits for that. The address itself is
+                    // the one the card links to: /blog/<id>, no extension, no slash.
+                    const shareUrl = `${window.location.origin}/blog/${postId}`;
                     const shareTitle = titleText;
                     const enc = encodeURIComponent;
                     const icons = {

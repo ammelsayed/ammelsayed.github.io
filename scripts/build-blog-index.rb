@@ -19,10 +19,11 @@ posts = Dir.glob(File.join(BLOG_DIR, '*.md')).sort.filter_map do |path|
     next if data['show'].to_s.downcase == 'false' # show: false keeps a post out of the index; absent means visible
     id = File.basename(path, '.md')
     data['id'] = id
-    # The list opens the post's own page: one click, and the address in the bar is
-    # the post's. That page also carries the title, the description and the image
-    # as metadata, so a link copied from the index previews properly.
-    data['link'] = "/blog/#{id}/"
+    # The list opens the post's own page at /blog/<id>: one click, and the
+    # address in the bar is the post's, with no extension and no trailing slash.
+    # That page also carries the title, the description and the image as
+    # metadata, so a link copied from the index previews properly.
+    data['link'] = "/blog/#{id}"
     data['date'] = data['date'].to_s if data['date']
     data['meta'] ||= [{ 'icon' => '🗓️', 'text' => data['date'] }] if data['date']
     data
