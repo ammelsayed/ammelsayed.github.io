@@ -10,6 +10,9 @@ const INDEX_URL = '/data/search-index.json';
 const MAX_RESULTS = 14;
 const DEBOUNCE_MS = 120;
 const SNIPPET_WIDTH = 150;
+// A request that never settles must not leave the panel on "Searching…" for the
+// rest of the session.
+const LOAD_TIMEOUT_MS = 8000;
 
 // Weight per field. The title decides most matches; the body only has to say
 // whether the words occur at all, so it sits at the bottom.
@@ -162,6 +165,7 @@ function message(text) {
 
 export function createSiteSearch(field, { onDismiss } = {}) {
   let loaded = null;
+  let waiting = false;
   let term = '';
   let shown = '';
   let timer = 0;
@@ -184,23 +188,42 @@ export function createSiteSearch(field, { onDismiss } = {}) {
   list.setAttribute('role', 'listbox');
   list.setAttribute('aria-label', 'Search results');
 
+  // Loading, failure and no-result text sits outside the listbox so a screen
+  // reader announces it instead of treating it as an option.
+  const status = document.createElement('div');
+  status.className = 'site-search-status';
+  status.setAttribute('role', 'status');
+  status.setAttribute('aria-live', 'polite');
+
   const foot = document.createElement('div');
   foot.className = 'site-search-foot';
   for (const [keys, label] of HINTS) foot.append(hint(keys, label));
 
-  inner.append(list, foot);
+  inner.append(list, status, foot);
   panel.append(inner);
   document.body.append(backdrop, panel);
 
+  const showStatus = text => {
+    status.replaceChildren();
+    if (text) status.append(message(text));
+  };
+
   const load = () => {
     if (!loaded) {
-      loaded = fetch(INDEX_URL, { cache: 'no-cache' })
+      waiting = true;
+      const controller = new AbortController();
+      const deadline = setTimeout(() => controller.abort(), LOAD_TIMEOUT_MS);
+      loaded = fetch(INDEX_URL, { cache: 'no-cache', signal: controller.signal })
         .then(response => (response.ok ? response.json() : Promise.reject(new Error(String(response.status)))))
         .then(data => (Array.isArray(data.items) ? data.items : []).map(prepare))
-        // A failed request must not stick: the next open retries it.
+        // A failed or abandoned request must not stick: the next one retries.
         .catch(error => {
           loaded = null;
           throw error;
+        })
+        .finally(() => {
+          clearTimeout(deadline);
+          waiting = false;
         });
     }
     return loaded;
@@ -215,11 +238,19 @@ export function createSiteSearch(field, { onDismiss } = {}) {
     panel.style.maxHeight = `calc(100vh - ${height + 24}px)`;
   }
 
-  // The panel only appears once there is something to put in it; an empty
-  // field leaves the bar undisturbed.
+  // The panel appears once there is something to put in it; the backdrop stays
+  // as the click-away target for as long as the field is open, and only dims
+  // the page when there is a panel to look at.
   function reveal(visible) {
     panel.hidden = !visible;
-    backdrop.hidden = !visible;
+    backdrop.hidden = false;
+    backdrop.classList.toggle('is-dimmed', visible);
+  }
+
+  function conceal() {
+    panel.hidden = true;
+    backdrop.hidden = true;
+    backdrop.classList.remove('is-dimmed');
   }
 
   function row(item, tokens) {
@@ -258,23 +289,27 @@ export function createSiteSearch(field, { onDismiss } = {}) {
       active = -1;
       shown = '';
       list.replaceChildren();
+      showStatus('');
       reveal(false);
       return;
     }
+
+    // Until the index is here a query has nothing to show, so say that it is
+    // running rather than leave a blank panel.
+    reveal(true);
+    if (waiting || !loaded) showStatus('Searching…');
 
     let items;
     try {
       items = await load();
     } catch (error) {
       if (ticket !== sequence) return;
-      reveal(true);
-      list.replaceChildren(message('The search index could not be loaded.'));
+      list.replaceChildren();
+      showStatus('The search index could not be loaded.');
       shown = term.trim();
       return;
     }
     if (ticket !== sequence) return;
-
-    reveal(true);
 
     const hits = items
       .map(item => ({ item, score: score(item, tokens) }))
@@ -285,9 +320,10 @@ export function createSiteSearch(field, { onDismiss } = {}) {
 
     active = -1;
     list.replaceChildren();
+    showStatus('');
 
     if (!hits.length) {
-      list.append(message(`No results for “${term.trim()}”.`));
+      showStatus(`No results for “${term.trim()}”.`);
       shown = term.trim();
       return;
     }
@@ -348,8 +384,13 @@ export function createSiteSearch(field, { onDismiss } = {}) {
       render();
     },
     hide() {
-      reveal(false);
+      // A render waiting on the debounce or on the index would otherwise finish
+      // after the close and put the panel back over the page.
+      clearTimeout(timer);
+      sequence += 1;
       active = -1;
+      shown = '';
+      conceal();
     },
     layout() {
       place();
