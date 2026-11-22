@@ -39,18 +39,25 @@ jobs:
           git add -A data blog
           if git diff --cached --quiet; then
             echo "The generated files already match the sources; nothing to commit."
-          else
-            git commit -m "(auto) generate the content JSON and the article pages from the YAML sources"
-            # A push that lands while this runs moves main under the files just
-            # built, and a rebase would carry them onto a commit they were not
-            # built from. They are built again on the tip instead, and that goes
-            # into the same commit.
+            exit 0
+          fi
+          git commit -m "(auto) generate the content JSON and the article pages from the YAML sources"
+          # A push can land between the rebase and the push, and a rebase carries
+          # files onto a commit they were not built from. Each attempt rebuilds on
+          # the tip it just moved to, and only rewrites the commit when the rebuild
+          # actually changed something.
+          for attempt in 1 2 3; do
             git pull --rebase origin main
             ruby scripts/build-blog-index.rb
             ruby scripts/build-content-json.rb
             ruby scripts/build-share-pages.rb
             ruby scripts/build-search-index.rb
             git add -A data blog
-            git commit --amend --no-edit
-            git push
-          fi
+            git diff --cached --quiet || git commit --amend --no-edit
+            if git push; then
+              exit 0
+            fi
+            echo "main moved while this ran; rebuilding on the new tip."
+          done
+          echo "Failing: main moved three times, so the generated files did not land." >&2
+          exit 1

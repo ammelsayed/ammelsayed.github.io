@@ -131,7 +131,7 @@ posts.each do |post|
   path = File.join(BLOG_DIR, "#{id}.html")
   abort "Failing: #{path} is a link, and it would be written through." if File.symlink?(path)
   abort "Failing: #{path} was not written by this script, and it is not replaced." if File.exist?(path) && !File.read(path).include?(MARKER)
-  partial = File.join(BLOG_DIR, ".#{id}.html.#{SecureRandom.hex(8)}.partial")
+  partial = File.join(BLOG_DIR, ".page-#{SecureRandom.hex(8)}.partial")
   File.write(partial, page)
   File.rename(partial, path)
 end
