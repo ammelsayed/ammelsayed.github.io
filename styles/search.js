@@ -215,6 +215,13 @@ export function createSiteSearch(field, { onDismiss } = {}) {
     panel.style.maxHeight = `calc(100vh - ${height + 24}px)`;
   }
 
+  // The panel only appears once there is something to put in it; an empty
+  // field leaves the bar undisturbed.
+  function reveal(visible) {
+    panel.hidden = !visible;
+    backdrop.hidden = !visible;
+  }
+
   function row(item, tokens) {
     const link = document.createElement('a');
     link.className = 'site-search-item';
@@ -246,29 +253,35 @@ export function createSiteSearch(field, { onDismiss } = {}) {
     const ticket = ++sequence;
     const tokens = words(term);
 
+    // Nothing typed, nothing to show: the field keeps the bar to itself.
+    if (!tokens.length) {
+      active = -1;
+      shown = '';
+      list.replaceChildren();
+      reveal(false);
+      return;
+    }
+
     let items;
     try {
       items = await load();
     } catch (error) {
       if (ticket !== sequence) return;
+      reveal(true);
       list.replaceChildren(message('The search index could not be loaded.'));
       shown = term.trim();
       return;
     }
     if (ticket !== sequence) return;
 
-    let hits;
-    if (!tokens.length) {
-      // An empty field is a shortcut to the sections, not an empty box.
-      hits = items.filter(item => item.kind === 'Page');
-    } else {
-      hits = items
-        .map(item => ({ item, score: score(item, tokens) }))
-        .filter(hit => hit.score > 0)
-        .sort((a, b) => b.score - a.score || String(b.item.date).localeCompare(String(a.item.date)))
-        .slice(0, MAX_RESULTS)
-        .map(hit => hit.item);
-    }
+    reveal(true);
+
+    const hits = items
+      .map(item => ({ item, score: score(item, tokens) }))
+      .filter(hit => hit.score > 0)
+      .sort((a, b) => b.score - a.score || String(b.item.date).localeCompare(String(a.item.date)))
+      .slice(0, MAX_RESULTS)
+      .map(hit => hit.item);
 
     active = -1;
     list.replaceChildren();
@@ -331,13 +344,11 @@ export function createSiteSearch(field, { onDismiss } = {}) {
   return {
     show() {
       place();
-      backdrop.hidden = false;
-      panel.hidden = false;
+      reveal(false);
       render();
     },
     hide() {
-      backdrop.hidden = true;
-      panel.hidden = true;
+      reveal(false);
       active = -1;
     },
     layout() {
