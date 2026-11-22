@@ -56,18 +56,35 @@
                 <nav id="toc-content"></nav>
             </div>
 
-            <div class="post-main-container post-article">
+            <!-- One loading state for the whole article. The page used to print
+                 "Loading..." for a title, "Loading content..." for a body and an
+                 empty SHARE row, so a reader watched three half-born parts of a
+                 page. This block stands in for all of them, in the article's own
+                 column and metrics, until the Markdown is on screen. -->
+            <div class="post-loading" id="post-loading" role="status" aria-live="polite">
+                <div class="post-loading-bar" data-line="title"></div>
+                <div class="post-loading-bar" data-line="meta"></div>
+                <div class="post-loading-bar" data-line="body"></div>
+                <div class="post-loading-bar" data-line="body"></div>
+                <div class="post-loading-bar" data-line="body"></div>
+                <div class="post-loading-bar" data-line="body-short"></div>
+                <p class="post-loading-text">Loading the article&hellip;</p>
+            </div>
+
+            <!-- Hidden until /styles/post.js has an article to show. The title,
+                 the meta line, the share row and the comments are all part of
+                 it, so nothing empty is ever on screen. `hidden` is flipped in
+                 the same task that finishes the render: one step, no flash. -->
+            <div class="post-main-container post-article" id="post-body" hidden>
                 <div class="post-header-section">
-                    <h1 id="post-title">Loading...</h1>
+                    <h1 id="post-title"></h1>
                     <div id="post-meta" class="post-meta">
                         <!-- Populated by JS -->
                     </div>
                     
                 </div>
 
-                <article id="post-content" class="blog-post-content">
-                    <p>Loading content...</p>
-                </article>
+                <article id="post-content" class="blog-post-content"></article>
 
                 <div class="post-share" id="post-share">
                     <div class="post-share-left">
@@ -106,6 +123,25 @@
     <script defer data-vendor="prism" src="/vendor/prism-c.min.js"></script>
     <script defer data-vendor="prism" src="/vendor/prism-cpp.min.js"></script>
 
+    <!-- The last resort, and deliberately outside /styles/post.js: a script that
+         fails to parse cannot report its own failure, and the page would then sit
+         on the skeleton with no way out but a reload the reader has to guess.
+         If the article does arrive later it replaces this whole block anyway. -->
+    <script>
+        setTimeout(function () {
+            if (document.documentElement.dataset.postState) return;
+            var box = document.getElementById('post-loading');
+            if (!box) return;
+            var note = document.createElement('p');
+            note.className = 'post-loading-text is-error';
+            note.textContent = 'This article did not load. ';
+            var reload = document.createElement('a');
+            reload.href = window.location.href;
+            reload.textContent = 'Reload the page';
+            note.appendChild(reload);
+            box.appendChild(note);
+        }, 15000);
+    </script>
     <script>window.POST_ID = "post4";</script>
     <script src="/styles/post.js"></script>
 </body>

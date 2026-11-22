@@ -22,19 +22,45 @@
         const failedRequired = new Set();
         const requiredFile = (src) => String(src || '').split('/').pop() || 'a required script';
 
+        // One state for the article, and the page has only two: still loading, or
+        // on screen. The shell carries a single skeleton and the article arrives
+        // hidden behind it, so nothing half-filled is ever visible - no "Loading..."
+        // title, no placeholder body, no share row with no buttons in it.
+        const postLoading = () => document.getElementById('post-loading');
+        const postBody = () => document.getElementById('post-body');
+        const revealArticle = () => {
+            const body = postBody();
+            if (body) body.hidden = false;
+            const loading = postLoading();
+            if (loading) loading.hidden = true;
+            document.documentElement.dataset.postState = 'ready';
+        };
+        const showPostFailure = (message) => {
+            const body = postBody();
+            if (body) body.hidden = true;
+            document.documentElement.dataset.postState = 'failed';
+            const loading = postLoading();
+            if (!loading) return;
+            const note = document.createElement('p');
+            note.className = 'post-loading-text is-error';
+            note.textContent = message;
+            const reload = document.createElement('a');
+            reload.href = window.location.href;
+            reload.textContent = ' Reload the page';
+            note.appendChild(reload);
+            // The bars go with the message: a skeleton under "could not load"
+            // reads as if the article were still on its way.
+            loading.replaceChildren(note);
+            loading.hidden = false;
+        };
+
         const reportRequiredFailure = (src) => {
             if (booted) return;
             const file = requiredFile(src);
             failedRequired.add(file);
-            const contentEl = document.getElementById('post-content');
-            if (!contentEl) return;
             // Name the file that failed: "a required script" tells the visitor
             // nothing, and the console already has the request.
-            contentEl.textContent = `The article could not be loaded: ${file} failed to load. `;
-            const reload = document.createElement('a');
-            reload.href = window.location.href;
-            reload.textContent = 'Reload the page';
-            contentEl.appendChild(reload);
+            showPostFailure(`The article could not be loaded: ${file} failed to load.`);
         };
 
         // A 200 response that is not the library leaves the page with nothing to
@@ -179,18 +205,17 @@
             else core(KATEX_HOSTS[0]);
         };
 
-        // If nothing has arrived after fifteen seconds, say so. Nothing polls: the
-        // `load` listeners above render the article whenever a slow script lands, and
-        // the `error` listeners report a refusal as it happens.
+        // A page that is slow, not broken: after ten seconds the caption says
+        // where it is. The hard "it did not load" note, with the reload, belongs
+        // to the watchdog in the shell, which speaks only if nothing arrives -
+        // including when this file never ran at all.
         setTimeout(() => {
-            const contentEl = document.getElementById('post-content');
-            if (booted || !contentEl || failedRequired.size) return;
-            contentEl.textContent = 'Still loading the libraries this page needs... ';
-            const reload = document.createElement('a');
-            reload.href = window.location.href;
-            reload.textContent = 'Reload';
-            contentEl.appendChild(reload);
-        }, 15000);
+            if (booted || failedRequired.size) return;
+            const loading = postLoading();
+            const caption = loading && loading.querySelector('.post-loading-text');
+            if (!caption) return;
+            caption.textContent = 'Still loading the libraries this page needs\u2026';
+        }, 10000);
 
         async function startPost() {
             // Nothing here waits: if the required files are not in yet, the load
@@ -207,7 +232,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const postId = window.POST_ID || urlParams.get('id');
             if (!postId) {
-                document.getElementById('post-content').innerHTML = '<p>Error: No post ID provided.</p>';
+                showPostFailure('No post id was given, so there is no article to show.');
                 return;
             }
 
@@ -928,6 +953,13 @@
                 // the page was parsed. Nothing here looks for them again.
 
 
+                // The article is complete: title, meta, body, share row and like
+                // count are all in place, so the skeleton goes and the article
+                // takes the page in one step. Everything below this line is
+                // optional - comments, maths inside comments - and none of it can
+                // hold the article back now.
+                revealArticle();
+
                 // Waline and the KaTeX module for comment maths are loaded only here,
                 // after the article is on screen. The note ends the loading state by
                 // itself, and a late module that finally arrives still initialises the
@@ -991,7 +1023,10 @@
 
             } catch (error) {
                 console.error('Error:', error);
-                document.getElementById('post-content').innerHTML = `<p>Error loading post: ${error.message}</p>`;
+                // The message replaces the skeleton instead of being printed into
+                // the article: the article is hidden, so its own error text would
+                // be invisible.
+                showPostFailure(`The article could not be loaded: ${error.message}.`);
             }
         }
 
