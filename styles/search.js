@@ -162,6 +162,9 @@ export function createSiteSearch(field, { onDismiss } = {}) {
   }
 
   function row(item, tokens) {
+    // A one-letter query would light up every "a" in a snippet, so only tokens
+    // long enough to mean something are marked.
+    const marks = tokens.filter(token => token.length > 1);
     const link = document.createElement('a');
     link.className = 'site-search-item';
     link.href = item.url;
@@ -170,9 +173,9 @@ export function createSiteSearch(field, { onDismiss } = {}) {
     link.innerHTML = `
       <span class="site-search-line">
         <span class="site-search-kind">${escapeHtml(item.kind)}</span>
-        <span class="site-search-title">${highlight(item.title, tokens)}</span>
+        <span class="site-search-title">${highlight(item.title, marks)}</span>
       </span>
-      <span class="site-search-snippet">${highlight(snippet(item, tokens), tokens)}</span>`;
+      <span class="site-search-snippet">${highlight(snippet(item, marks), marks)}</span>`;
     return link;
   }
 
