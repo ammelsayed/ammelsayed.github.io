@@ -36,11 +36,21 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/events.json data/projects.json data/publications.json data/blogs.generated.json data/search-index.json blog
+          git add -A data blog
           if git diff --cached --quiet; then
             echo "The generated files already match the sources; nothing to commit."
           else
             git commit -m "(auto) generate the content JSON and the article pages from the YAML sources"
+            # A push that lands while this runs moves main under the files just
+            # built, and a rebase would carry them onto a commit they were not
+            # built from. They are built again on the tip instead, and that goes
+            # into the same commit.
             git pull --rebase origin main
+            ruby scripts/build-blog-index.rb
+            ruby scripts/build-content-json.rb
+            ruby scripts/build-share-pages.rb
+            ruby scripts/build-search-index.rb
+            git add -A data blog
+            git commit --amend --no-edit
             git push
           fi

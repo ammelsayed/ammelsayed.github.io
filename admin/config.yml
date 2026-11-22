@@ -26,6 +26,9 @@ collections:
         name: id
         widget: string
         hint: "Use a short unique ID such as post8. It becomes the Markdown filename."
+        pattern:
+          - '^(?!post$|index$)[A-Za-z0-9][A-Za-z0-9_-]*$'
+          - "Letters, digits, dashes and underscores only, and neither post nor index: those two are the listing's and the article shell's own pages."
       - label: Author
         name: author
         widget: object

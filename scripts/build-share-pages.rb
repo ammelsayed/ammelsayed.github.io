@@ -20,6 +20,7 @@ require 'json'
 require 'cgi'
 require 'date'
 require 'fileutils'
+require 'securerandom'
 require_relative 'lib/post_id'
 
 SITE = 'https://ammelsayed.pages.dev' # the host these links are shared from
@@ -121,15 +122,16 @@ posts.each do |post|
                       'the post script tag')
   page = page.sub('</html>', "#{MARKER}\n</html>")
 
-  # Written beside the page and moved onto it. Neither name may be a link: `blog`
-  # is committed, so a write that follows one would land in whatever it points at
-  # and be committed there. A page the generator did not write is someone's file
-  # at the post's address, and it is not replaced either.
+  # Written beside the page and moved onto it. The name it is written under is a
+  # new one every time, so nothing that was there is opened for writing. Neither
+  # name may be a link: `blog` is committed, so a write that followed one would
+  # land in whatever it points at and be committed there. A page the generator
+  # did not write is someone's file at the post's address, and it is not replaced
+  # either.
   path = File.join(BLOG_DIR, "#{id}.html")
-  partial = "#{path}.partial"
-  link = [path, partial].find { |candidate| File.symlink?(candidate) }
-  abort "Failing: #{link} is a link, and it would be written through." if link
+  abort "Failing: #{path} is a link, and it would be written through." if File.symlink?(path)
   abort "Failing: #{path} was not written by this script, and it is not replaced." if File.exist?(path) && !File.read(path).include?(MARKER)
+  partial = File.join(BLOG_DIR, ".#{id}.html.#{SecureRandom.hex(8)}.partial")
   File.write(partial, page)
   File.rename(partial, path)
 end
