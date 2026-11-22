@@ -128,11 +128,15 @@
             document.head.appendChild(link);
         };
         // One file is needed: the core, which defines `window.katex`. The article's
-        // formulas are drawn by the markdown extension at parse time and the ones in
-        // comments by Waline through `renderToString`, so the auto-render pass that
-        // used to walk the page after insertion is no longer downloaded at all.
+        // formulas are drawn by the markdown extension and the ones in comments by
+        // Waline through `renderToString`, so the auto-render pass that used to walk
+        // the page after insertion is no longer downloaded at all.
+        // A truthy `window.katex` is not proof the library is usable, so every caller
+        // asks for the method it will call.
+        const katexReady = () => Boolean(window.katex) && typeof window.katex.renderToString === 'function';
+
         const loadKatex = (onReady, onFail) => {
-            if (window.katex && typeof window.katex.renderToString === 'function') {
+            if (katexReady()) {
                 onReady();
                 return;
             }
@@ -161,7 +165,7 @@
                 if (fallback) core(fallback);
                 else giveUp();
             });
-            if (window.katex) {
+            if (katexReady()) {
                 addKatexStyles(KATEX_HOSTS[0]);
                 finish();
             }
@@ -281,37 +285,19 @@
                     return !/^[a-z][a-z0-9+.-]*:/i.test(url);
                 }
 
-                // KaTeX writes a MathML tree beside every formula so a screen reader
-                // can speak it, and draws a radical or a stretched delimiter as an
-                // inline svg. Both are library output, so they are recognised by
-                // namespace instead of being listed element by element - the svg only
-                // inside a formula, since nothing else here needs one. Every node still
-                // goes through the attribute check below.
-                const MATHML_NS = 'http://www.w3.org/1998/Math/MathML';
-                const SVG_NS = 'http://www.w3.org/2000/svg';
-
+                // Nothing here is relaxed for a formula. The marked output is checked
+                // as it always was, and a formula is drawn afterwards from html this
+                // page made itself, so no author can reach the allowances KaTeX needs
+                // by writing a class name.
                 function sanitizeTree(root) {
                     root.querySelectorAll('*').forEach(node => {
-                        const inMath = node.closest('.katex');
-                        const allowed = ALLOWED_TAGS.has(node.tagName.toUpperCase())
-                            || node.namespaceURI === MATHML_NS
-                            || (inMath && node.namespaceURI === SVG_NS);
-                        if (!allowed) {
+                        if (!ALLOWED_TAGS.has(node.tagName.toUpperCase())) {
                             node.remove();
                             return;
                         }
                         Array.from(node.attributes).forEach(attr => {
                             const name = attr.name.toLowerCase();
-                            if (name.startsWith('on')) {
-                                node.removeAttribute(attr.name);
-                                return;
-                            }
-                            // KaTeX places its glyphs with an inline style. That is the
-                            // one place a style may stay, and only KaTeX's own output can
-                            // reach it: a url() in it would be a request the markup
-                            // controls, so that form is removed even there.
-                            if (name === 'style' && inMath && !/url\s*\(/i.test(attr.value)) return;
-                            if (DROPPED_ATTRS.has(name)) {
+                            if (name.startsWith('on') || DROPPED_ATTRS.has(name)) {
                                 node.removeAttribute(attr.name);
                                 return;
                             }
@@ -330,16 +316,20 @@
                     });
                 }
 
-                // Formulas are drawn by marked-katex-extension, which teaches `marked`
+                // Formulas are found by marked-katex-extension, which teaches `marked`
                 // itself to read $...$ while the page is parsed: `$$` is a block, `$`
                 // is inline, and the TeX becomes a token before any prose rule sees it.
                 // So an underscore stays a subscript instead of turning the rest of a
-                // paragraph italic, and a `$$` block is no longer split at a blank
-                // line. The extension renders through KaTeX as it parses, so KaTeX has
-                // to be on the page first - the same loader the page already used for
-                // the auto-render pass, and a post without formulas never asks for it.
-                // Its own file then comes from this site, after KaTeX, because it binds
-                // to `window.katex` the moment it runs.
+                // paragraph italic, and a `$$` block is no longer split at a blank line.
+                // Its file comes from this site and is loaded after KaTeX, because it
+                // binds to `window.katex` the moment it runs.
+                //
+                // The extension's own renderer is replaced before it is registered: it
+                // would put KaTeX's html into the parsed page, where the check below
+                // would strip the styles and the svg that make a formula readable. A
+                // token therefore writes an empty placeholder, and the formula is drawn
+                // into that placeholder after the page has been checked, from html this
+                // page made itself. That keeps the check as strict as it was.
                 //
                 // `nonStandard` reads a formula with no spaces around it, which is how
                 // physics is written ("large-$R$ jets"). `throwOnError: false` keeps a
@@ -347,26 +337,44 @@
                 // paragraph. The cost is that a bare dollar used as a currency sign in
                 // prose reads as a formula; posts here use dollars for math.
                 const MATH_SOURCE = /\$\$[\s\S]+?\$\$|\$[^$\n]+?\$/;
+                // Code is quoted source: a post about LaTeX shows its delimiters without
+                // asking for the library.
+                const proseOnly = markdown.replace(/(^|\n)(```|~~~)[\s\S]*?\n\2|`[^`\n]*`/g, ' ');
+                const formulas = [];
                 let mathFailed = false;
-                if (MATH_SOURCE.test(markdown)) {
+                if (MATH_SOURCE.test(proseOnly)) {
                     await new Promise(resolve => loadKatex(resolve, () => {
                         mathFailed = true;
                         resolve();
                     }));
-                    if (window.katex) {
+                    if (katexReady()) {
                         await new Promise(resolve => {
                             if (typeof window.markedKatex === 'function') {
                                 resolve();
                                 return;
                             }
-                            loadScript('/vendor/marked-katex-extension.min.js', resolve, () => {
+                            loadScript('/vendor/marked-katex-extension.min.js', () => {
+                                // A script that answers with the wrong file leaves the
+                                // page without a reader, so the check is for the method
+                                // this code calls, not for a 200 response.
+                                if (typeof window.markedKatex !== 'function') mathFailed = true;
+                                resolve();
+                            }, () => {
                                 mathFailed = true;
                                 resolve();
                             });
                         });
                     }
                     if (typeof window.markedKatex === 'function') {
-                        marked.use(window.markedKatex({ throwOnError: false, nonStandard: true }));
+                        const extension = window.markedKatex({ throwOnError: false, nonStandard: true });
+                        extension.extensions.forEach(part => {
+                            part.renderer = token => {
+                                formulas.push({ tex: token.text, display: token.displayMode });
+                                const slot = `<span data-math-slot="${formulas.length - 1}"></span>`;
+                                return part.level === 'block' ? `${slot}\n` : slot;
+                            };
+                        });
+                        marked.use(extension);
                     }
                 }
 
@@ -381,6 +389,20 @@
                 contentEl.replaceChildren(
                     ...Array.from(parsed.body.childNodes, node => document.importNode(node, true))
                 );
+
+                // The placeholders become the formulas they stand for. A slot with no
+                // entry (a page whose library never arrived) is left as it is and the
+                // note below explains the delimiters.
+                contentEl.querySelectorAll('[data-math-slot]').forEach(slot => {
+                    const entry = formulas[Number(slot.getAttribute('data-math-slot'))];
+                    if (!entry) return;
+                    const box = document.createElement('span');
+                    box.innerHTML = window.katex.renderToString(entry.tex, {
+                        displayMode: entry.display,
+                        throwOnError: false
+                    });
+                    slot.replaceWith(...box.childNodes);
+                });
 
                 if (mathFailed) {
                     // Nothing could be downloaded: the source stayed as text, and one
