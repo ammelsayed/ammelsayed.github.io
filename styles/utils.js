@@ -277,9 +277,15 @@ function copySanitizedChildren(source, target, term) {
     });
 }
 
+// A formula can hold a "<" or an "&", and a description is parsed as HTML before
+// it is typeset, so those characters are escaped inside a formula first: the text
+// node then carries exactly what the author wrote.
+const HTML_SPECIAL = { '&': '&amp;', '<': '&lt;', '>': '&gt;' };
+
 function appendRichText(target, html, term) {
     if (html == null || html === '') return;
-    const parsed = new DOMParser().parseFromString(String(html), 'text/html');
+    const safe = String(html).replace(MATH_SOURCE, run => run.replace(/[&<>]/g, ch => HTML_SPECIAL[ch]));
+    const parsed = new DOMParser().parseFromString(safe, 'text/html');
     copySanitizedChildren(parsed.body, target, term);
 }
 
@@ -291,25 +297,61 @@ function appendRichText(target, html, term) {
 // list that actually contains a dollar, and a card that never gets one keeps its
 // text as typed.
 const MATH_SOURCE = /\$\$[\s\S]+?\$\$|\$[^$\n]+?\$/;
-const KATEX_CDN = 'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/';
+// Two hosts, the pair the article page already uses: a host that refuses would
+// leave a card on raw TeX for the rest of the visit.
+const KATEX_HOSTS = [
+    'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/',
+    'https://unpkg.com/katex@0.16.8/dist/'
+];
 let katexLoading = null;
 
-function loadKatex() {
-    const head = document.head;
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = `${KATEX_CDN}katex.min.css`;
-    head.append(link);
-    // Both files answer the same way whether they arrive or not: without them the
-    // card shows the source, which is what it did before this existed.
-    const script = name => new Promise(resolve => {
+// One file from a host, and whether it arrived: a request that neither loads nor
+// fails is what a stalled connection looks like, so it gives up after ten seconds
+// and the caller tries the other host.
+function loadKatexFile(url) {
+    return new Promise(resolve => {
         const tag = document.createElement('script');
-        tag.src = KATEX_CDN + name;
-        tag.onload = resolve;
-        tag.onerror = resolve;
-        head.append(tag);
+        const timer = setTimeout(() => {
+            tag.remove();
+            resolve(false);
+        }, 10000);
+        tag.src = url;
+        tag.onload = () => {
+            clearTimeout(timer);
+            resolve(true);
+        };
+        tag.onerror = () => {
+            clearTimeout(timer);
+            tag.remove();
+            resolve(false);
+        };
+        document.head.append(tag);
     });
-    return script('katex.min.js').then(() => script('contrib/auto-render.min.js'));
+}
+
+// Both files, and the stylesheet that positions the glyphs: a host that serves the
+// script but not the styles is not good enough, because the formula would be drawn
+// unpositioned. Three answers have to be yes before that host is used.
+function loadKatex() {
+    const attempt = async base => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = `${base}katex.min.css`;
+        const styled = await new Promise(resolve => {
+            link.onload = () => resolve(true);
+            link.onerror = () => resolve(false);
+            document.head.append(link);
+        });
+        if (!styled) {
+            link.remove();
+            return false;
+        }
+        if (!await loadKatexFile(`${base}katex.min.js`)) return false;
+        if (!window.katex || typeof window.katex.renderToString !== 'function') return false;
+        await loadKatexFile(`${base}contrib/auto-render.min.js`);
+        return typeof window.renderMathInElement === 'function';
+    };
+    return attempt(KATEX_HOSTS[0]).then(ok => ok || attempt(KATEX_HOSTS[1]));
 }
 
 function typesetMath(root) {
@@ -328,12 +370,13 @@ function typesetMath(root) {
         return;
     }
     katexLoading = katexLoading || loadKatex();
-    katexLoading.then(() => {
-        if (typeof window.renderMathInElement === 'function') run();
+    katexLoading.then(drawn => {
+        if (drawn) run();
     });
 }
 
 window.typesetMath = typesetMath;
+window.appendRichText = appendRichText;
 
 class CardRenderer {
     constructor(options) {
