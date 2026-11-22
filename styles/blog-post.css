@@ -495,9 +495,13 @@ body {
 .post-share-btn {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    box-sizing: border-box; /* the 40px phone height includes the padding */
-    padding: 7px 12px;
+    justify-content: center;
+    /* The glyph is the whole button: a square keeps the row even whether a
+       button is a brand mark or the copy action, and the label is its tooltip. */
+    box-sizing: border-box; /* the 40px phone square includes the border */
+    width: 34px;
+    height: 34px;
+    padding: 0;
     font-family: inherit;
     font-size: 13px;
     line-height: 1;
@@ -526,6 +530,16 @@ body {
     width: 100%;
     height: 100%;
     fill: currentColor;
+}
+
+/* The two feedback glyphs are drawn, not filled, like the metadata icons:
+   a solid tick at 16px closes up and reads as a blob. */
+.post-share-icon svg.state {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 /* Collapsed contents list for phones; filled in by the post script */
@@ -612,7 +626,7 @@ body {
 
 @media (max-width: 700px) {
     .post-share-btn {
-        min-height: 40px;
-        padding: 10px 14px;
+        width: 40px;
+        height: 40px;
     }
 }
