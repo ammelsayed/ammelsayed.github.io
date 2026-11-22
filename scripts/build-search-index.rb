@@ -76,7 +76,7 @@ JSON.parse(File.read(File.join(DATA_DIR, 'blogs.generated.json'))).each do |post
   items << {
     'title' => post['title'].to_s,
     'description' => post['description'].to_s,
-    'url' => "/blog/posts/#{id}/",
+    'url' => "/blog/#{id}/",
     'kind' => 'Post',
     'tags' => tags_for(post),
     'body' => body,

@@ -1,0 +1,839 @@
+        function formatPostDate(value) {
+            if (!value) return '';
+            if (value instanceof Date) {
+                return value.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+            }
+            return String(value);
+        }
+
+        // Both libraries are required and both are same-origin, declared before
+        // anything optional. Waiting for them here means `splitFrontMatter` always
+        // has a real YAML parser, so no fallback parser and no second wait.
+        const libsReady = () => window.marked
+            && typeof window.marked.parse === 'function'
+            && window.jsyaml
+            && typeof window.jsyaml.load === 'function';
+
+        // Guard against a second render once one has started.
+        let booted = false;
+
+        // Failures are tracked per file: one script failing is not undone by another
+        // script loading, so the message keeps naming the file that is missing.
+        const failedRequired = new Set();
+        const requiredFile = (src) => String(src || '').split('/').pop() || 'a required script';
+
+        const reportRequiredFailure = (src) => {
+            if (booted) return;
+            const file = requiredFile(src);
+            failedRequired.add(file);
+            const contentEl = document.getElementById('post-content');
+            if (!contentEl) return;
+            // Name the file that failed: "a required script" tells the visitor
+            // nothing, and the console already has the request.
+            contentEl.textContent = `The article could not be loaded: ${file} failed to load. `;
+            const reload = document.createElement('a');
+            reload.href = window.location.href;
+            reload.textContent = 'Reload the page';
+            contentEl.appendChild(reload);
+        };
+
+        // A 200 response that is not the library leaves the page with nothing to
+        // render, so each required script is checked for the method the page calls,
+        // not just for a truthy global.
+        const REQUIRED_APIS = {
+            'marked': () => window.marked && typeof window.marked.parse === 'function',
+            'js-yaml': () => window.jsyaml && typeof window.jsyaml.load === 'function'
+        };
+        ['marked', 'js-yaml'].forEach(name => {
+            const script = document.querySelector(`script[data-vendor="${name}"]`);
+            if (!script) return;
+            // A refusal that happened before this script ran is recorded on the tag
+            // by its own `onerror`; anything later comes through the listener.
+            if (script.dataset.failed) reportRequiredFailure(script.src);
+            script.addEventListener('error', () => reportRequiredFailure(script.src));
+            // However late a script arrives it is still used, and the article is
+            // rendered then - there is no attempt count that can drop it. A file that
+            // failed stays failed until it is genuinely delivered.
+            script.addEventListener('load', () => {
+                delete script.dataset.failed;
+                // The method has to be there before the record is cleared: a file that
+                // loaded but cannot be called would otherwise leave the page waiting.
+                if (!REQUIRED_APIS[name]()) {
+                    reportRequiredFailure(script.src);
+                    return;
+                }
+                failedRequired.delete(requiredFile(script.src));
+                if (booted || failedRequired.size) return;
+                startPost();
+            });
+        });
+
+        // KaTeX is requested here rather than in the document's deferred queue: a
+        // stalled CDN request in that queue would hold back Prism and everything
+        // behind it. Core first, its auto-render extension second, and the page is
+        // complete without either.
+        const loadScript = (src, onLoad, onError) => {
+            const script = document.createElement('script');
+            let loaded = false;
+            let failedOver = false;
+            // A request that neither loads nor fails is what a stalled CDN looks like:
+            // after ten seconds the caller may fail over. A late `load` is still
+            // honoured, so a slow request is never wasted.
+            const timer = setTimeout(() => {
+                if (loaded || failedOver) return;
+                failedOver = true;
+                console.warn('Script is slow, trying the fallback:', src);
+                if (onError) onError();
+            }, 10000);
+            script.onload = () => {
+                if (loaded) return;
+                loaded = true;
+                clearTimeout(timer);
+                if (onLoad) onLoad();
+            };
+            script.onerror = () => {
+                clearTimeout(timer);
+                if (failedOver || loaded) return;
+                failedOver = true;
+                console.warn('Script failed to load:', src);
+                if (onError) onError();
+            };
+            script.src = src;
+            document.head.appendChild(script);
+        };
+        // KaTeX comes from a CDN, so it gets a second host: a refused or timed-out
+        // request on one is retried on the other, once. The stylesheet follows the
+        // host that delivered the core script, so styles and glyphs come from one
+        // place and only when a post needs them.
+        const KATEX_HOSTS = [
+            'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/',
+            'https://unpkg.com/katex@0.16.8/dist/'
+        ];
+        const addKatexStyles = (base) => {
+            const existing = document.querySelector('link[data-katex-styles]');
+            if (existing) return;
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.setAttribute('data-katex-styles', '1');
+            link.href = `${base}katex.min.css`;
+            // Styles are cosmetic: if the host refuses, the other host is tried once, and
+            // if that also fails the formulas still typeset, just without KaTeX's own
+            // styling - the console line says so.
+            link.onerror = () => {
+                const fallback = KATEX_HOSTS[KATEX_HOSTS.indexOf(base) + 1];
+                link.remove();
+                if (fallback) addKatexStyles(fallback);
+                else console.warn('KaTeX styles could not be loaded; math is shown unstyled.');
+            };
+            document.head.appendChild(link);
+        };
+        const loadKatex = (onReady, onFail) => {
+            if (typeof window.renderMathInElement === 'function' && window.katex) {
+                onReady();
+                return;
+            }
+            if (loadKatex.started) return;
+            loadKatex.started = true;
+
+            // A stalled request that fails over and then arrives would otherwise
+            // typeset twice; the pass runs once, whichever host delivers first. A
+            // failure notice, however, is withdrawn if a late host succeeds.
+            let typesetDone = false;
+            let gaveUp = false;
+            const finish = () => {
+                if (typesetDone) return;
+                typesetDone = true;
+                onReady();
+            };
+            const giveUp = () => {
+                if (typesetDone || gaveUp) return;
+                gaveUp = true;
+                if (onFail) onFail();
+            };
+            const nextHost = (base) => {
+                const index = KATEX_HOSTS.indexOf(base);
+                return KATEX_HOSTS[index + 1];
+            };
+            const extension = (base) => loadScript(`${base}contrib/auto-render.min.js`, finish, () => {
+                const fallback = nextHost(base);
+                if (fallback) extension(fallback);
+                else giveUp();
+            });
+            const core = (base) => loadScript(`${base}katex.min.js`, () => {
+                addKatexStyles(base);
+                extension(base);
+            }, () => {
+                const fallback = nextHost(base);
+                if (fallback) core(fallback);
+                else giveUp();
+            });
+            if (window.katex) {
+                addKatexStyles(KATEX_HOSTS[0]);
+                extension(KATEX_HOSTS[0]);
+            }
+            else core(KATEX_HOSTS[0]);
+        };
+
+        // If nothing has arrived after fifteen seconds, say so. Nothing polls: the
+        // `load` listeners above render the article whenever a slow script lands, and
+        // the `error` listeners report a refusal as it happens.
+        setTimeout(() => {
+            const contentEl = document.getElementById('post-content');
+            if (booted || !contentEl || failedRequired.size) return;
+            contentEl.textContent = 'Still loading the libraries this page needs... ';
+            const reload = document.createElement('a');
+            reload.href = window.location.href;
+            reload.textContent = 'Reload';
+            contentEl.appendChild(reload);
+        }, 15000);
+
+        async function startPost() {
+            // Nothing here waits: if the required files are not in yet, the load
+            // listener calls again when they are.
+            if (!libsReady()) return;
+
+            // Only the first call through renders, so the post is fetched and wired once.
+            if (booted) return;
+            booted = true;
+
+            // A post with a page of its own states its id in that page, so the
+            // address in the bar never has to carry a query. The `?id=` form stays
+            // for links written before every post had a page: /blog/post.html?id=…
+            const urlParams = new URLSearchParams(window.location.search);
+            const postId = window.POST_ID || urlParams.get('id');
+            if (!postId) {
+                document.getElementById('post-content').innerHTML = '<p>Error: No post ID provided.</p>';
+                return;
+            }
+
+            try {
+                const mdRes = await fetch(`/blog/${encodeURIComponent(postId)}.md?t=${Date.now()}`);
+                if (!mdRes.ok) throw new Error('Post not found');
+                const raw = await mdRes.text();
+                // Front matter is split here rather than by `parseFrontMatter`, whose
+                // `ensureYamlParser` injects a jsDelivr script - the one dependency
+                // this change exists to remove. `libsReady` has already established
+                // the local parser, so there is no second wait and no fallback parser:
+                // the delimiter is line-anchored and whitespace-tolerant, then
+                // js-yaml does the rest.
+                const splitFrontMatter = (text) => {
+                    const match = text.match(/^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)([\s\S]*)$/);
+                    if (!match) return { data: {}, content: text };
+                    let data = {};
+                    try {
+                        data = window.jsyaml.load(match[1]) || {};
+                    } catch (error) {
+                        // Author error, not a reader problem. Leaving the block in the
+                        // body makes it visible instead of quietly dropping the
+                        // metadata and showing a post with no title, date or author.
+                        console.error('Front matter is not valid YAML:', error);
+                        return { data: {}, content: text };
+                    }
+                    return { data, content: match[2] };
+                };
+                const frontMatter = splitFrontMatter(raw);
+                const postData = frontMatter.data || {};
+                const markdown = frontMatter.content || '';
+
+                // Initialize Marked with GFM
+                marked.setOptions({
+                    gfm: true,
+                    breaks: true,
+                    highlight: function(code, lang) {
+                        if (window.Prism && Prism.languages[lang]) {
+                            return Prism.highlight(code, Prism.languages[lang], lang);
+                        }
+                        return code;
+                    },
+                    langPrefix: 'language-'
+                });
+
+                // Post images sit below the first screen. DOMParser returns an
+                // inert document: an <img> there never starts a request, whereas
+                // the children of a detached <div> begin loading the moment they
+                // get a src. Decorate them there, then import the nodes, which is
+                // the first moment they are visible to the loader at all: the url
+                // travels in data-src and is promoted only after insertion, so the
+                // hints are already on the element when the request can start.
+                const contentEl = document.getElementById('post-content');
+                // Image urls leave the html before any parser sees it: they are
+                // carried in data-src, so not even the parse can start a request.
+                // Raw HTML in Markdown is written by post authors on a static site,
+                // so anything executable in it would run with the visitor's own
+                // session: only the tags below survive, event handlers and
+                // resource-bearing attributes (srcset, style, poster) are removed,
+                // and every url must be http(s), mailto, an anchor or relative.
+                // Keeping SVG, video/audio or srcset "just in case" is how the
+                // exotic escapes appear (an SVG <animate> rewriting an href, a
+                // srcset entry that never went through the check), so they go.
+                const ALLOWED_TAGS = new Set([
+                    'P', 'BR', 'DIV', 'SPAN', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
+                    'UL', 'OL', 'LI', 'DL', 'DT', 'DD', 'STRONG', 'B', 'EM', 'I',
+                    'U', 'S', 'SMALL', 'SUP', 'SUB', 'MARK', 'CITE', 'ABBR', 'TIME',
+                    'CODE', 'PRE', 'BLOCKQUOTE', 'HR', 'A', 'IMG', 'FIGURE',
+                    'FIGCAPTION', 'TABLE', 'THEAD', 'TBODY', 'TR', 'TD', 'TH',
+                    'CAPTION', 'DETAILS', 'SUMMARY', 'DEL', 'INS', 'KBD'
+                ]);
+                const DROPPED_ATTRS = new Set(['srcset', 'sizes', 'style', 'poster', 'autoplay', 'loop', 'controls', 'formaction', 'action', 'background', 'ping']);
+
+                // A url is kept if it is http(s), mailto, an anchor, or relative. A
+                // backslash is refused (the browser folds it into a slash, turning
+                // "/\host" into a protocol-relative url) and so is "//host" and any
+                // other scheme, javascript: and data: included.
+                function safeAttrUrl(value) {
+                    const url = String(value || '').trim();
+                    if (!url || url.includes('\\') || url.startsWith('//')) return false;
+                    if (/^(?:https?:|mailto:|#)/i.test(url)) return true;
+                    return !/^[a-z][a-z0-9+.-]*:/i.test(url);
+                }
+
+                function sanitizeTree(root) {
+                    root.querySelectorAll('*').forEach(node => {
+                        if (!ALLOWED_TAGS.has(node.tagName.toUpperCase())) {
+                            node.remove();
+                            return;
+                        }
+                        Array.from(node.attributes).forEach(attr => {
+                            const name = attr.name.toLowerCase();
+                            if (name.startsWith('on') || DROPPED_ATTRS.has(name)) {
+                                node.removeAttribute(attr.name);
+                                return;
+                            }
+                            if (name === 'src' && node.tagName.toUpperCase() === 'IMG') {
+                                // The url is moved here, in the tree, not in the html
+                                // string: an example that merely mentions src= keeps
+                                // its text, and one attribute at a time is handled.
+                                if (safeAttrUrl(attr.value)) node.setAttribute('data-src', attr.value.trim());
+                                node.removeAttribute('src');
+                                return;
+                            }
+                            if (name === 'href' || name === 'src' || name === 'xlink:href') {
+                                if (!safeAttrUrl(attr.value)) node.removeAttribute(attr.name);
+                            }
+                        });
+                    });
+                }
+
+                const html = marked.parse(markdown);
+                const parsed = new DOMParser().parseFromString(html, 'text/html');
+                sanitizeTree(parsed.body);
+
+                parsed.querySelectorAll('img').forEach(img => {
+                    img.setAttribute('decoding', 'async');
+                });
+
+                contentEl.replaceChildren(
+                    ...Array.from(parsed.body.childNodes, node => document.importNode(node, true))
+                );
+
+                // An image whose size the markup declares keeps a reserved box, so it
+                // gets the lazy hint and nothing can move when it arrives. One without
+                // dimensions is not deferred at all: a deferred unsized image is what
+                // makes a reader's position jump, so it loads the way it did before
+                // this change. The urls are handed over only here, after insertion, so
+                // no request can start from parsing.
+                contentEl.querySelectorAll('img[data-src]').forEach(img => {
+                    const src = img.getAttribute('data-src');
+                    // The attribute was already checked in the tree, and is checked
+                    // again here: promotion is the last moment before a request.
+                    if (!src || !safeAttrUrl(src)) {
+                        img.removeAttribute('data-src');
+                        return;
+                    }
+                    img.setAttribute('loading', 'lazy');
+                    img.removeAttribute('data-src');
+                    img.src = src;
+                });
+                // Process GitHub-style Alerts - FIXED for proper spacing!
+                processGitHubAlerts(contentEl);
+                
+                // Wrap code blocks in a wrapper for fixed copy button
+                document.querySelectorAll('pre').forEach(pre => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'code-block-wrapper';
+                    pre.parentNode.insertBefore(wrapper, pre);
+                    wrapper.appendChild(pre);
+
+                    const btn = document.createElement('button');
+                    btn.className = 'copy-btn';
+                    btn.innerText = 'Copy';
+                    wrapper.appendChild(btn);
+                    btn.addEventListener('click', async () => {
+                        const attempt = (btn.copyAttempt = (btn.copyAttempt || 0) + 1);
+                        let copied = true;
+                        try {
+                            await navigator.clipboard.writeText(pre.querySelector('code').innerText);
+                        } catch (err) {
+                            copied = false;
+                        }
+                        // only the newest attempt may write the label
+                        if (attempt !== btn.copyAttempt) return;
+                        btn.innerText = copied ? 'Copied' : 'Copy failed';
+                        btn.classList.toggle('copied', copied);
+                        setTimeout(() => {
+                            if (attempt !== btn.copyAttempt) return;
+                            btn.innerText = 'Copy';
+                            btn.classList.remove('copied');
+                        }, copied ? 2000 : 3000);
+                    });
+                });
+
+                // The grammar that just landed may bring the first code block into
+                // reach, and `scheduleHighlight` coalesces the burst; this pass covers
+                // the case where Prism finished before the article was rendered.
+                if (window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
+                    highlightCode();
+                }
+
+                // Generate Table of Contents
+                const tocContainer = document.getElementById('toc-container');
+                const tocContent = document.getElementById('toc-content');
+                const headings = contentEl.querySelectorAll('h2, h3');
+                const updateTocVisibility = () => {
+                    // Below 1024px the sidebar becomes a block above the article,
+                    // so the only reason to hide it is a post without headings.
+                    const shouldShowToc = headings.length > 0;
+                    tocContainer.style.display = shouldShowToc ? 'block' : 'none';
+                };
+                
+                if (headings.length > 0) {
+                    const tocList = document.createElement('ul');
+                    headings.forEach((heading, index) => {
+                        const id = `heading-${index}`;
+                        heading.id = id;
+                        
+                        const li = document.createElement('li');
+                        li.className = heading.tagName.toLowerCase();
+                        const a = document.createElement('a');
+                        a.href = `#${id}`;
+                        a.textContent = heading.textContent;
+                        li.appendChild(a);
+                        tocList.appendChild(li);
+                    });
+                    tocContent.appendChild(tocList);
+
+                    // Phones get the same list as a collapsed block above the
+                    // article, since the sticky sidebar does not fit there.
+                    const mobileToc = document.createElement('details');
+                    mobileToc.className = 'toc-mobile';
+                    const summary = document.createElement('summary');
+                    summary.textContent = 'Contents';
+                    mobileToc.appendChild(summary);
+                    mobileToc.appendChild(tocList.cloneNode(true));
+                    const wrapper = document.querySelector('.blog-post-wrapper');
+                    wrapper.insertBefore(mobileToc, document.querySelector('.post-main-container'));
+                }
+
+                updateTocVisibility();
+
+                // Force theme background
+                const updatePostTheme = () => {
+                    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                    document.body.style.backgroundColor = 'var(--background-color)';
+                };
+                updatePostTheme();
+                
+                const observer = new MutationObserver(updatePostTheme);
+                observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+                // Set Title
+                const h1InContent = contentEl.querySelector('h1');
+                const titleText = h1InContent ? h1InContent.innerText : 'Blog Post';
+                document.getElementById('post-title').innerText = titleText;
+                document.title = titleText + ' | Blog';
+
+                // Update Open Graph for sharing
+                document.getElementById('og-title').content = titleText;
+                
+                // Get first paragraph for description
+                const firstPara = contentEl.querySelector('p');
+                const desc = firstPara ? firstPara.innerText.slice(0, 200) : 'Read this blog post';
+                document.getElementById('og-description').content = desc;
+                document.querySelector('meta[property="og:url"]').content = window.location.href;
+
+                // Get first image for sharing
+                const firstImg = contentEl.querySelector('img');
+                let imageUrl = '';
+                if (firstImg) {
+                    // The url may still be in data-src before the promotion loop
+                    // has run; either way the share metadata gets a real url.
+                    imageUrl = firstImg.getAttribute('data-src') || firstImg.src;
+                    document.querySelector('meta[property="og:image"]').content = imageUrl;
+                }
+
+                // Set Metadata
+                const metaEl = document.getElementById('post-meta');
+                // One cell of the meta row: an icon and its value. The date and the
+                // view counter used to be separated by slashes and spelled out,
+                // which read as debris once the row wrapped.
+                const postMetaItem = (icon, text) => {
+                    const span = document.createElement('span');
+                    span.className = 'post-meta-item';
+                    const svg = typeof metaIconFor === 'function' ? metaIconFor(icon) : null;
+                    if (svg) span.appendChild(svg);
+                    span.appendChild(document.createTextNode(text));
+                    return span;
+                };
+
+                if (postData) {
+                    const dateMeta = postData.meta ? postData.meta.find(m => m.icon === '🗓️' || /^[A-Za-z]+ \d{4}$/.test(m.text)) : null;
+                    const dateText = formatPostDate(dateMeta ? dateMeta.text : postData.date);
+                    const author = postData.author || {};
+
+                    metaEl.innerHTML = '';
+
+                    if (author.image) {
+                        const avatar = document.createElement('img');
+                        avatar.src = author.image;
+                        avatar.alt = author.name || '';
+                        metaEl.appendChild(avatar);
+                    }
+
+                    const by = document.createElement('span');
+                    by.className = 'post-author';
+                    by.appendChild(document.createTextNode('By '));
+                    const byLink = document.createElement('a');
+                    byLink.href = author.link || '#';
+                    byLink.target = '_blank';
+                    byLink.rel = 'noopener';
+                    byLink.textContent = author.name || 'Author';
+                    by.appendChild(byLink);
+                    metaEl.appendChild(by);
+
+                    if (dateText) metaEl.appendChild(postMetaItem('🗓️', dateText));
+                }
+
+                const views = document.createElement('span');
+                views.className = 'post-meta-item';
+                const eyeIcon = typeof metaIconFor === 'function' ? metaIconFor('👁') : null;
+                if (eyeIcon) views.appendChild(eyeIcon);
+                const viewSpan = document.createElement('span');
+                viewSpan.className = 'waline-pageview-count';
+                viewSpan.setAttribute('data-path', `/blog/post/${postId}`);
+                views.appendChild(viewSpan);
+                metaEl.appendChild(views);
+
+                // Share row. Built here rather than by a bundle because the title and
+                // the url are only known once the post has loaded, and because the
+                // links are just links: no script, no icon font, no third-party CSS.
+                // The old vendor bundle carried Google+ and Diandian icons and used
+                // LinkedIn's retired shareArticle endpoint, which no longer produces
+                // a card; these are the endpoints each platform documents today.
+                const shareHost = document.getElementById('post-share-actions');
+                // A post with `show: false` is kept out of the index, and the index is
+                // what the share pages are built from: its row would offer links to a
+                // page that does not exist. The generator reads the front matter with
+                // Ruby's YAML, where the bare words `no` and `off` are false too, and
+                // this reads it with js-yaml, which leaves them as text: both sides are
+                // spelled out so a post does not end up visible to one and hidden to
+                // the other.
+                const showFlag = String(postData.show ?? '').toLowerCase();
+                const hiddenPost = showFlag === 'false' || showFlag === 'no' || showFlag === 'off';
+                if (shareHost && !hiddenPost) {
+                    // Share the post's own page, which carries its tags as served.
+                    // The tags on this address are filled in after the markdown
+                    // loads, and no crawler waits for that.
+                    const shareUrl = `${window.location.origin}/blog/${postId}/`;
+                    const shareTitle = titleText;
+                    const enc = encodeURIComponent;
+                    const icons = {
+                        // Only the two states a button can enter are outlined; the
+                        // brand marks are solid, the way each platform draws itself.
+                        check: '<svg viewBox="0 0 24 24" class="state" aria-hidden="true"><path d="M4.5 12.5 9.5 17.5 19 8"/></svg>',
+                        failed: '<svg viewBox="0 0 24 24" class="state" aria-hidden="true"><path d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5"/></svg>',
+                        x: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>',
+                        linkedin: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 .001zM.5 8h4.96V24H.5zM8.98 8h4.75v2.19h.07c.66-1.25 2.27-2.57 4.68-2.57 5.01 0 5.94 3.3 5.94 7.59V24h-4.96v-7.72c0-1.84-.04-4.21-2.57-4.21-2.57 0-2.96 2.01-2.96 4.08V24H8.98z"/></svg>',
+                        facebook: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22.675 0H1.325C.593 0 0 .593 0 1.325v21.351C0 23.407.593 24 1.325 24h11.495v-9.294H9.691v-3.622h3.129V8.41c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.462.099 2.795.143v3.24h-1.918c-1.504 0-1.796.715-1.796 1.763v2.316h3.586l-.467 3.622h-3.119V24h6.116C23.407 24 24 23.407 24 22.675V1.325C24 .593 23.407 0 22.675 0z"/></svg>',
+                        copy: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h10a2 2 0 0 1 2 2v10h-2V5H8zm-3 4h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"/></svg>',
+                        share: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 16.5 6.5l-1.4 1.4L13 5.9V15h-2V5.9L8.9 7.9 7.5 6.5zM5 11h3v2H7v7h10v-7h-1v-2h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z"/></svg>',
+                    };
+                    const addButton = ({ label, icon, href, onClick }) => {
+                        const el = document.createElement(href ? 'a' : 'button');
+                        if (href) {
+                            el.href = href;
+                            el.target = '_blank';
+                            el.rel = 'noopener noreferrer';
+                        } else {
+                            el.type = 'button';
+                            el.addEventListener('click', onClick);
+                        }
+                        el.className = 'post-share-btn';
+                        el.dataset.label = label;
+                        // No text sits beside the glyph now, so the label becomes the
+                        // tooltip and the accessible name instead of a visible span.
+                        el.title = label;
+                        el.setAttribute('aria-label', label);
+                        el.innerHTML = `<span class="post-share-icon">${icon}</span>`;
+                        shareHost.appendChild(el);
+                    };
+
+                    // With no label to rewrite, a state is shown by swapping the glyph:
+                    // a tick for a copy that worked, a cross for one that did not, each
+                    // self-clearing. The timer lives on the element so a second click
+                    // replaces the reset that belongs to the first one instead of racing it.
+                    const flashState = (btn, glyph, text) => {
+                        const box = btn.querySelector('.post-share-icon');
+                        const original = btn.dataset.glyph || (btn.dataset.glyph = box.innerHTML);
+                        box.innerHTML = glyph;
+                        btn.title = text;
+                        btn.setAttribute('aria-label', text);
+                        clearTimeout(btn.resetTimer);
+                        btn.resetTimer = setTimeout(() => {
+                            box.innerHTML = original;
+                            btn.title = btn.dataset.label;
+                            btn.setAttribute('aria-label', btn.dataset.label);
+                        }, 1600);
+                    };
+
+                    // A system sheet when the browser has one; it is the only route
+                    // that can reach an app the site has no link for.
+                    if (typeof navigator.share === 'function') {
+                        addButton({
+                            label: 'Share',
+                            icon: icons.share,
+                            onClick: (event) => {
+                                const btn = event.currentTarget;
+                                navigator.share({ title: shareTitle, text: desc, url: shareUrl })
+                                    .catch((error) => {
+                                        // Dismissing the sheet is not a failure and needs no message.
+                                        if (error && error.name === 'AbortError') return;
+                                        flashState(btn, icons.failed, 'Share failed');
+                                    });
+                            },
+                        });
+                    }
+
+                    addButton({ label: 'X', icon: icons.x, href: `https://twitter.com/intent/tweet?text=${enc(shareTitle)}&url=${enc(shareUrl)}` });
+                    addButton({ label: 'LinkedIn', icon: icons.linkedin, href: `https://www.linkedin.com/sharing/share-offsite/?url=${enc(shareUrl)}` });
+                    addButton({ label: 'Facebook', icon: icons.facebook, href: `https://www.facebook.com/sharer/sharer.php?u=${enc(shareUrl)}` });
+                    addButton({
+                        label: 'Copy link',
+                        icon: icons.copy,
+                        onClick: async (event) => {
+                            const btn = event.currentTarget;
+                            // Two clicks can overlap; only the latest one is allowed to
+                            // write the state, so a slow first click cannot overwrite the
+                            // answer the second one already showed.
+                            const attempt = (btn.copyAttempt = (btn.copyAttempt || 0) + 1);
+                            let copied = false;
+                            try {
+                                await navigator.clipboard.writeText(shareUrl);
+                                copied = true;
+                            } catch (error) {
+                                // No clipboard permission: fall back to the old
+                                // select-and-copy, which says whether it worked instead
+                                // of reporting success for a click that copied nothing.
+                                const field = document.createElement('input');
+                                field.value = shareUrl;
+                                document.body.appendChild(field);
+                                field.select();
+                                try { copied = document.execCommand('copy'); } catch (e) { copied = false; }
+                                field.remove();
+                            }
+                            if (btn.copyAttempt !== attempt) return;
+                            flashState(btn, copied ? icons.check : icons.failed, copied ? 'Copied' : 'Copy failed');
+                        },
+                    });
+                }
+
+                // KaTeX ships as two scripts: the core (which defines window.katex)
+                // and the auto-render extension. `loadKatex` chains them and calls
+                // back once both are in, which is also the only moment a pass can run.
+                // Posts without formulas never request it at all, and neither the
+                // download nor a failure notice appears for them.
+                const MATH_PATTERN = /\$\$[\s\S]+?\$\$|\$[^$\n]+?\$/;
+                // Only text outside code blocks is a formula candidate: a shell snippet
+                // or a regex in a code block is not something KaTeX should be asked to
+                // download for. The nodetext is joined before the test, because display
+                // maths puts its opening and closing `$$` in different nodes.
+                const hasMath = (el) => {
+                    if (!el) return false;
+                    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+                    const parts = [];
+                    let node;
+                    while ((node = walker.nextNode())) {
+                        const parent = node.parentNode;
+                        if (parent && parent.closest && parent.closest('pre, code')) continue;
+                        parts.push(node.nodeValue || '');
+                    }
+                    return MATH_PATTERN.test(parts.join(''));
+                };
+                const MATH_DELIMITERS = [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ];
+                const typeset = () => {
+                    // A host that arrives after the notice was shown still wins: the
+                    // notice comes down and the formulas are typeset.
+                    const notice = contentEl.querySelector('.math-unavailable');
+                    if (notice) notice.remove();
+                    try {
+                        renderMathInElement(contentEl, {
+                            delimiters: MATH_DELIMITERS,
+                            throwOnError: false
+                        });
+                    } catch (error) {
+                        // Formulas are decoration: a failure is reported here and the
+                        // article keeps its source text, with one line saying why.
+                        console.warn('Math rendering failed:', error);
+                        if (!contentEl.querySelector('.math-unavailable')) {
+                            const note = document.createElement('p');
+                            note.className = 'math-unavailable';
+                            note.textContent = 'Math could not be rendered on this page.';
+                            contentEl.appendChild(note);
+                        }
+                    }
+                };
+                if (hasMath(contentEl)) {
+                    loadKatex(typeset, () => {
+                        // Both hosts refused: say so once, at the end of the article, so a
+                        // reader is not left wondering about the raw $...$ text.
+                        const note = document.createElement('p');
+                        note.className = 'math-unavailable';
+                        note.textContent = 'Math could not be rendered on this page.';
+                        contentEl.appendChild(note);
+                    });
+                }
+
+                // Waline and the KaTeX module for comment maths are loaded only here,
+                // after the article is on screen. The note ends the loading state by
+                // itself, and a late module that finally arrives still initialises the
+                // section - nothing is cancelled or abandoned.
+                const placeholder = document.getElementById('waline');
+                const walineNote = setTimeout(() => {
+                    if (placeholder && !placeholder.childElementCount) {
+                        placeholder.textContent = 'Comments are taking a long time to load...';
+                    }
+                }, 20000);
+                const walineLate = setTimeout(() => {
+                    if (placeholder && !placeholder.childElementCount) {
+                        placeholder.textContent = 'Comments could not be loaded. The rest of this post is unaffected.';
+                    }
+                }, 45000);
+
+                (async () => {
+                    try {
+                        const { init } = await import('https://unpkg.com/@waline/client@v3/dist/waline.js');
+                        init({
+                            el: '#waline',
+                            serverURL: 'https://commentsystem-amber.vercel.app/',
+                            lang: 'en',
+                            // A selector, not the current theme: Waline turns it into
+                            // `[data-theme="dark"]{...}` built once at startup, so the
+                            // comment section follows the toggle instead of keeping the
+                            // palette it was initialised with.
+                            dark: '[data-theme="dark"]',
+                            meta: ['nick'],
+                            requiredMeta: [],
+                            noCopyright: true,
+                            noRss: true,
+                            turnstileKey: false,
+                            wordLimit:300,
+                            pageview: true,
+                            path: `/blog/post/${postId}`,
+                            // Comment formulas use the KaTeX this page already has, if
+                            // the article loaded it; there is no separate request and no
+                            // second copy of the library. A post whose comments contain
+                            // maths but whose article does not shows the source.
+                            texRenderer: (blockMode, tex) => (
+                                window.katex && typeof window.katex.renderToString === 'function'
+                            )
+                                ? window.katex.renderToString(tex, {
+                                    displayMode: blockMode,
+                                    throwOnError: false,
+                                })
+                                : tex,
+                        });
+                        clearTimeout(walineNote);
+                        clearTimeout(walineLate);
+                    } catch (error) {
+                        clearTimeout(walineNote);
+                        clearTimeout(walineLate);
+                        if (placeholder) {
+                            placeholder.textContent = 'The comment section could not be loaded. You can still read and share this post.';
+                        }
+                        console.error('Comment section unavailable:', error);
+                    }
+                })();
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('post-content').innerHTML = `<p>Error loading post: ${error.message}</p>`;
+            }
+        }
+
+        // Prism core and its grammars arrive as separate deferred scripts, and a
+        // grammar is only useful once it is registered. The `load` listener lives
+        // out here, before the article is fetched, so a grammar cannot finish
+        // loading in the gap between the fetch and the first pass. Seven scripts
+        // land within a few milliseconds of each other, so the pass is coalesced:
+        // one highlight per burst instead of one per script.
+        // prism-cpp builds on prism-c, which is loaded before it.
+        let highlightTimer = 0;
+        const highlightCode = () => {
+            // A scheduled pass and an immediate one must not both run: cancel the
+            // pending timer first, so the article is processed once.
+            if (highlightTimer) {
+                clearTimeout(highlightTimer);
+                highlightTimer = 0;
+            }
+            const contentEl = document.getElementById('post-content');
+            if (contentEl && window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
+                Prism.highlightAllUnder(contentEl);
+            }
+        };
+        const scheduleHighlight = () => {
+            if (highlightTimer) return;
+            highlightTimer = setTimeout(() => {
+                highlightTimer = 0;
+                highlightCode();
+            }, 150);
+        };
+
+        document.addEventListener('load', event => {
+            const target = event.target;
+            if (target && target.tagName === 'SCRIPT' && /\/vendor\/prism[-.]/.test(target.src || '')) {
+                scheduleHighlight();
+            }
+        }, true);
+
+        startPost();
+
+        function processGitHubAlerts(container) {
+            container.querySelectorAll('blockquote').forEach(blockquote => {
+                let alertType = null;
+                
+                // Find the alert type - look for [!TYPE] anywhere in the blockquote
+                let alertFound = false;
+                
+                // Check all child nodes (text and p)
+                for (let child of blockquote.childNodes) {
+                    if (alertFound) break;
+                    
+                    if (child.nodeType === Node.TEXT_NODE) {
+                        const text = child.textContent;
+                        const match = text.match(/\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i);
+                        if (match) {
+                            alertType = match[1].toLowerCase();
+                            // Replace the [!TYPE] with the proper styled title
+                            child.textContent = text.replace(/\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/i, '');
+                            alertFound = true;
+                        }
+                    } else if (child.tagName === 'P') {
+                        const html = child.innerHTML;
+                        const match = html.match(/\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i);
+                        if (match) {
+                            alertType = match[1].toLowerCase();
+                            // Clean up the p tag
+                            child.innerHTML = html.replace(/\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/i, '');
+                            alertFound = true;
+                        }
+                    }
+                }
+                
+                if (alertType) {
+                    blockquote.classList.add('markdown-alert');
+                    blockquote.classList.add(`markdown-alert-${alertType}`);
+                }
+            });
+        }
