@@ -314,7 +314,90 @@
                     });
                 }
 
-                const html = marked.parse(markdown);
+                // Math is lifted out of the Markdown before it is parsed. A formula
+                // is source code, not prose: the parser reads an underscore as
+                // emphasis, a line that starts with "-" as a list item, and it ends
+                // a $$ block at the first blank line, leaving the two delimiters in
+                // different elements where nothing can typeset them. So each formula
+                // becomes a token of letters and digits, and the tokens turn back
+                // into TeX once the page is built.
+                const MATH_TOKEN = /MATHFORMULA(\d+)END/;
+                // Fenced blocks and inline code are quoted source: a post that shows
+                // "$$x$$" as an example has to keep it as typed. They go out first and
+                // come back last, so the pass below only ever sees prose.
+                const CODE_SPAN = /(^|\n)(```|~~~)[\s\S]*?\n\2|`[^`\n]*`/g;
+                // Display environments are written without delimiters of their own,
+                // and KaTeX reads them as display math once they are wrapped. `\[` and
+                // `\(` are rewritten into the dollar forms the page already reads.
+                // KaTeX draws most amsmath environments, but not multline or the
+                // retired eqnarray. They are rewritten to the nearest one it does
+                // draw: multline is one equation broken over centred lines, which
+                // is what gathered is; eqnarray differs from align only in name.
+                const ENVIRONMENT_ALIAS = { multline: 'gathered', eqnarray: 'align' };
+                const MATH_SOURCE = /\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|\$[^$\n]+?\$|\\begin\{(equation|align|alignat|gather|multline|eqnarray)\*?\}[\s\S]*?\\end\{\1\*?\}/g;
+
+                const protectMath = source => {
+                    const formulas = [];
+                    const code = [];
+                    const token = tex => {
+                        formulas.push(tex);
+                        return `MATHFORMULA${formulas.length - 1}END`;
+                    };
+                    const stashed = source.replace(CODE_SPAN, match => {
+                        code.push(match);
+                        return `\nMATHCODE${code.length - 1}END\n`;
+                    });
+                    const guarded = stashed.replace(MATH_SOURCE, match => {
+                        if (match.startsWith('\\begin{')) {
+                            // A label prints a number from a counter the page does
+                            // not have, so it goes before KaTeX sees the source.
+                            const [, name, star] = /^\\begin\{([a-z]+)(\*?)\}/.exec(match);
+                            const alias = ENVIRONMENT_ALIAS[name];
+                            const open = `\\begin{${alias || name + star}}`;
+                            const close = `\\end{${alias || name + star}}`;
+                            const body = match
+                                .replace(/\\label\{[^}]*\}/g, '')
+                                .replace(`\\begin{${name}${star}}`, open)
+                                .replace(`\\end{${name}${star}}`, close);
+                            return token(`$$${body}$$`);
+                        }
+                        if (match.startsWith('\\[')) return token(`$$${match.slice(2, -2)}$$`);
+                        if (match.startsWith('\\(')) return token(`$${match.slice(2, -2)}$`);
+                        return token(match);
+                    });
+                    return {
+                        markdown: guarded.replace(/MATHCODE(\d+)END/g, (m, index) => code[Number(index)]),
+                        formulas
+                    };
+                };
+
+                // The tokens become text again, in place, before anything looks for
+                // math: the typesetter below reads what a card reads, plain TeX in a
+                // text node.
+                const restoreMath = (root, formulas) => {
+                    if (formulas.length === 0) return;
+                    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+                    const holders = [];
+                    while (walker.nextNode()) {
+                        if (MATH_TOKEN.test(walker.currentNode.nodeValue)) holders.push(walker.currentNode);
+                    }
+                    holders.forEach(node => {
+                        const parts = node.nodeValue.split(MATH_TOKEN);
+                        const fragment = document.createDocumentFragment();
+                        parts.forEach((part, index) => {
+                            if (index % 2 === 0) {
+                                if (part) fragment.appendChild(document.createTextNode(part));
+                                return;
+                            }
+                            const tex = formulas[Number(part)];
+                            if (tex) fragment.appendChild(document.createTextNode(tex));
+                        });
+                        node.parentNode.replaceChild(fragment, node);
+                    });
+                };
+
+                const math = protectMath(markdown);
+                const html = marked.parse(math.markdown);
                 const parsed = new DOMParser().parseFromString(html, 'text/html');
                 sanitizeTree(parsed.body);
 
@@ -325,6 +408,7 @@
                 contentEl.replaceChildren(
                     ...Array.from(parsed.body.childNodes, node => document.importNode(node, true))
                 );
+                restoreMath(contentEl, math.formulas);
 
                 // An image whose size the markup declares keeps a reserved box, so it
                 // gets the lazy hint and nothing can move when it arrives. One without
@@ -839,7 +923,11 @@
                     try {
                         renderMathInElement(contentEl, {
                             delimiters: MATH_DELIMITERS,
-                            throwOnError: false
+                            throwOnError: false,
+                            // Code is quoted source. A shell snippet with a dollar
+                            // sign, or a post about LaTeX that shows the delimiters,
+                            // is not a formula to draw.
+                            ignoredTags: ['script', 'style', 'textarea', 'pre', 'code', 'option']
                         });
                     } catch (error) {
                         // Formulas are decoration: a failure is reported here and the
