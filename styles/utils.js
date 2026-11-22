@@ -383,7 +383,10 @@ class CardRenderer {
         // The data request runs before this listener exists, and a term typed
         // while it was in flight is not in any event this code can hear.
         const headerField = document.querySelector('.header-search-field');
-        if (headerField && headerField.value) schedule(headerField.value);
+        // The header treats a query with no letters or digits as no query, and
+        // the catch-up has to read it the same way or punctuation would empty
+        // the page.
+        if (headerField && /[\p{L}\p{N}]/u.test(headerField.value)) schedule(headerField.value);
     }
 
     runSearch(term) {

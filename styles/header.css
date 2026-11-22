@@ -259,6 +259,11 @@ header {
   color: rgba(255, 255, 255, 0.55);
 }
 
+/* The status area is empty when there is nothing to say and must not leave a gap. */
+.site-search-status:empty {
+  display: none;
+}
+
 .site-search-foot {
   display: flex;
   gap: 16px;
