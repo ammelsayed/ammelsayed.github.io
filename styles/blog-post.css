@@ -362,7 +362,7 @@ body {
     margin: 0;
     padding: 16px;
     overflow-x: auto;
-    font-size: 92.5%;
+    font-size: 70%;
     line-height: 1.45;
     background-color: #2d2d2d !important;
     border-radius: 6px;
@@ -419,7 +419,7 @@ body {
 .blog-post-content :not(pre) > code {
     padding: 0.2em 0.4em;
     margin: 0;
-    font-size: 92.5%;
+    font-size: 70%;
     white-space: break-spaces;
     background-color: rgba(175, 184, 193, 0.2);
     border-radius: 6px;
