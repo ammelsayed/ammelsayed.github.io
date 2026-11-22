@@ -149,7 +149,11 @@ class MyHeader extends HTMLElement {
         let results;
 
         const emit = () => {
-            window.dispatchEvent(new CustomEvent('site:search', { detail: { term: field.value } }));
+            // A query with no letters or digits (just punctuation) has nothing
+            // for the list renderer to match, and it would read it as a literal
+            // and empty the page; treated as no query, the list stays as it was.
+            const term = /[\p{L}\p{N}]/u.test(field.value) ? field.value : '';
+            window.dispatchEvent(new CustomEvent('site:search', { detail: { term } }));
         };
 
         // menu.js owns the panel and the scroll lock, and it has no close of its

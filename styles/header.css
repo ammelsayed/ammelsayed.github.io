@@ -168,11 +168,17 @@ header {
   display: none;
 }
 
-/* Dims the page so the panel reads as the thing in focus. */
+/* Catches the click that dismisses the search. Transparent while the field is
+   empty, so opening the search does not darken a page that shows nothing yet. */
 .site-search-backdrop {
   position: fixed;
   inset: 0;
   z-index: 2098;
+  background: transparent;
+  transition: background-color 160ms ease;
+}
+
+.site-search-backdrop.is-dimmed {
   background: rgba(0, 0, 0, 0.35);
 }
 

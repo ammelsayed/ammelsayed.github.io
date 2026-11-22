@@ -215,11 +215,19 @@ export function createSiteSearch(field, { onDismiss } = {}) {
     panel.style.maxHeight = `calc(100vh - ${height + 24}px)`;
   }
 
-  // The panel only appears once there is something to put in it; an empty
-  // field leaves the bar undisturbed.
+  // The panel appears once there is something to put in it; the backdrop stays
+  // as the click-away target for as long as the field is open, and only dims
+  // the page when there is a panel to look at.
   function reveal(visible) {
     panel.hidden = !visible;
-    backdrop.hidden = !visible;
+    backdrop.hidden = false;
+    backdrop.classList.toggle('is-dimmed', visible);
+  }
+
+  function conceal() {
+    panel.hidden = true;
+    backdrop.hidden = true;
+    backdrop.classList.remove('is-dimmed');
   }
 
   function row(item, tokens) {
@@ -262,19 +270,22 @@ export function createSiteSearch(field, { onDismiss } = {}) {
       return;
     }
 
+    // The first query downloads the index; say so instead of leaving a query
+    // with no panel until it arrives.
+    const first = !loaded;
+    reveal(true);
+    if (first) list.replaceChildren(message('Searching…'));
+
     let items;
     try {
       items = await load();
     } catch (error) {
       if (ticket !== sequence) return;
-      reveal(true);
       list.replaceChildren(message('The search index could not be loaded.'));
       shown = term.trim();
       return;
     }
     if (ticket !== sequence) return;
-
-    reveal(true);
 
     const hits = items
       .map(item => ({ item, score: score(item, tokens) }))
@@ -348,8 +359,13 @@ export function createSiteSearch(field, { onDismiss } = {}) {
       render();
     },
     hide() {
-      reveal(false);
+      // A render waiting on the debounce or on the index would otherwise finish
+      // after the close and put the panel back over the page.
+      clearTimeout(timer);
+      sequence += 1;
       active = -1;
+      shown = '';
+      conceal();
     },
     layout() {
       place();
