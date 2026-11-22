@@ -18,29 +18,55 @@ on:
 permissions:
   contents: write
 
+# One run at a time. Two runs that both write these files would race for the
+# same commit, and the one that loses leaves its pages out of the history.
+concurrency:
+  group: generated-content
+  cancel-in-progress: false
+
 jobs:
   generate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Generate the JSON and the share pages
-        run: |
-          ruby scripts/build-blog-index.rb
-          ruby scripts/build-content-json.rb
-          ruby scripts/build-share-pages.rb
-          ruby scripts/build-search-index.rb
-      - name: Commit it
+      - name: Generate the JSON and the share pages, then commit them
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # `-A` over the two whole directories, not a list of files: a post's
-          # page is a directory named after it, and a page whose post was hidden
-          # or deleted has to be staged as a deletion. A pathspec naming
-          # blog/posts alone would leave the pages in blog/<id>/ unpublished.
-          git add -A -- data blog
-          if git diff --cached --quiet; then
-            echo "The generated files already match the sources; nothing to commit."
-          else
+
+          generate() {
+            ruby scripts/build-blog-index.rb
+            ruby scripts/build-content-json.rb
+            ruby scripts/build-share-pages.rb
+            ruby scripts/build-search-index.rb
+            # `-A` over the two whole directories, not a list of files: a post's
+            # page is a directory named after it, and a page whose post was hidden
+            # or deleted has to be staged as a deletion. A pathspec naming
+            # blog/posts alone would leave the pages in blog/<id>/ unpublished.
+            git add -A -- data blog
+          }
+
+          commit() {
+            if git diff --cached --quiet; then
+              echo "The generated files already match the sources; nothing to commit."
+              return 1
+            fi
             git commit -m "(auto) generate the content JSON and the share pages from the YAML sources"
-            git push
-          fi
+          }
+
+          generate
+          commit || exit 0
+
+          # Another push can land between this checkout and this push, and a push
+          # from an older revision is refused. These files are output, so they are
+          # regenerated on the newest main rather than merged with it.
+          for attempt in 1 2 3; do
+            if git push; then exit 0; fi
+            echo "Push refused; regenerating on the newest main (attempt $attempt)"
+            git fetch --depth=1 origin main
+            git reset --hard origin/main
+            generate
+            commit || exit 0
+          done
+          echo "The generated files could not be pushed after three attempts." >&2
+          exit 1

@@ -595,17 +595,26 @@
                     };
 
                     // A system sheet when the browser has one; it is the only route
-                    // that can reach an app the site has no link for.
+                    // that can reach an app the site has no link for. The row's
+                    // heading says the same word as the button that opens it, so the
+                    // heading goes when that button is there.
+                    const shareHeading = document.querySelector('.post-share-label');
                     if (typeof navigator.share === 'function') {
+                        if (shareHeading) shareHeading.remove();
                         addButton({
                             label: 'Share',
                             icon: icons.share,
                             onClick: (event) => {
                                 const btn = event.currentTarget;
+                                // Only the latest sheet may report a failure: an
+                                // earlier attempt can reject after a later one has
+                                // succeeded, and its answer is already out of date.
+                                const attempt = (btn.shareAttempt = (btn.shareAttempt || 0) + 1);
                                 navigator.share({ title: shareTitle, text: desc, url: shareUrl })
                                     .catch((error) => {
                                         // Dismissing the sheet is not a failure and needs no message.
                                         if (error && error.name === 'AbortError') return;
+                                        if (btn.shareAttempt !== attempt) return;
                                         flashLabel(btn, 'Share failed');
                                     });
                             },
