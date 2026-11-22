@@ -31,12 +31,6 @@ jobs:
           mkdir _site
           rsync -a --exclude='.git' --exclude='_site' ./ _site/
           touch _site/.nojekyll
-      # The one output that is not a checked-in file: a page per post, written
-      # into the artifact so that blog/ itself stays the posts, the listing and
-      # the shell. It runs after the copy, because it writes into the copy, and
-      # writes /blog/<id>.html, which both hosts answer at /blog/<id>.
-      - name: Give every post a page
-        run: ruby scripts/build-share-pages.rb _site
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
