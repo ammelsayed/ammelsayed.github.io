@@ -761,6 +761,15 @@ body {
     .post-main-container.post-article {
         max-width: 80ch; /* the sidebar used to keep the measure in check */
     }
+    /* The skeleton has to be the width of the article it stands in for. Here the
+       wrapper is a column and the article is capped at 80ch and centred, so an
+       uncapped skeleton reaches the full column and the page visibly narrows the
+       moment the article arrives. */
+    .post-loading {
+        width: 100%;
+        max-width: 80ch;
+        align-self: center;
+    }
     .post-header-section h1 {
         font-size: 24px;
     }
