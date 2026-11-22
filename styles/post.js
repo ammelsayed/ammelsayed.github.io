@@ -127,10 +127,9 @@
             };
             document.head.appendChild(link);
         };
-        // One file is needed: the core, which defines `window.katex`. The article's
-        // formulas are drawn by the markdown extension and the ones in comments by
-        // Waline through `renderToString`, so the auto-render pass that used to walk
-        // the page after insertion is no longer downloaded at all.
+        // The core is what the article needs: the markdown extension draws through it
+        // and Waline calls `renderToString`. Its auto-render pass is loaded behind it
+        // for the text the tokenizer never sees, and its absence is not a failure.
         // A truthy `window.katex` is not proof the library is usable, so every caller
         // asks for the method it will call.
         const katexReady = () => Boolean(window.katex) && typeof window.katex.renderToString === 'function';
@@ -157,14 +156,22 @@
                 if (onFail) onFail();
             };
             const nextHost = (base) => KATEX_HOSTS[KATEX_HOSTS.indexOf(base) + 1];
-            const core = (base) => loadScript(`${base}katex.min.js`, () => {
-                addKatexStyles(base);
-                finish();
-            }, () => {
+            const failOver = (base) => {
                 const fallback = nextHost(base);
                 if (fallback) core(fallback);
                 else giveUp();
-            });
+            };
+            // A 200 is not a library: the file has to define the method the page calls
+            // before it counts as loaded, and the reading of formulas is optional - the
+            // core is what the article needs.
+            const core = (base) => loadScript(`${base}katex.min.js`, () => {
+                if (!katexReady()) {
+                    failOver(base);
+                    return;
+                }
+                addKatexStyles(base);
+                loadScript(`${base}contrib/auto-render.min.js`, finish, finish);
+            }, () => failOver(base));
             if (katexReady()) {
                 addKatexStyles(KATEX_HOSTS[0]);
                 finish();
@@ -390,18 +397,42 @@
                     ...Array.from(parsed.body.childNodes, node => document.importNode(node, true))
                 );
 
+                // A formula inside a raw HTML block never became a token - `marked`
+                // passes those through untouched - so KaTeX's own pass reads what the
+                // tokenizer did not reach. It is told to skip code, which keeps its
+                // source, and skips nothing else.
+                if (typeof window.renderMathInElement === 'function') {
+                    try {
+                        window.renderMathInElement(contentEl, {
+                            delimiters: [
+                                { left: '$$', right: '$$', display: true },
+                                { left: '$', right: '$', display: false }
+                            ],
+                            throwOnError: false,
+                            ignoredTags: ['script', 'style', 'textarea', 'pre', 'code', 'option']
+                        });
+                    } catch (error) {
+                        console.warn('Math in html blocks stays as source:', error);
+                    }
+                }
+
                 // The placeholders become the formulas they stand for. A slot with no
                 // entry (a page whose library never arrived) is left as it is and the
                 // note below explains the delimiters.
                 contentEl.querySelectorAll('[data-math-slot]').forEach(slot => {
                     const entry = formulas[Number(slot.getAttribute('data-math-slot'))];
                     if (!entry) return;
-                    const box = document.createElement('span');
-                    box.innerHTML = window.katex.renderToString(entry.tex, {
-                        displayMode: entry.display,
-                        throwOnError: false
-                    });
-                    slot.replaceWith(...box.childNodes);
+                    // Parsed, not assigned as html: the formula's markup is read as a
+                    // document and the nodes are imported, so nothing can be spliced in
+                    // from the source.
+                    const box = new DOMParser().parseFromString(
+                        window.katex.renderToString(entry.tex, {
+                            displayMode: entry.display,
+                            throwOnError: false
+                        }),
+                        'text/html'
+                    );
+                    slot.replaceWith(...Array.from(box.body.childNodes, node => document.importNode(node, true)));
                 });
 
                 if (mathFailed) {
