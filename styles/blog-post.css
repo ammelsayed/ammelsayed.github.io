@@ -432,8 +432,10 @@ body {
 
 /* A percentage here resolves against whatever contains the code, and in a
    heading that is the heading: 85% of an h2 would land above the prose. Size
-   heading code against the base, so it stays under the article text. */
-.blog-post-content :is(h1, h2, h3, h4, h5, h6) > code {
+   heading code against the base, so it stays under the article text. The
+   selector reaches code nested in a strong or a link too, which a direct-child
+   selector would leave at 85% of the heading. */
+.blog-post-content :is(h1, h2, h3, h4, h5, h6) code {
     font-size: 0.85rem;
 }
 
