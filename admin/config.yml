@@ -26,6 +26,9 @@ collections:
         name: id
         widget: string
         hint: "Use a short unique ID such as post8. It becomes the Markdown filename."
+        pattern:
+          - '^(?![Pp][Oo][Ss][Tt]$|[Ii][Nn][Dd][Ee][Xx]$)[A-Za-z0-9][A-Za-z0-9_-]{0,39}$'
+          - "Letters, digits, dashes and underscores only, at most 40 characters, and not post or index in any case: those two are the listing's and the article shell's own pages."
       - label: Author
         name: author
         widget: object

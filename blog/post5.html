@@ -3,16 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instructions for Drawing Feynman Diagrams Using Asymptote (Vector Graphics Language) | Blog</title>
-    <meta name="description" content="Feynman diagrams are a powerful way to visualize particle interactions in physics, and the Asymptote language, with its feynman package, provides an elegant tool to create them. This guide will walk you through the process of drawing a Feynman diagram for the process using Asymptote. One can adapt these steps for other diagrams by adjusting points, propagators, labels, and vertices as needed. More code examples will be provided at the end of this document for references.">
-    <link rel="canonical" href="https://ammelsayed.pages.dev/blog/post1/">
+    <title>Robust Management of Long-Running Computational Processes: A Case Study with MadGraph | Blog</title>
+    <meta name="description" content="In high-energy physics and beyond, computational workflows often rely on extensive event generators such as MadGraph5_aMC@NLO. These simulations may run for days, weeks or event months, consuming significant system resources. To ensure reproducibility, fault tolerance, and effective resource utilisation, it is imperative to launch such processes in a detached, non-interactive manner while preserving the ability to monitor, log, and, if necessary, terminate them cleanly. This note discusses the practical aspects of process management in a Unix-like environment, focusing on the use of nohup, background job control, process groups, and a self-contained launcher script that encapsulates these mechanisms.">
+    <link rel="canonical" href="https://ammelsayed.pages.dev/blog/post5">
     
     <!-- Open Graph for social sharing -->
-    <meta property="og:title" content="Instructions for Drawing Feynman Diagrams Using Asymptote (Vector Graphics Language)" id="og-title">
-    <meta property="og:description" content="Feynman diagrams are a powerful way to visualize particle interactions in physics, and the Asymptote language, with its feynman package, provides an elegant tool to create them. This guide will walk you through the process of drawing a Feynman diagram for the process using Asymptote. One can adapt these steps for other diagrams by adjusting points, propagators, labels, and vertices as needed. More code examples will be provided at the end of this document for references." id="og-description">
-    <meta property="og:url" content="https://ammelsayed.pages.dev/blog/post1/">
+    <meta property="og:title" content="Robust Management of Long-Running Computational Processes: A Case Study with MadGraph" id="og-title">
+    <meta property="og:description" content="In high-energy physics and beyond, computational workflows often rely on extensive event generators such as MadGraph5_aMC@NLO. These simulations may run for days, weeks or event months, consuming significant system resources. To ensure reproducibility, fault tolerance, and effective resource utilisation, it is imperative to launch such processes in a detached, non-interactive manner while preserving the ability to monitor, log, and, if necessary, terminate them cleanly. This note discusses the practical aspects of process management in a Unix-like environment, focusing on the use of nohup, background job control, process groups, and a self-contained launcher script that encapsulates these mechanisms." id="og-description">
+    <meta property="og:url" content="https://ammelsayed.pages.dev/blog/post5">
     <meta property="og:type" content="article">
-    <meta property="og:image" content="https://ammelsayed.pages.dev/images/ggHaa.png">
+    <meta property="og:image" content="https://ammelsayed.pages.dev/images/linux-logo.png">
+    <meta property="article:published_time" content="2026-06-22T00:00:00Z">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Robust Management of Long-Running Computational Processes: A Case Study with MadGraph">
+    <meta name="twitter:description" content="In high-energy physics and beyond, computational workflows often rely on extensive event generators such as MadGraph5_aMC@NLO. These simulations may run for days, weeks or event months, consuming significant system resources. To ensure reproducibility, fault tolerance, and effective resource utilisation, it is imperative to launch such processes in a detached, non-interactive manner while preserving the ability to monitor, log, and, if necessary, terminate them cleanly. This note discusses the practical aspects of process management in a Unix-like environment, focusing on the use of nohup, background job control, process groups, and a self-contained launcher script that encapsulates these mechanisms.">
+    <meta name="twitter:image" content="https://ammelsayed.pages.dev/images/linux-logo.png">
     
     <link rel="icon" href="/images/tap-icon.png">
     
@@ -101,7 +106,7 @@
     <script defer data-vendor="prism" src="/vendor/prism-c.min.js"></script>
     <script defer data-vendor="prism" src="/vendor/prism-cpp.min.js"></script>
 
-    <script>window.POST_ID = "post1";</script>
+    <script>window.POST_ID = "post5";</script>
     <script src="/styles/post.js"></script>
 </body>
 <!-- generated by scripts/build-share-pages.rb -->

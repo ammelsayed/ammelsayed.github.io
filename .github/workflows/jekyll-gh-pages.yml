@@ -24,10 +24,14 @@ jobs:
         run: ruby scripts/build-blog-index.rb
       - name: Generate structured content (YAML -> JSON)
         run: ruby scripts/build-content-json.rb
-      - name: Generate the share pages
-        run: ruby scripts/build-share-pages.rb
       - name: Generate the search index
         run: ruby scripts/build-search-index.rb
+      # The pages are committed, but the commit that writes them is made with
+      # GITHUB_TOKEN and starts no run, so this run builds them from the posts it
+      # checked out. Otherwise the deploy of a push that added a post carries the
+      # pages of the commit before it.
+      - name: Give every post a page
+        run: ruby scripts/build-share-pages.rb
       - name: Prepare static artifact
         run: |
           mkdir _site
