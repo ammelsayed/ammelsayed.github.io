@@ -97,6 +97,7 @@ body main {
     height: 50px;
     object-fit: cover;    /* crop to fill without distortion */
     border-radius: 50%;   /* make it a perfect circle */
+    corner-shape: round;  /* 50% plus the squircle corner is a rounded square */
     margin: 0;
     margin-right: 10px;
     display: block;       /* remove any inline gaps */
@@ -173,7 +174,7 @@ section ul li {
 
 .inline-code{
     font-size: 14px;                        /* slightly smaller than body text */
-    font-family: Menlo, Consolas, monospace;
+    font-family: var(--font-mono);
 
     background-color: #f5f5f5;               /* very light gray */
     color: #c7254e;                          /* dark reddish code color */
@@ -189,6 +190,7 @@ section ul li {
 
 section code {
     margin: 5px 30px;
+    font-family: var(--font-mono);
     font-size: 15px;                      
     padding: 0.15em 0.3em;                  
     overflow-x: auto; 
@@ -334,7 +336,7 @@ section h1, section h2, section h3, section h4 {
 
 /* monospace, bold version column for emphasis */
 .version-number {
-    font-family: Menlo, Consolas, "Courier New", monospace;
+    font-family: var(--font-mono);
     font-weight: 700;
     white-space: nowrap;
     width: 160px;
