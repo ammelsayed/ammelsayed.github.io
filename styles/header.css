@@ -56,10 +56,15 @@ header {
   stroke-linejoin: round;
 }
 
-/* Sits on top of the logo and the links: the field gets the entire bar. */
+/* Sits on top of the logo and the links: the field gets the entire bar. Fixed
+   rather than absolute, so opening the search from halfway down a page still
+   puts the field in view; its height is set from the bar when it opens. */
 .header-search {
-  position: absolute;
-  inset: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
   z-index: 2100;
   display: flex;
   align-items: center;
@@ -140,6 +145,132 @@ header {
   stroke-linecap: round;
 }
 
+/*%%%%% SEARCH RESULTS %%%%%%%*/
+
+/* Hangs directly under the bar, full width, with its own scrolling so a long
+   result list never pushes the page around. */
+.site-search {
+  position: fixed;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  z-index: 2099;
+  background: var(--header-bg);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+}
+
+.site-search[hidden] {
+  display: none;
+}
+
+/* Dims the page so the panel reads as the thing in focus. */
+.site-search-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2098;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.site-search-backdrop[hidden] {
+  display: none;
+}
+
+.site-search-inner {
+  width: 100%;
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 6px 20px 0;
+  box-sizing: border-box;
+}
+
+.site-search-list {
+  padding: 4px 0 6px;
+}
+
+.site-search-item {
+  display: block;
+  padding: 9px 10px;
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.site-search-item.active,
+.site-search-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.site-search-line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.site-search-kind {
+  flex: none;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-color);
+}
+
+.site-search-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--header-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.site-search-snippet {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.site-search-item mark {
+  background: transparent;
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
+.site-search-empty {
+  padding: 22px 10px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.site-search-foot {
+  display: flex;
+  gap: 16px;
+  padding: 10px 10px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.site-search-foot kbd {
+  font: inherit;
+  padding: 1px 4px;
+  margin-right: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
 @media (max-width: 700px) {
   .header-search-form {
     padding: 0 16px;
@@ -148,6 +279,23 @@ header {
 
   .header-search-field {
     font-size: 16px;
+  }
+
+  .site-search-inner {
+    padding: 4px 12px 0;
+  }
+
+  .site-search-item {
+    padding: 9px 6px;
+  }
+
+  .site-search-title {
+    font-size: 14px;
+  }
+
+  /* Phones have no arrow keys, so the shortcut hints would only take space. */
+  .site-search-foot {
+    display: none;
   }
 }
 

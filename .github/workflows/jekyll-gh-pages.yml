@@ -26,6 +26,8 @@ jobs:
         run: ruby scripts/build-content-json.rb
       - name: Generate the share pages
         run: ruby scripts/build-share-pages.rb
+      - name: Generate the search index
+        run: ruby scripts/build-search-index.rb
       - name: Prepare static artifact
         run: |
           mkdir _site

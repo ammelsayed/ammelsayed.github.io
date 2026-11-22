@@ -25,11 +25,12 @@ jobs:
           ruby scripts/build-blog-index.rb
           ruby scripts/build-content-json.rb
           ruby scripts/build-share-pages.rb
+          ruby scripts/build-search-index.rb
       - name: Commit it
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/events.json data/projects.json data/publications.json data/blogs.generated.json blog/posts
+          git add data/events.json data/projects.json data/publications.json data/blogs.generated.json data/search-index.json blog/posts
           if git diff --cached --quiet; then
             echo "The generated files already match the sources; nothing to commit."
           else

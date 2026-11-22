@@ -8,16 +8,14 @@
   }
 })();
 
+import { createSiteSearch } from './search.js';
+
 // Upload the headers 
 class MyHeader extends HTMLElement {
     connectedCallback() {
         // Check if user is logged in
         const isLoggedIn = sessionStorage.getItem('isAdmin') === 'true';        const loginText = isLoggedIn ? 'Logout' : 'Login';
         const loginHref = isLoggedIn ? 'javascript:logoutFromHeader()' : '/login.html';
-
-        // List pages mark themselves with data-search; only there does a search
-        // control make sense, so the header stays untouched everywhere else.
-        const searchable = document.querySelector('[data-search]');
         
         const navLinks = `
         <ul>
@@ -45,12 +43,12 @@ class MyHeader extends HTMLElement {
                 <!--Navigation links goes here-->
                 <div class="navigations">
                     <nav>${navLinks}</nav>
-                    ${searchable ? `<button class="header-searchbtn" id="header-search" type="button" aria-label="Search" aria-expanded="false">
+                    <button class="header-searchbtn" id="header-search" type="button" aria-label="Search" aria-expanded="false">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
                             <circle cx="11" cy="11" r="7"></circle>
                             <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
                         </svg>
-                    </button>` : ''}
+                    </button>
                     <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark theme">
                         <svg class="sun-icon" viewBox="0 0 24 24" style="display: none;">
                             <circle cx="12" cy="12" r="5"></circle>
@@ -87,7 +85,7 @@ class MyHeader extends HTMLElement {
 
         this.highlightActiveLink();
         this.setupThemeToggle();
-        if (searchable) this.setupSearch(searchable);
+        this.setupSearch();
         
         // Add logout function to window so it can be called from the link
         if (!window.logoutFromHeader) {
@@ -115,12 +113,13 @@ class MyHeader extends HTMLElement {
         });
     }
 
-    // The search field lives in the header and slides over the whole bar, so the
-    // page itself carries no search box. List pages announce themselves with
-    // data-search; the value is only used to name what is being searched.
-    setupSearch(container) {
-        const kind = container.getAttribute('data-search');
-        const placeholder = kind ? `Search ${kind}…` : 'Search…';
+    // The field covers the bar and the results hang under it. Both are what the
+    // reader sees while searching; the index behind them covers every page, so
+    // the same control works on an article, a list page or the home page. On the
+    // list pages the query still filters the cards behind the panel, which is
+    // why the event is kept.
+    setupSearch() {
+        const placeholder = 'Search posts, publications, projects…';
         const header = this.querySelector('header');
         const trigger = this.querySelector('#header-search');
 
@@ -147,6 +146,8 @@ class MyHeader extends HTMLElement {
         field.placeholder = placeholder;
         field.setAttribute('aria-label', placeholder);
 
+        let results;
+
         const emit = () => {
             window.dispatchEvent(new CustomEvent('site:search', { detail: { term: field.value } }));
         };
@@ -166,31 +167,44 @@ class MyHeader extends HTMLElement {
             document.body.style.overflow = '';
         };
 
-        const open = () => {
-            closeMenu();
-            layer.hidden = false;
-            trigger.setAttribute('aria-expanded', 'true');
-            header.classList.add('search-open');
-            field.focus();
-        };
-
         const close = () => {
             if (layer.hidden) return;
             layer.hidden = true;
+            if (results) results.hide();
             trigger.setAttribute('aria-expanded', 'false');
-            header.classList.remove('search-open');
-            trigger.focus();
+            document.body.style.overflow = '';
             if (field.value) {
                 field.value = '';
                 emit();
             }
+            // preventScroll keeps the reader where they were: focusing the icon
+            // would otherwise jump the page back to the top.
+            trigger.focus({ preventScroll: true });
+        };
+
+        results = createSiteSearch(field, { onDismiss: () => close() });
+
+        const open = () => {
+            closeMenu();
+            layer.hidden = false;
+            // The bar is the anchor for both the field and the panel, so its
+            // measured height keeps them together on phones and on desktop.
+            layer.style.height = `${header.getBoundingClientRect().height}px`;
+            trigger.setAttribute('aria-expanded', 'true');
+            document.body.style.overflow = 'hidden';
+            results.show();
+            results.update(field.value);
+            field.focus();
         };
 
         // The field covers the icon while it is open, so the icon only opens it;
-        // the close button and Escape are what dismiss it.
+        // the close button, Escape and a click outside are what dismiss it.
         trigger.addEventListener('click', open);
 
-        field.addEventListener('input', emit);
+        field.addEventListener('input', () => {
+            emit();
+            results.update(field.value);
+        });
         field.addEventListener('keydown', e => {
             if (e.key === 'Escape') {
                 e.preventDefault();
@@ -201,6 +215,16 @@ class MyHeader extends HTMLElement {
         layer.querySelector('.header-search-close').addEventListener('click', close);
         document.addEventListener('keydown', e => {
             if (e.key === 'Escape' && !layer.hidden) close();
+            // Ctrl/⌘K is the shortcut readers expect for a site search.
+            if ((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey) && !e.altKey) {
+                e.preventDefault();
+                if (layer.hidden) open();
+            }
+        });
+        window.addEventListener('resize', () => {
+            if (layer.hidden) return;
+            layer.style.height = `${header.getBoundingClientRect().height}px`;
+            results.layout();
         });
     }
 
