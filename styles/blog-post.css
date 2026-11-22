@@ -427,6 +427,13 @@ body {
     color: #cf222e;
 }
 
+/* A percentage here resolves against whatever contains the code, and in a
+   heading that is the heading: 70% of an h2 lands above the prose. Size heading
+   code against the 16px base so it stays under the article text. */
+.blog-post-content :is(h1, h2, h3, h4, h5, h6) > code {
+    font-size: 0.7rem;
+}
+
 /* OVERRIDE GLOBAL list-style: none */
 .blog-post-content ul, 
 .blog-post-content ul li, 
