@@ -121,8 +121,13 @@ posts.each do |post|
   tags << %(<meta name="twitter:image" content="#{CGI.escapeHTML(image)}">) unless image.empty?
   page = replace_once(page, '<meta property="og:image" content="">', tags.join("\n    "),
                       'the og:image tag')
-  page = replace_once(page, '<script src="/styles/post.js"></script>',
-                      %(<script>window.POST_ID = "#{id}";</script>\n    <script src="/styles/post.js"></script>),
+  # The tag carries a cache version (`?v=N`) that the shell bumps on its own, so
+  # it is matched as a shape and written back exactly as the shell had it: a bump
+  # is then a one-file change rather than a second edit here.
+  script_tag = page[/<script src="\/styles\/post\.js[^"]*"><\/script>/]
+  abort 'Failing: the shell carries no post script tag.' if script_tag.nil?
+  page = replace_once(page, script_tag,
+                      %(<script>window.POST_ID = "#{id}";</script>\n    #{script_tag}),
                       'the post script tag')
   page = page.sub('</html>', "#{MARKER}\n</html>")
 

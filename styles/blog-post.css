@@ -17,6 +17,84 @@ body {
     position: relative;
 }
 
+/* One loading state for the article ---------------------------------------------
+   The shell used to print "Loading..." where the title goes, "Loading content..."
+   where the body goes, and an empty SHARE row underneath: three half-born parts
+   of a page, each announcing itself. This block stands in for all of them at
+   once, in the article's own column and in its metrics, so the article can replace
+   it in a single step. */
+.post-loading {
+    flex: 1;
+    min-width: 0;
+    padding-top: 4px;
+}
+
+.post-loading-bar {
+    height: 14px;
+    margin-bottom: 16px;
+    border-radius: 6px;
+    background-color: var(--border-color);
+    /* A slow sweep, at low contrast: the bars say "text is coming", they are
+       not something to watch. Off entirely when motion is not wanted. */
+    background-image: linear-gradient(90deg, var(--border-color) 0%, var(--inline-code-bg) 50%, var(--border-color) 100%);
+    background-size: 200% 100%;
+    animation: post-loading-sweep 1.8s ease-in-out infinite;
+}
+
+.post-loading-bar[data-line="title"] {
+    height: 28px;
+    width: 70%;
+    margin-bottom: 20px;
+}
+
+.post-loading-bar[data-line="meta"] {
+    height: 14px;
+    width: 38%;
+    margin-bottom: 34px;
+}
+
+.post-loading-bar[data-line="body-short"] {
+    width: 55%;
+}
+
+.post-loading-text {
+    margin-top: 28px;
+    font-family: var(--font-default);
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+/* The failure note carries the one action that helps, so it reads at full
+   contrast rather than as another grey caption. */
+.post-loading-text.is-error {
+    color: var(--text-color);
+}
+
+.post-loading-text a {
+    color: var(--text-color);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+@keyframes post-loading-sweep {
+    from { background-position: 100% 0; }
+    to { background-position: -100% 0; }
+}
+
+@media screen and (prefers-reduced-motion: reduce) {
+    .post-loading-bar {
+        animation: none;
+        background-image: none;
+    }
+}
+
+/* Phones: the column is the whole width, and a title bar at 70% of a narrow
+   column looks like a short title rather than a placeholder. */
+@media screen and (max-width: 700px) {
+    .post-loading-bar[data-line="title"] { width: 85%; }
+    .post-loading-bar[data-line="meta"] { width: 55%; }
+}
+
 #waline {
     --waline-theme-color : var(--primary-color);
     --waline-active-color : var(--secondary-color);
@@ -682,6 +760,15 @@ body {
        and should keep its full width on tablets */
     .post-main-container.post-article {
         max-width: 80ch; /* the sidebar used to keep the measure in check */
+    }
+    /* The skeleton has to be the width of the article it stands in for. Here the
+       wrapper is a column and the article is capped at 80ch and centred, so an
+       uncapped skeleton reaches the full column and the page visibly narrows the
+       moment the article arrives. */
+    .post-loading {
+        width: 100%;
+        max-width: 80ch;
+        align-self: center;
     }
     .post-header-section h1 {
         font-size: 24px;
