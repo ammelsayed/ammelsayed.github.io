@@ -25,7 +25,11 @@
 
 html {
     width: 100%;
-    height: 100%;
+    /* No height here: 100% of the layout viewport is taller than the window a
+       phone actually shows while its browser chrome is out, and a shell pinned
+       to that height put the footer below the visible edge. The shell takes its
+       height from theme.css now - body is at least 100dvh - so full size is
+       kept without pinning it to a viewport nobody sees. */
     display: flex;
     flex-direction: column; /* Items are placed left to right. */
     /* background-color: #101010; */
@@ -34,7 +38,7 @@ html {
 body {
     z-index: -1;
     width: 100%;
-    height: 100%;
+    /* height: 100% went with it (see html above). */
     display: flex;
     flex-direction: column; 
     justify-content: space-between; /* Items are placed top to bottom. */
