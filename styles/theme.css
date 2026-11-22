@@ -206,3 +206,25 @@ a:hover {
         height: 40px;
     }
 }
+
+/* The page shell ---------------------------------------------------------------
+   The header and the footer are the same material, so the canvas behind them
+   carries their colour: a page whose content is short used to end its body at
+   the footer and leave a band of empty canvas under it, which read as a broken
+   layout rather than as the end of the page. The body is a column and the
+   article area takes what is left, so the footer sits at the bottom edge of the
+   window on every page, and what is between the two stays the page's own colour. */
+html {
+    background-color: var(--header-bg);
+}
+
+body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+}
+
+body > main {
+    flex: 1 0 auto;
+}
