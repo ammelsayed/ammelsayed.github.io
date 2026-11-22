@@ -127,41 +127,35 @@
             };
             document.head.appendChild(link);
         };
+        // One file is needed: the core, which defines `window.katex`. The article's
+        // formulas are drawn by the markdown extension at parse time and the ones in
+        // comments by Waline through `renderToString`, so the auto-render pass that
+        // used to walk the page after insertion is no longer downloaded at all.
         const loadKatex = (onReady, onFail) => {
-            if (typeof window.renderMathInElement === 'function' && window.katex) {
+            if (window.katex && typeof window.katex.renderToString === 'function') {
                 onReady();
                 return;
             }
             if (loadKatex.started) return;
             loadKatex.started = true;
 
-            // A stalled request that fails over and then arrives would otherwise
-            // typeset twice; the pass runs once, whichever host delivers first. A
-            // failure notice, however, is withdrawn if a late host succeeds.
-            let typesetDone = false;
-            let gaveUp = false;
+            // A stalled request that fails over and then arrives would otherwise call
+            // back twice; the answer is settled once, whichever host delivers first.
+            let settled = false;
             const finish = () => {
-                if (typesetDone) return;
-                typesetDone = true;
+                if (settled) return;
+                settled = true;
                 onReady();
             };
             const giveUp = () => {
-                if (typesetDone || gaveUp) return;
-                gaveUp = true;
+                if (settled) return;
+                settled = true;
                 if (onFail) onFail();
             };
-            const nextHost = (base) => {
-                const index = KATEX_HOSTS.indexOf(base);
-                return KATEX_HOSTS[index + 1];
-            };
-            const extension = (base) => loadScript(`${base}contrib/auto-render.min.js`, finish, () => {
-                const fallback = nextHost(base);
-                if (fallback) extension(fallback);
-                else giveUp();
-            });
+            const nextHost = (base) => KATEX_HOSTS[KATEX_HOSTS.indexOf(base) + 1];
             const core = (base) => loadScript(`${base}katex.min.js`, () => {
                 addKatexStyles(base);
-                extension(base);
+                finish();
             }, () => {
                 const fallback = nextHost(base);
                 if (fallback) core(fallback);
@@ -169,7 +163,7 @@
             });
             if (window.katex) {
                 addKatexStyles(KATEX_HOSTS[0]);
-                extension(KATEX_HOSTS[0]);
+                finish();
             }
             else core(KATEX_HOSTS[0]);
         };
@@ -287,15 +281,37 @@
                     return !/^[a-z][a-z0-9+.-]*:/i.test(url);
                 }
 
+                // KaTeX writes a MathML tree beside every formula so a screen reader
+                // can speak it, and draws a radical or a stretched delimiter as an
+                // inline svg. Both are library output, so they are recognised by
+                // namespace instead of being listed element by element - the svg only
+                // inside a formula, since nothing else here needs one. Every node still
+                // goes through the attribute check below.
+                const MATHML_NS = 'http://www.w3.org/1998/Math/MathML';
+                const SVG_NS = 'http://www.w3.org/2000/svg';
+
                 function sanitizeTree(root) {
                     root.querySelectorAll('*').forEach(node => {
-                        if (!ALLOWED_TAGS.has(node.tagName.toUpperCase())) {
+                        const inMath = node.closest('.katex');
+                        const allowed = ALLOWED_TAGS.has(node.tagName.toUpperCase())
+                            || node.namespaceURI === MATHML_NS
+                            || (inMath && node.namespaceURI === SVG_NS);
+                        if (!allowed) {
                             node.remove();
                             return;
                         }
                         Array.from(node.attributes).forEach(attr => {
                             const name = attr.name.toLowerCase();
-                            if (name.startsWith('on') || DROPPED_ATTRS.has(name)) {
+                            if (name.startsWith('on')) {
+                                node.removeAttribute(attr.name);
+                                return;
+                            }
+                            // KaTeX places its glyphs with an inline style. That is the
+                            // one place a style may stay, and only KaTeX's own output can
+                            // reach it: a url() in it would be a request the markup
+                            // controls, so that form is removed even there.
+                            if (name === 'style' && inMath && !/url\s*\(/i.test(attr.value)) return;
+                            if (DROPPED_ATTRS.has(name)) {
                                 node.removeAttribute(attr.name);
                                 return;
                             }
@@ -314,90 +330,47 @@
                     });
                 }
 
-                // Math is lifted out of the Markdown before it is parsed. A formula
-                // is source code, not prose: the parser reads an underscore as
-                // emphasis, a line that starts with "-" as a list item, and it ends
-                // a $$ block at the first blank line, leaving the two delimiters in
-                // different elements where nothing can typeset them. So each formula
-                // becomes a token of letters and digits, and the tokens turn back
-                // into TeX once the page is built.
-                const MATH_TOKEN = /MATHFORMULA(\d+)END/;
-                // Fenced blocks and inline code are quoted source: a post that shows
-                // "$$x$$" as an example has to keep it as typed. They go out first and
-                // come back last, so the pass below only ever sees prose.
-                const CODE_SPAN = /(^|\n)(```|~~~)[\s\S]*?\n\2|`[^`\n]*`/g;
-                // Display environments are written without delimiters of their own,
-                // and KaTeX reads them as display math once they are wrapped. `\[` and
-                // `\(` are rewritten into the dollar forms the page already reads.
-                // KaTeX draws most amsmath environments, but not multline or the
-                // retired eqnarray. They are rewritten to the nearest one it does
-                // draw: multline is one equation broken over centred lines, which
-                // is what gathered is; eqnarray differs from align only in name.
-                const ENVIRONMENT_ALIAS = { multline: 'gathered', eqnarray: 'align' };
-                const MATH_SOURCE = /\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|\$[^$\n]+?\$|\\begin\{(equation|align|alignat|gather|multline|eqnarray)\*?\}[\s\S]*?\\end\{\1\*?\}/g;
-
-                const protectMath = source => {
-                    const formulas = [];
-                    const code = [];
-                    const token = tex => {
-                        formulas.push(tex);
-                        return `MATHFORMULA${formulas.length - 1}END`;
-                    };
-                    const stashed = source.replace(CODE_SPAN, match => {
-                        code.push(match);
-                        return `\nMATHCODE${code.length - 1}END\n`;
-                    });
-                    const guarded = stashed.replace(MATH_SOURCE, match => {
-                        if (match.startsWith('\\begin{')) {
-                            // A label prints a number from a counter the page does
-                            // not have, so it goes before KaTeX sees the source.
-                            const [, name, star] = /^\\begin\{([a-z]+)(\*?)\}/.exec(match);
-                            const alias = ENVIRONMENT_ALIAS[name];
-                            const open = `\\begin{${alias || name + star}}`;
-                            const close = `\\end{${alias || name + star}}`;
-                            const body = match
-                                .replace(/\\label\{[^}]*\}/g, '')
-                                .replace(`\\begin{${name}${star}}`, open)
-                                .replace(`\\end{${name}${star}}`, close);
-                            return token(`$$${body}$$`);
-                        }
-                        if (match.startsWith('\\[')) return token(`$$${match.slice(2, -2)}$$`);
-                        if (match.startsWith('\\(')) return token(`$${match.slice(2, -2)}$`);
-                        return token(match);
-                    });
-                    return {
-                        markdown: guarded.replace(/MATHCODE(\d+)END/g, (m, index) => code[Number(index)]),
-                        formulas
-                    };
-                };
-
-                // The tokens become text again, in place, before anything looks for
-                // math: the typesetter below reads what a card reads, plain TeX in a
-                // text node.
-                const restoreMath = (root, formulas) => {
-                    if (formulas.length === 0) return;
-                    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-                    const holders = [];
-                    while (walker.nextNode()) {
-                        if (MATH_TOKEN.test(walker.currentNode.nodeValue)) holders.push(walker.currentNode);
-                    }
-                    holders.forEach(node => {
-                        const parts = node.nodeValue.split(MATH_TOKEN);
-                        const fragment = document.createDocumentFragment();
-                        parts.forEach((part, index) => {
-                            if (index % 2 === 0) {
-                                if (part) fragment.appendChild(document.createTextNode(part));
+                // Formulas are drawn by marked-katex-extension, which teaches `marked`
+                // itself to read $...$ while the page is parsed: `$$` is a block, `$`
+                // is inline, and the TeX becomes a token before any prose rule sees it.
+                // So an underscore stays a subscript instead of turning the rest of a
+                // paragraph italic, and a `$$` block is no longer split at a blank
+                // line. The extension renders through KaTeX as it parses, so KaTeX has
+                // to be on the page first - the same loader the page already used for
+                // the auto-render pass, and a post without formulas never asks for it.
+                // Its own file then comes from this site, after KaTeX, because it binds
+                // to `window.katex` the moment it runs.
+                //
+                // `nonStandard` reads a formula with no spaces around it, which is how
+                // physics is written ("large-$R$ jets"). `throwOnError: false` keeps a
+                // command KaTeX does not know as visible source instead of failing the
+                // paragraph. The cost is that a bare dollar used as a currency sign in
+                // prose reads as a formula; posts here use dollars for math.
+                const MATH_SOURCE = /\$\$[\s\S]+?\$\$|\$[^$\n]+?\$/;
+                let mathFailed = false;
+                if (MATH_SOURCE.test(markdown)) {
+                    await new Promise(resolve => loadKatex(resolve, () => {
+                        mathFailed = true;
+                        resolve();
+                    }));
+                    if (window.katex) {
+                        await new Promise(resolve => {
+                            if (typeof window.markedKatex === 'function') {
+                                resolve();
                                 return;
                             }
-                            const tex = formulas[Number(part)];
-                            if (tex) fragment.appendChild(document.createTextNode(tex));
+                            loadScript('/vendor/marked-katex-extension.min.js', resolve, () => {
+                                mathFailed = true;
+                                resolve();
+                            });
                         });
-                        node.parentNode.replaceChild(fragment, node);
-                    });
-                };
+                    }
+                    if (typeof window.markedKatex === 'function') {
+                        marked.use(window.markedKatex({ throwOnError: false, nonStandard: true }));
+                    }
+                }
 
-                const math = protectMath(markdown);
-                const html = marked.parse(math.markdown);
+                const html = marked.parse(markdown);
                 const parsed = new DOMParser().parseFromString(html, 'text/html');
                 sanitizeTree(parsed.body);
 
@@ -408,7 +381,16 @@
                 contentEl.replaceChildren(
                     ...Array.from(parsed.body.childNodes, node => document.importNode(node, true))
                 );
-                restoreMath(contentEl, math.formulas);
+
+                if (mathFailed) {
+                    // Nothing could be downloaded: the source stayed as text, and one
+                    // line at the end says why rather than leaving the reader to
+                    // wonder about the delimiters in the middle of a sentence.
+                    const note = document.createElement('p');
+                    note.className = 'math-unavailable';
+                    note.textContent = 'Math could not be rendered on this page.';
+                    contentEl.appendChild(note);
+                }
 
                 // An image whose size the markup declares keeps a reserved box, so it
                 // gets the lazy hint and nothing can move when it arrives. One without
@@ -889,68 +871,9 @@
                     }
                 }
 
-                // KaTeX ships as two scripts: the core (which defines window.katex)
-                // and the auto-render extension. `loadKatex` chains them and calls
-                // back once both are in, which is also the only moment a pass can run.
-                // Posts without formulas never request it at all, and neither the
-                // download nor a failure notice appears for them.
-                const MATH_PATTERN = /\$\$[\s\S]+?\$\$|\$[^$\n]+?\$/;
-                // Only text outside code blocks is a formula candidate: a shell snippet
-                // or a regex in a code block is not something KaTeX should be asked to
-                // download for. The nodetext is joined before the test, because display
-                // maths puts its opening and closing `$$` in different nodes.
-                const hasMath = (el) => {
-                    if (!el) return false;
-                    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-                    const parts = [];
-                    let node;
-                    while ((node = walker.nextNode())) {
-                        const parent = node.parentNode;
-                        if (parent && parent.closest && parent.closest('pre, code')) continue;
-                        parts.push(node.nodeValue || '');
-                    }
-                    return MATH_PATTERN.test(parts.join(''));
-                };
-                const MATH_DELIMITERS = [
-                    {left: '$$', right: '$$', display: true},
-                    {left: '$', right: '$', display: false}
-                ];
-                const typeset = () => {
-                    // A host that arrives after the notice was shown still wins: the
-                    // notice comes down and the formulas are typeset.
-                    const notice = contentEl.querySelector('.math-unavailable');
-                    if (notice) notice.remove();
-                    try {
-                        renderMathInElement(contentEl, {
-                            delimiters: MATH_DELIMITERS,
-                            throwOnError: false,
-                            // Code is quoted source. A shell snippet with a dollar
-                            // sign, or a post about LaTeX that shows the delimiters,
-                            // is not a formula to draw.
-                            ignoredTags: ['script', 'style', 'textarea', 'pre', 'code', 'option']
-                        });
-                    } catch (error) {
-                        // Formulas are decoration: a failure is reported here and the
-                        // article keeps its source text, with one line saying why.
-                        console.warn('Math rendering failed:', error);
-                        if (!contentEl.querySelector('.math-unavailable')) {
-                            const note = document.createElement('p');
-                            note.className = 'math-unavailable';
-                            note.textContent = 'Math could not be rendered on this page.';
-                            contentEl.appendChild(note);
-                        }
-                    }
-                };
-                if (hasMath(contentEl)) {
-                    loadKatex(typeset, () => {
-                        // Both hosts refused: say so once, at the end of the article, so a
-                        // reader is not left wondering about the raw $...$ text.
-                        const note = document.createElement('p');
-                        note.className = 'math-unavailable';
-                        note.textContent = 'Math could not be rendered on this page.';
-                        contentEl.appendChild(note);
-                    });
-                }
+                // The article's formulas are already drawn - the extension did it while
+                // the page was parsed. Nothing here looks for them again.
+
 
                 // Waline and the KaTeX module for comment maths are loaded only here,
                 // after the article is on screen. The note ends the loading state by
