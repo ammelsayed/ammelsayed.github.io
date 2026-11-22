@@ -3,7 +3,16 @@
     Defining colors, fonts, and common scales for consistency and easy scaling.
 */
 
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&display=swap');
+/* Fraunces, SIL OFL 1.1, vendored with its licence beside it. No request to
+   Google: a page here reaches nothing but this origin. Variable, so the axes
+   the type tokens ask for are all present: opsz 9-144, wght 100-900, SOFT,
+   WONK. */
+@font-face {
+    font-family: 'Fraunces';
+    src: url('../fonts/fraunces.woff2') format('woff2');
+    font-weight: 400 700;
+    font-display: swap;
+}
 
 :root {
     /* Dark Theme (Default) */
