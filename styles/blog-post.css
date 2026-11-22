@@ -749,6 +749,12 @@ body {
     .blog-post-content {
         font-size: 15px;
     }
+    /* Heading code is sized against the base, which does not move here: keep it
+       on the same 12.75px the inline code resolves to against this 15px body,
+       so a page carrying both shows one code size, not two. */
+    .blog-post-content :is(h1, h2, h3, h4, h5, h6) code {
+        font-size: 12.75px;
+    }
 }
 
 @media (max-width: 700px) {
