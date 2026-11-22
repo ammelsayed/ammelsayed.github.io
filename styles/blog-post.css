@@ -362,7 +362,7 @@ body {
     margin: 0;
     padding: 16px;
     overflow-x: auto;
-    font-size: max(70%, 12px);
+    font-size: 85%;
     line-height: 1.45;
     background-color: #2d2d2d !important;
     border-radius: 6px;
@@ -419,7 +419,7 @@ body {
 .blog-post-content :not(pre) > code {
     padding: 0.2em 0.4em;
     margin: 0;
-    font-size: max(70%, 12px);
+    font-size: 85%;
     white-space: break-spaces;
     background-color: rgba(175, 184, 193, 0.2);
     border-radius: 6px;
@@ -428,10 +428,10 @@ body {
 }
 
 /* A percentage here resolves against whatever contains the code, and in a
-   heading that is the heading: 70% of an h2 lands above the prose. Size heading
-   code against the base, at the same 12px floor, so it stays under the text. */
+   heading that is the heading: 85% of an h2 would land above the prose. Size
+   heading code against the base, so it stays under the article text. */
 .blog-post-content :is(h1, h2, h3, h4, h5, h6) > code {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
 }
 
 /* OVERRIDE GLOBAL list-style: none */
