@@ -119,7 +119,7 @@ class MyHeader extends HTMLElement {
     // list pages the query still filters the cards behind the panel, which is
     // why the event is kept.
     setupSearch() {
-        const placeholder = 'Search posts, publications, projects…';
+        const placeholder = 'Search…';
         const header = this.querySelector('header');
         const trigger = this.querySelector('#header-search');
 
