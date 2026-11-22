@@ -75,15 +75,6 @@ body {
     font-weight: 500;
 }
 
-.post-meta .badge {
-    background: var(--inline-code-bg);
-    color: var(--primary-color);
-    padding: 2px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
 /* An icon and its value, so the row reads as labelled data rather than as a
    sentence with separators. */
 .post-meta-item {
@@ -613,10 +604,6 @@ body {
     .post-meta img {
         width: 26px;
         height: 26px;
-    }
-    .post-meta .badge {
-        padding: 2px 8px;
-        font-size: 11px;
     }
     .blog-post-content {
         font-size: 15px;
