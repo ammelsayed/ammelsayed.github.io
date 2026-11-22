@@ -59,13 +59,20 @@ jobs:
             return 2
           }
 
+          # Called as a condition, because a status of 1 under `set -e` would end
+          # the step before it could be read.
           land() {
-            commit
-            case $? in
-              0) ;;
-              1) echo "The generated files already match the sources; nothing to commit."; exit 0 ;;
-              *) echo "The generated files could not be committed." >&2; exit 1 ;;
-            esac
+            if commit; then
+              return 0
+            else
+              status=$?
+            fi
+            if [ "$status" = "1" ]; then
+              echo "The generated files already match the sources; nothing to commit."
+              exit 0
+            fi
+            echo "The generated files could not be committed." >&2
+            exit 1
           }
 
           generate
@@ -75,9 +82,11 @@ jobs:
           # from an older revision is refused. These files are output, so they are
           # regenerated on the newest main rather than merged with it. FETCH_HEAD is
           # what the fetch just brought: `origin/main` may still point at the
-          # revision this job started on.
+          # revision this job started on. The last attempt pushes what it has
+          # instead of regenerating again, so nothing is left uncommitted.
           for attempt in 1 2 3; do
             if git push; then exit 0; fi
+            if [ "$attempt" = "3" ]; then break; fi
             echo "Push refused; regenerating on the newest main (attempt $attempt)"
             git fetch --depth=1 origin main
             git reset --hard FETCH_HEAD

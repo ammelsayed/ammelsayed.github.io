@@ -43,6 +43,19 @@ def replace_once(page, needle, value, what)
   page.sub(needle, value)
 end
 
+# A generated page's root, checked before anything is written or removed. A link
+# here - `blog/posts` pointing at `blog`, say - would send every write, and every
+# removal, somewhere other than the tree this script owns. Checked here rather
+# than per post, because an empty index never reaches a post.
+def root!(root)
+  if File.symlink?(root)
+    warn "Failing: #{root} is a link; generated pages are not written through it."
+    exit 1
+  end
+  FileUtils.mkdir_p(root)
+  root
+end
+
 # The path a page for this id is written to, with the id's own characters
 # checked twice: once as a name, once as a path that has to stay inside root.
 # The path is then checked for links, because a link is followed by every write
@@ -50,12 +63,6 @@ end
 def page_dir!(root, id, generated: false)
   unless id.match?(ID_PATTERN)
     warn "Failing: \"#{id}\" cannot be a post id; it is used as a directory name."
-    exit 1
-  end
-  # The root is checked too: a link at `blog/posts` pointing at `blog` would send
-  # every legacy stub over the page it is meant to point to.
-  if File.symlink?(root)
-    warn "Failing: #{root} is a link; generated pages are not written through it."
     exit 1
   end
   dir = File.join(root, id)
@@ -78,6 +85,15 @@ def page_dir!(root, id, generated: false)
   dir
 end
 
+# Written beside its destination and renamed over it: a reader, or an
+# interrupted run, sees the page that was there before or the new one, never a
+# half-written file.
+def write_page(path, content)
+  tmp = "#{path}.tmp-#{Process.pid}"
+  File.write(tmp, content)
+  File.rename(tmp, path)
+end
+
 # A date on its own is not a datetime, and `article:published_time` is one.
 # The front matter's date becomes the start of that day in UTC; a value that is
 # not a real date is left out, because a wrong date is worse than none.
@@ -86,31 +102,6 @@ def published_time(date)
   "#{Date.iso8601(date).strftime('%Y-%m-%d')}T00:00:00Z"
 rescue Date::Error, ArgumentError
   ''
-end
-
-unless File.exist?(INDEX_PATH)
-  warn "Failing: #{INDEX_PATH} is missing; run scripts/build-blog-index.rb first."
-  exit 1
-end
-unless File.exist?(SHELL_PATH)
-  warn "Failing: #{SHELL_PATH} is missing; the article pages are built from it."
-  exit 1
-end
-
-posts = JSON.parse(File.read(INDEX_PATH))
-ids = posts.map { |post| post['id'].to_s }
-# Every id is checked before anything is written or removed: found halfway
-# through the run, a bad one would leave pages already replaced or deleted.
-ids.each do |id|
-  page_dir!(BLOG_DIR, id, generated: true)
-  page_dir!(LEGACY_DIR, id)
-end
-shell = File.read(SHELL_PATH)
-
-conflicting = ids & RESERVED_IDS
-unless conflicting.empty?
-  warn "Failing: #{conflicting.join(', ')} cannot be a post id; its page would sit on a page of the site."
-  exit 1
 end
 
 # A post hidden with `show: false`, or deleted, drops out of the index. Its pages
@@ -131,10 +122,34 @@ def remove_stale(root, dirs, ids, require_marker)
   end
 end
 
-FileUtils.mkdir_p(LEGACY_DIR)
-blog_dirs = Dir.glob(File.join(BLOG_DIR, '*')).reject { |path| File.basename(path) == 'posts' }
-remove_stale(BLOG_DIR, blog_dirs, ids, true)
-remove_stale(LEGACY_DIR, Dir.glob(File.join(LEGACY_DIR, '*')), ids, false)
+unless File.exist?(INDEX_PATH)
+  warn "Failing: #{INDEX_PATH} is missing; run scripts/build-blog-index.rb first."
+  exit 1
+end
+unless File.exist?(SHELL_PATH)
+  warn "Failing: #{SHELL_PATH} is missing; the article pages are built from it."
+  exit 1
+end
+
+posts = JSON.parse(File.read(INDEX_PATH))
+ids = posts.map { |post| post['id'].to_s }
+shell = File.read(SHELL_PATH)
+
+root!(BLOG_DIR)
+root!(LEGACY_DIR)
+
+# Every id is checked before anything is written or removed: found halfway
+# through the run, a bad one would leave pages already replaced or deleted.
+ids.each do |id|
+  page_dir!(BLOG_DIR, id, generated: true)
+  page_dir!(LEGACY_DIR, id)
+end
+
+conflicting = ids & RESERVED_IDS
+unless conflicting.empty?
+  warn "Failing: #{conflicting.join(', ')} cannot be a post id; its page would sit on a page of the site."
+  exit 1
+end
 
 posts.each do |post|
   id = post['id'].to_s
@@ -186,8 +201,7 @@ posts.each do |post|
                       'the post script tag')
   page = page.sub('</html>', "#{MARKER}\n</html>")
 
-  FileUtils.mkdir_p(page_dir!(BLOG_DIR, id, generated: true))
-  File.write(File.join(BLOG_DIR, id, 'index.html'), page)
+  write_page(File.join(page_dir!(BLOG_DIR, id, generated: true), 'index.html'), page)
 
   # The legacy address, kept for links that were already shared. It is small and
   # carries the same metadata, so an old share still previews; a reader who
@@ -226,8 +240,13 @@ posts.each do |post|
     </html>
   HTML
 
-  FileUtils.mkdir_p(page_dir!(LEGACY_DIR, id))
-  File.write(File.join(LEGACY_DIR, id, 'index.html'), stub)
+  write_page(File.join(page_dir!(LEGACY_DIR, id), 'index.html'), stub)
 end
+
+# Removal comes last: every page written above exists before any stale page goes,
+# so a run that stops early leaves the tree as it was rather than short of pages.
+blog_dirs = Dir.glob(File.join(BLOG_DIR, '*')).reject { |path| File.basename(path) == 'posts' }
+remove_stale(BLOG_DIR, blog_dirs, ids, true)
+remove_stale(LEGACY_DIR, Dir.glob(File.join(LEGACY_DIR, '*')), ids, false)
 
 puts "Generated #{posts.length} article page(s) under #{BLOG_DIR}/<id>/ and their legacy stubs."
