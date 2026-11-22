@@ -63,8 +63,11 @@
                 </article>
 
                 <div class="post-share" id="post-share">
-                    <span class="post-share-label">Share</span>
-                    <div class="post-share-actions" id="post-share-actions"></div>
+                    <div class="post-share-left">
+                        <span class="post-share-label">Share</span>
+                        <div class="post-share-actions" id="post-share-actions"></div>
+                    </div>
+                    <div class="post-like" id="post-like"></div>
                 </div>
 
                 <div id="waline"></div>
@@ -83,9 +86,9 @@
          its grammars, in dependency order. KaTeX is cross-origin and cosmetic,
          so it is requested on demand in the page script: one stalled request
          there can no longer hold back the queue. -->
-    <!-- `onerror` is set on the tag itself, not by /styles/post.js, because a
-         refused request can dispatch its error event before that file runs. The
-         attribute records it; the script reads the record and reports it. -->
+    <!-- `onerror` is set on the tags themselves, not by the page script, because a
+         refused request can dispatch its error event before that script runs. The
+         attribute records it; /styles/post.js reads the record and reports it. -->
     <script defer data-vendor="marked" src="/vendor/marked.min.js" onerror="this.dataset.failed='1'"></script>
     <script defer data-vendor="js-yaml" src="/vendor/js-yaml.min.js" onerror="this.dataset.failed='1'"></script>
     <script defer data-vendor="prism" src="/vendor/prism.min.js"></script>
@@ -96,6 +99,6 @@
     <script defer data-vendor="prism" src="/vendor/prism-c.min.js"></script>
     <script defer data-vendor="prism" src="/vendor/prism-cpp.min.js"></script>
 
-    <script src="/styles/post.js"></script>
+<script src="/styles/post.js" onerror="var e=document.getElementById('post-content');e.textContent='The article could not be loaded: /styles/post.js failed to load. ';var a=document.createElement('a');a.href=location.href;a.textContent='Reload the page';e.appendChild(a);"></script>
 </body>
 </html>

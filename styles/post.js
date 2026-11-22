@@ -198,11 +198,12 @@
 
             // A post with a page of its own states its id in that page, so the
             // address in the bar never has to carry a query. The `?id=` form stays
-            // for links written before every post had a page: /blog/post.html?id=…
+            // for links written before every post had a page.
             const urlParams = new URLSearchParams(window.location.search);
             const postId = window.POST_ID || urlParams.get('id');
             if (!postId) {
-                document.getElementById('post-content').innerHTML = '<p>Error: No post ID provided.</p>';
+                const contentEl = document.getElementById('post-content');
+                contentEl.textContent = 'Error: No post ID provided.';
                 return;
             }
 
@@ -480,7 +481,9 @@
                     const dateText = formatPostDate(dateMeta ? dateMeta.text : postData.date);
                     const author = postData.author || {};
 
-                    metaEl.innerHTML = '';
+                    // Cleared node by node: an empty string through innerHTML is
+                    // still a parse, and the row is rebuilt right below anyway.
+                    metaEl.replaceChildren();
 
                     if (author.image) {
                         const avatar = document.createElement('img');
@@ -537,16 +540,29 @@
                     const shareTitle = titleText;
                     const enc = encodeURIComponent;
                     const icons = {
-                        // Only the two states a button can enter are outlined; the
-                        // brand marks are solid, the way each platform draws itself.
-                        check: '<svg viewBox="0 0 24 24" class="state" aria-hidden="true"><path d="M4.5 12.5 9.5 17.5 19 8"/></svg>',
-                        failed: '<svg viewBox="0 0 24 24" class="state" aria-hidden="true"><path d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5"/></svg>',
                         x: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>',
                         linkedin: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 .001zM.5 8h4.96V24H.5zM8.98 8h4.75v2.19h.07c.66-1.25 2.27-2.57 4.68-2.57 5.01 0 5.94 3.3 5.94 7.59V24h-4.96v-7.72c0-1.84-.04-4.21-2.57-4.21-2.57 0-2.96 2.01-2.96 4.08V24H8.98z"/></svg>',
                         facebook: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22.675 0H1.325C.593 0 0 .593 0 1.325v21.351C0 23.407.593 24 1.325 24h11.495v-9.294H9.691v-3.622h3.129V8.41c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.462.099 2.795.143v3.24h-1.918c-1.504 0-1.796.715-1.796 1.763v2.316h3.586l-.467 3.622h-3.119V24h6.116C23.407 24 24 23.407 24 22.675V1.325C24 .593 23.407 0 22.675 0z"/></svg>',
+                        telegram: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>',
+                        mail: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zm0 2v.3l9 5.4 9-5.4V7zm0 2.5V17h18v-7.5l-9 5.4z"/></svg>',
                         copy: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h10a2 2 0 0 1 2 2v10h-2V5H8zm-3 4h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"/></svg>',
                         share: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 16.5 6.5l-1.4 1.4L13 5.9V15h-2V5.9L8.9 7.9 7.5 6.5zM5 11h3v2H7v7h10v-7h-1v-2h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z"/></svg>',
                     };
+                    // The marks above are written as strings so they stay readable
+                    // in this file. They are parsed and imported, never assigned as
+                    // markup, so no string here becomes live HTML when a button is
+                    // built. Parsed as html, not as image/svg+xml: the html parser
+                    // is the one that puts an <svg> in the SVG namespace, and an
+                    // element in any other namespace draws nothing.
+                    const iconCache = new Map();
+                    const svgFrom = (markup) => {
+                        if (!iconCache.has(markup)) {
+                            const doc = new DOMParser().parseFromString(`<body>${markup}</body>`, 'text/html');
+                            iconCache.set(markup, document.importNode(doc.body.firstElementChild, true));
+                        }
+                        return iconCache.get(markup).cloneNode(true);
+                    };
+
                     const addButton = ({ label, icon, href, onClick }) => {
                         const el = document.createElement(href ? 'a' : 'button');
                         if (href) {
@@ -559,30 +575,23 @@
                         }
                         el.className = 'post-share-btn';
                         el.dataset.label = label;
-                        // No text sits beside the glyph now, so the label becomes the
-                        // tooltip and the accessible name instead of a visible span.
-                        el.title = label;
-                        el.setAttribute('aria-label', label);
-                        el.innerHTML = `<span class="post-share-icon">${icon}</span>`;
+                        const iconBox = document.createElement('span');
+                        iconBox.className = 'post-share-icon';
+                        iconBox.appendChild(svgFrom(icon));
+                        const labelEl = document.createElement('span');
+                        labelEl.textContent = label;
+                        el.append(iconBox, labelEl);
                         shareHost.appendChild(el);
                     };
 
-                    // With no label to rewrite, a state is shown by swapping the glyph:
-                    // a tick for a copy that worked, a cross for one that did not, each
-                    // self-clearing. The timer lives on the element so a second click
-                    // replaces the reset that belongs to the first one instead of racing it.
-                    const flashState = (btn, glyph, text) => {
-                        const box = btn.querySelector('.post-share-icon');
-                        const original = btn.dataset.glyph || (btn.dataset.glyph = box.innerHTML);
-                        box.innerHTML = glyph;
-                        btn.title = text;
-                        btn.setAttribute('aria-label', text);
+                    // A short, self-clearing change of the button's own label. The
+                    // timer lives on the element so a second click replaces the reset
+                    // that belongs to the first one instead of racing it.
+                    const flashLabel = (btn, text) => {
+                        const labelEl = btn.lastElementChild;
+                        labelEl.textContent = text;
                         clearTimeout(btn.resetTimer);
-                        btn.resetTimer = setTimeout(() => {
-                            box.innerHTML = original;
-                            btn.title = btn.dataset.label;
-                            btn.setAttribute('aria-label', btn.dataset.label);
-                        }, 1600);
+                        btn.resetTimer = setTimeout(() => { labelEl.textContent = btn.dataset.label; }, 1600);
                     };
 
                     // A system sheet when the browser has one; it is the only route
@@ -597,7 +606,7 @@
                                     .catch((error) => {
                                         // Dismissing the sheet is not a failure and needs no message.
                                         if (error && error.name === 'AbortError') return;
-                                        flashState(btn, icons.failed, 'Share failed');
+                                        flashLabel(btn, 'Share failed');
                                     });
                             },
                         });
@@ -606,13 +615,15 @@
                     addButton({ label: 'X', icon: icons.x, href: `https://twitter.com/intent/tweet?text=${enc(shareTitle)}&url=${enc(shareUrl)}` });
                     addButton({ label: 'LinkedIn', icon: icons.linkedin, href: `https://www.linkedin.com/sharing/share-offsite/?url=${enc(shareUrl)}` });
                     addButton({ label: 'Facebook', icon: icons.facebook, href: `https://www.facebook.com/sharer/sharer.php?u=${enc(shareUrl)}` });
+                    addButton({ label: 'Telegram', icon: icons.telegram, href: `https://t.me/share/url?url=${enc(shareUrl)}&text=${enc(shareTitle)}` });
+                    addButton({ label: 'Email', icon: icons.mail, href: `mailto:?subject=${enc(shareTitle)}&body=${enc(shareTitle + '\n' + shareUrl)}` });
                     addButton({
                         label: 'Copy link',
                         icon: icons.copy,
                         onClick: async (event) => {
                             const btn = event.currentTarget;
                             // Two clicks can overlap; only the latest one is allowed to
-                            // write the state, so a slow first click cannot overwrite the
+                            // write the label, so a slow first click cannot overwrite the
                             // answer the second one already showed.
                             const attempt = (btn.copyAttempt = (btn.copyAttempt || 0) + 1);
                             let copied = false;
@@ -631,7 +642,7 @@
                                 field.remove();
                             }
                             if (btn.copyAttempt !== attempt) return;
-                            flashState(btn, copied ? icons.check : icons.failed, copied ? 'Copied' : 'Copy failed');
+                            flashLabel(btn, copied ? 'Copied' : 'Copy failed');
                         },
                     });
                 }
@@ -758,7 +769,14 @@
 
             } catch (error) {
                 console.error('Error:', error);
-                document.getElementById('post-content').innerHTML = `<p>Error loading post: ${error.message}</p>`;
+                // The message is text, not markup: a fetch error can carry the
+                // requested url, and that is not something to hand to a parser.
+                const contentEl = document.getElementById('post-content');
+                contentEl.textContent = `Error loading post: ${error.message} `;
+                const back = document.createElement('a');
+                back.href = '/blog/';
+                back.textContent = 'Back to the blog';
+                contentEl.appendChild(back);
             }
         }
 
@@ -820,13 +838,19 @@
                             alertFound = true;
                         }
                     } else if (child.tagName === 'P') {
-                        const html = child.innerHTML;
-                        const match = html.match(/\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i);
-                        if (match) {
+                        // The marker sits in the paragraph's own text, so it is
+                        // removed there. Re-serialising the paragraph through
+                        // innerHTML would parse the article's markup a second time
+                        // just to delete a prefix.
+                        const walker = document.createTreeWalker(child, NodeFilter.SHOW_TEXT);
+                        let node;
+                        while ((node = walker.nextNode())) {
+                            const match = node.nodeValue.match(/\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/i);
+                            if (!match) continue;
                             alertType = match[1].toLowerCase();
-                            // Clean up the p tag
-                            child.innerHTML = html.replace(/\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/i, '');
+                            node.nodeValue = node.nodeValue.replace(/\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/i, '');
                             alertFound = true;
+                            break;
                         }
                     }
                 }
